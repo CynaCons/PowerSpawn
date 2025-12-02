@@ -96,7 +96,7 @@ Add to `.vscode/mcp.json`:
 ### Standalone Python
 
 ```python
-from agents.mcp_server import spawn_claude, spawn_codex
+from spawner import spawn_claude, spawn_codex
 
 # Spawn Claude for code review
 result = spawn_claude("Review src/App.tsx for security issues")
@@ -252,4 +252,4 @@ MIT - Use it, fork it, improve it.
 
 **Built with AI, for AI orchestration.**
 
-*Part of the [PowerTimeline](https://github.com/cynako/powertimeline) project.*
+*Part of the [PowerTimeline](https://github.com/CynaCons/powertimeline) project.*

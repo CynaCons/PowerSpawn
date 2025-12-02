@@ -52,11 +52,13 @@ except ImportError:
     print("ERROR: MCP SDK not installed. Run: pip install mcp", file=sys.stderr)
     sys.exit(1)
 
-# Add agents directory to path
-agents_dir = Path(__file__).parent
-sys.path.insert(0, str(agents_dir.parent))
+# Add current directory to path for local imports when run as script
+_current_dir = Path(__file__).parent
+if str(_current_dir) not in sys.path:
+    sys.path.insert(0, str(_current_dir))
 
-from agents.spawner import spawn_claude as _spawn_claude, spawn_codex as _spawn_codex, AgentResult
+# Import from local spawner module
+from spawner import spawn_claude as _spawn_claude, spawn_codex as _spawn_codex, AgentResult
 # Note: logging and context injection are handled by spawner.py internally
 
 # Initialize MCP server
