@@ -86,7 +86,7 @@ Add to `.vscode/mcp.json`:
   "servers": {
     "powerspawn": {
       "command": "python",
-      "args": ["agents/mcp_server.py"],
+      "args": ["powerspawn/mcp_server.py"],
       "cwd": "${workspaceFolder}"
     }
   }
@@ -108,15 +108,25 @@ result = spawn_codex("Run npm test and report failures")
 ## Architecture
 
 ```
-agents/
+powerspawn/
 ├── mcp_server.py      # MCP server - the core (~500 lines)
-├── CONTEXT.md         # Project context injected into all agents
-├── IAC.md             # Inter-Agent Communication log
-├── AGENTS.md          # Agent instructions (auto-injected)
+├── spawner.py         # Core spawn logic for Claude/Codex
+├── logger.py          # IAC.md logging with file locking
+├── context_loader.py  # Project context injection
+├── parser.py          # Response parsing (JSON, JSONL)
+├── __init__.py        # Package exports
+├── __main__.py        # CLI entry point (python -m powerspawn)
+├── pyproject.toml     # Python package configuration
+├── schemas/           # JSON output schemas
+├── examples/          # Usage examples
 ├── README.md          # This file
 ├── MCP_DESIGN.md      # Detailed architecture docs
 └── DESIGN.md          # Original design document
 ```
+
+**Auto-generated files (gitignored):**
+- `IAC.md` - Inter-Agent Communication log
+- `CONTEXT.md` - Active agent status
 
 ## Key Files
 

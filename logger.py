@@ -8,8 +8,10 @@ This module ensures all agent interactions are logged consistently,
 without relying on agents to update documentation themselves.
 
 v0.5.14.1: Added file locking for concurrent agent safety
+v0.5.25: Added configurable output directory via POWERSPAWN_OUTPUT_DIR
 """
 
+import os
 import uuid
 import threading
 import json
@@ -23,9 +25,25 @@ from contextlib import contextmanager
 _file_lock = threading.Lock()
 
 
-def get_agents_dir() -> Path:
-    """Get the agents directory path."""
+def get_output_dir() -> Path:
+    """Get the output directory for IAC.md and CONTEXT.md.
+
+    Uses POWERSPAWN_OUTPUT_DIR environment variable if set,
+    otherwise falls back to the script directory.
+
+    This allows writing logs to the project root or any custom directory.
+    """
+    env_dir = os.environ.get("POWERSPAWN_OUTPUT_DIR")
+    if env_dir:
+        path = Path(env_dir)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
     return Path(__file__).parent
+
+
+def get_agents_dir() -> Path:
+    """Get the agents directory path (alias for get_output_dir for backwards compat)."""
+    return get_output_dir()
 
 
 def generate_spawn_id() -> str:
