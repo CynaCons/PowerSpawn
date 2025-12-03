@@ -61,26 +61,35 @@ We analyzed 900+ MCP repositories and major frameworks. Findings:
 
 **Closest competitor**: `claude-flow` (1k stars) - but Claude-only, no cross-model support.
 
-## Quick Start
+## Installation
 
-### With Claude Code
+PowerSpawn is distributed as a **git submodule** - no package managers needed.
 
-The MCP server is auto-loaded. Use these tools:
+### Add to your project
 
+```bash
+# Add as submodule
+git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn
+
+# Install Python dependencies
+pip install mcp
 ```
-mcp__agents__spawn_claude   - Spawn Claude sub-agent
-mcp__agents__spawn_codex    - Spawn Codex (GPT) sub-agent
-mcp__agents__list           - List running/completed agents
-mcp__agents__result         - Get agent result by ID
-mcp__agents__wait_for_agents - Wait for all agents to complete
+
+### Configure your MCP client
+
+**Claude Code** (`.mcp.json` in project root):
+```json
+{
+  "mcpServers": {
+    "agents": {
+      "command": "python",
+      "args": ["powerspawn/mcp_server.py"]
+    }
+  }
+}
 ```
 
-**Example prompt:**
-> "Can you powerspawn a Codex to run the test suite while you review the code?"
-
-### With GitHub Copilot (VS Code)
-
-Add to `.vscode/mcp.json`:
+**GitHub Copilot** (`.vscode/mcp.json`):
 ```json
 {
   "servers": {
@@ -92,6 +101,29 @@ Add to `.vscode/mcp.json`:
   }
 }
 ```
+
+### Update to latest version
+
+```bash
+git submodule update --remote powerspawn
+```
+
+## Quick Start
+
+### With Claude Code
+
+Once configured, these MCP tools are available:
+
+```
+mcp__agents__spawn_claude   - Spawn Claude sub-agent
+mcp__agents__spawn_codex    - Spawn Codex (GPT) sub-agent
+mcp__agents__list           - List running/completed agents
+mcp__agents__result         - Get agent result by ID
+mcp__agents__wait_for_agents - Wait for all agents to complete
+```
+
+**Example prompt:**
+> "Can you powerspawn a Codex to run the test suite while you review the code?"
 
 ### Standalone Python
 
@@ -109,14 +141,13 @@ result = spawn_codex("Run npm test and report failures")
 
 ```
 powerspawn/
-├── mcp_server.py      # MCP server - the core (~500 lines)
+├── mcp_server.py      # MCP server entry point (~500 lines)
 ├── spawner.py         # Core spawn logic for Claude/Codex
 ├── logger.py          # IAC.md logging with file locking
 ├── context_loader.py  # Project context injection
 ├── parser.py          # Response parsing (JSON, JSONL)
 ├── __init__.py        # Package exports
-├── __main__.py        # CLI entry point (python -m powerspawn)
-├── pyproject.toml     # Python package configuration
+├── requirements.txt   # Python dependencies (just 'mcp')
 ├── schemas/           # JSON output schemas
 ├── examples/          # Usage examples
 ├── README.md          # This file
@@ -248,11 +279,11 @@ Agent defaults are in the MCP server. Override via tool parameters.
 
 ## Roadmap
 
-- [ ] PyPI package: `pip install powerspawn`
 - [ ] Support for Gemini models
 - [ ] Web UI for monitoring agents
 - [ ] Cost tracking dashboard
 - [ ] MCP Registry submission
+- [ ] Unit and integration test suite
 
 ## License
 
