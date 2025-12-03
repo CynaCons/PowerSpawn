@@ -112,13 +112,8 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl md:text-7xl font-bold mb-6"
         >
-          <span className="text-white">Spawn </span>
-          <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-            Claude
-          </span>
-          <span className="text-white"> AND </span>
-          <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-            Codex
+          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+            PowerSpawn
           </span>
         </motion.h1>
 
@@ -126,9 +121,11 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-400 mb-8 max-w-2xl mx-auto"
+          className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto"
         >
-          From one coordinator. Your agents leave a paper trail.
+          Spawn Claude and Codex from one coordinator.
+          <br />
+          <span className="text-gray-400">Your agents leave a paper trail.</span>
         </motion.p>
 
         {/* Install command */}
