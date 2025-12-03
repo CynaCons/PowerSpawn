@@ -11,7 +11,7 @@ const features = [
   {
     icon: '🎯',
     title: 'Deterministic, Not Hopeful',
-    description: 'MCP wraps agents and captures all I/O automatically. No relying on agents to "follow instructions".',
+    description: 'MCP wraps agents and captures all I/O automatically. Agents fail 95% of the time at self-reporting — we don\'t ask them to try.',
   },
   {
     icon: '⚖️',
@@ -72,7 +72,7 @@ export function Features() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
           <h2 className="text-4xl font-bold text-white mb-4">
             Why PowerSpawn?
@@ -80,6 +80,26 @@ export function Features() {
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             Built for developers who need reliable, observable multi-agent orchestration
           </p>
+        </motion.div>
+
+        {/* Core Principle Callout */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-12 p-6 rounded-xl bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 max-w-3xl mx-auto"
+        >
+          <div className="text-center">
+            <div className="text-indigo-400 font-mono text-sm mb-2">THE DETERMINISM PRINCIPLE</div>
+            <blockquote className="text-xl md:text-2xl text-white font-medium italic">
+              "Everything that CAN be done deterministically SHOULD be done deterministically."
+            </blockquote>
+            <p className="mt-4 text-gray-400 text-sm">
+              Agents excel at reasoning and code generation. They're terrible at administrative tasks.
+              <br />
+              <span className="text-gray-500">Let Python handle the bookkeeping. Let agents do what they're good at.</span>
+            </p>
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -20,7 +20,10 @@ export function HowItWorks() {
             How It Works
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            The IAC.md Pattern — File-based inter-agent communication
+            Layered Supervision: User → Coordinator → Python → Sub-agents
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            The IAC.md pattern provides file-based inter-agent communication
           </p>
         </motion.div>
 

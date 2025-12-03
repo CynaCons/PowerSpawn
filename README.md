@@ -286,10 +286,20 @@ Environment variables:
 
 Agent defaults are in the MCP server. Override via tool parameters.
 
+## Deep Dive: Design Philosophy
+
+For a comprehensive understanding of PowerSpawn's architecture and the reasoning behind our design decisions, read **[DESIGN.md](DESIGN.md)**.
+
+Key highlights:
+- **Why deterministic logging?** Agents are 95% unreliable at self-reporting (Section 6.1)
+- **Layered supervision model** - User → Coordinator → Python → Sub-agents (Section 2.3)
+- **The Determinism Principle** - Everything that CAN be done deterministically SHOULD be (Section 2.1)
+- **Agent capability matrix** - When to use Claude vs Codex (Section 11)
+
 ## Roadmap
 
+- [x] Landing page at powerspawn.com
 - [ ] GitHub Copilot compatibility testing
-- [ ] Landing page at powerspawn.com
 - [ ] MCP Registry submission
 - [ ] Support for Gemini models
 - [ ] Unit and integration test suite
