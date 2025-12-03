@@ -58,7 +58,13 @@ if str(_current_dir) not in sys.path:
     sys.path.insert(0, str(_current_dir))
 
 # Import from local spawner module
-from spawner import spawn_claude as _spawn_claude, spawn_codex as _spawn_codex, AgentResult
+from spawner import (
+    spawn_claude as _spawn_claude,
+    spawn_codex as _spawn_codex,
+    spawn_copilot as _spawn_copilot,
+    AgentResult,
+    COPILOT_MODELS,
+)
 # Note: logging and context injection are handled by spawner.py internally
 
 # Initialize MCP server
@@ -157,6 +163,31 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
+            name="spawn_copilot",
+            description=(
+                "Spawn a GitHub Copilot CLI sub-agent. Universal multi-model spawner "
+                "supporting GPT, Claude, and Gemini models. "
+                "Context from AGENTS.md is auto-loaded by Copilot CLI."
+            ),
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "The task for the sub-agent to perform"
+                    },
+                    "model": {
+                        "type": "string",
+                        "enum": ["gpt-5.1", "gpt-5", "gpt-5.1-codex", "gpt-5-mini",
+                                 "claude-sonnet", "claude-haiku", "claude-opus", "gemini"],
+                        "default": "gpt-5.1",
+                        "description": "Model: gpt-5.1 (default), gpt-5, claude-sonnet/haiku/opus, gemini"
+                    }
+                }
+            }
+        ),
+        Tool(
             name="list",
             description="List running and recently completed agents",
             inputSchema={
@@ -210,6 +241,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_spawn_claude(arguments)
         elif name == "spawn_codex":
             return await handle_spawn_codex(arguments)
+        elif name == "spawn_copilot":
+            return await handle_spawn_copilot(arguments)
         elif name == "list":
             return await handle_list()
         elif name == "result":
@@ -383,6 +416,84 @@ async def handle_spawn_codex(args: dict) -> list[TextContent]:
         "agent_type": "codex",
         "status": "running",
         "message": "Agent spawned. Use 'list' to monitor, 'result' to get output.",
+    }, indent=2, ensure_ascii=False))]
+
+
+def _run_copilot_background(agent_id: str, prompt: str, model: str):
+    """Run Copilot spawn in background thread."""
+    try:
+        result: AgentResult = _spawn_copilot(
+            prompt=prompt,
+            model=model,
+            timeout=300,
+            task_summary=prompt[:50] + "..." if len(prompt) > 50 else prompt,
+        )
+
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "copilot",
+                "model": model,
+                "success": result.success,
+                "result": sanitize_for_json(result.text),
+                "cost_usd": 0,  # Copilot doesn't report cost
+                "completed_at": utc_now_iso(),
+                "error": result.error,
+            }
+            _cleanup_completed_agents()
+
+    except Exception as e:
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "copilot",
+                "model": model,
+                "success": False,
+                "result": "",
+                "cost_usd": 0,
+                "completed_at": utc_now_iso(),
+                "error": str(e),
+            }
+    finally:
+        with _agents_lock:
+            running_agents.pop(agent_id, None)
+            background_threads.pop(agent_id, None)
+
+
+async def handle_spawn_copilot(args: dict) -> list[TextContent]:
+    """Handle spawn_copilot tool call."""
+    prompt = args["prompt"]
+    model = args.get("model", "gpt-5.1")
+
+    agent_id = uuid.uuid4().hex[:8]
+    started_at = utc_now_iso()
+
+    # Track as running (logging is done by spawner.py)
+    with _agents_lock:
+        running_agents[agent_id] = {
+            "agent_id": agent_id,
+            "agent_type": "copilot",
+            "model": model,
+            "started_at": started_at,
+            "task": prompt[:100].replace('\n', ' '),
+        }
+
+    # Spawn in background
+    thread = threading.Thread(
+        target=_run_copilot_background,
+        args=(agent_id, prompt, model),
+        daemon=True,
+    )
+    thread.start()
+    with _agents_lock:
+        background_threads[agent_id] = thread
+
+    return [TextContent(type="text", text=json.dumps({
+        "agent_id": agent_id,
+        "agent_type": "copilot",
+        "model": model,
+        "status": "running",
+        "message": "Copilot agent spawned. Use 'list' to monitor, 'result' to get output.",
     }, indent=2, ensure_ascii=False))]
 
 

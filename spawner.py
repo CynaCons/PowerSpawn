@@ -469,3 +469,186 @@ def _spawn_codex_stream_internal(
     finally:
         if proc and proc.poll() is None:
             proc.kill()
+
+
+# =============================================================================
+# COPILOT CLI SPAWNING
+# =============================================================================
+
+# Available models in Copilot CLI (as of Dec 2025)
+COPILOT_MODELS = {
+    # Claude models
+    "claude-sonnet": "claude-sonnet-4.5",
+    "claude-haiku": "claude-haiku-4.5",
+    "claude-opus": "claude-opus-4.5",
+    # GPT models
+    "gpt-5": "gpt-5",
+    "gpt-5.1": "gpt-5.1",
+    "gpt-5.1-codex": "gpt-5.1-codex",
+    "gpt-5-mini": "gpt-5-mini",
+    # Gemini models
+    "gemini": "gemini-3-pro-preview",
+}
+
+
+def spawn_copilot(
+    prompt: str,
+    *,
+    model: str = "gpt-5.1",
+    working_dir: Optional[str] = None,
+    timeout: int = 300,
+    task_summary: Optional[str] = None,
+) -> AgentResult:
+    """
+    Spawn a GitHub Copilot CLI agent and wait for completion.
+
+    Copilot CLI is a universal multi-model CLI that supports Claude, GPT, and Gemini.
+    It automatically loads AGENTS.md from the project root.
+
+    Automatically:
+    - Logs spawn start to IAC.md
+    - Logs completion to IAC.md
+
+    Args:
+        prompt: The task/instruction for the agent
+        model: Model to use (see COPILOT_MODELS for options):
+               - "gpt-5.1" (default), "gpt-5", "gpt-5.1-codex", "gpt-5-mini"
+               - "claude-sonnet", "claude-haiku", "claude-opus"
+               - "gemini"
+        working_dir: Working directory for the agent
+        timeout: Timeout in seconds
+        task_summary: Optional short description for logging
+
+    Returns:
+        AgentResult with the agent's response
+    """
+    start_time = time.time()
+
+    # Resolve model alias
+    resolved_model = COPILOT_MODELS.get(model, model)
+
+    # Log spawn start
+    spawn_id = log_spawn_start(
+        agent="Copilot",
+        model=resolved_model,
+        prompt=prompt,
+        tools=["all"],  # Copilot uses --allow-all-tools
+        task_summary=task_summary,
+    )
+
+    # Build CLI command
+    cmd = [
+        "copilot",
+        "-p", prompt,           # Prompt mode (non-interactive)
+        "-s",                   # Silent (output only response)
+        "--allow-all-tools",    # Auto-approve all tools
+        "--allow-all-paths",    # Allow access to any path
+        "--model", resolved_model,
+    ]
+
+    # Set working directory
+    cwd = working_dir or str(get_workspace_dir())
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=cwd,
+            shell=IS_WINDOWS,
+            encoding='utf-8',
+            errors='replace',
+        )
+
+        duration = time.time() - start_time
+
+        # Copilot CLI returns output on stdout when successful
+        output_text = result.stdout.strip() if result.stdout else ""
+        error_text = result.stderr.strip() if result.stderr else ""
+
+        # Determine success
+        success = result.returncode == 0 and output_text != ""
+
+        if not success and not output_text:
+            error_msg = error_text or f"Exit code {result.returncode}"
+            log_spawn_complete(
+                spawn_id=spawn_id,
+                success=False,
+                result_text="",
+                duration_seconds=duration,
+                error=error_msg,
+            )
+            return AgentResult(
+                success=False,
+                text="",
+                spawn_id=spawn_id,
+                error=error_msg,
+            )
+
+        # Log completion
+        log_spawn_complete(
+            spawn_id=spawn_id,
+            success=success,
+            result_text=output_text,
+            duration_seconds=duration,
+            cost_usd=0.0,  # Copilot doesn't report cost
+            error=error_text if not success else None,
+        )
+
+        return AgentResult(
+            success=success,
+            text=output_text,
+            spawn_id=spawn_id,
+            duration_ms=int(duration * 1000),
+            error=error_text if not success else None,
+        )
+
+    except subprocess.TimeoutExpired:
+        duration = time.time() - start_time
+        error_msg = f"Agent timed out after {timeout} seconds"
+        log_spawn_complete(
+            spawn_id=spawn_id,
+            success=False,
+            result_text="",
+            duration_seconds=duration,
+            error=error_msg,
+        )
+        return AgentResult(
+            success=False,
+            text="",
+            spawn_id=spawn_id,
+            error=error_msg,
+        )
+    except FileNotFoundError:
+        duration = time.time() - start_time
+        error_msg = "Copilot CLI not found. Install with: npm install -g @github/copilot"
+        log_spawn_complete(
+            spawn_id=spawn_id,
+            success=False,
+            result_text="",
+            duration_seconds=duration,
+            error=error_msg,
+        )
+        return AgentResult(
+            success=False,
+            text="",
+            spawn_id=spawn_id,
+            error=error_msg,
+        )
+    except Exception as e:
+        duration = time.time() - start_time
+        error_msg = str(e)
+        log_spawn_complete(
+            spawn_id=spawn_id,
+            success=False,
+            result_text="",
+            duration_seconds=duration,
+            error=error_msg,
+        )
+        return AgentResult(
+            success=False,
+            text="",
+            spawn_id=spawn_id,
+            error=error_msg,
+        )
