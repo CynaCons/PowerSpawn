@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* Custom CSS variables for PowerSpawn branding */
+:root {
+  --ps-primary: #6366f1;
+  --ps-primary-dark: #4f46e5;
+  --ps-bg-dark: #0f0f23;
+  --ps-bg-card: #1a1a2e;
+  --ps-text: #e2e8f0;
+  --ps-text-muted: #94a3b8;
+  --ps-accent: #22d3ee;
+  --ps-success: #22c55e;
+  --ps-warning: #f59e0b;
+}
+
+/* Dark theme by default */
+body {
+  margin: 0;
+  background-color: var(--ps-bg-dark);
+  color: var(--ps-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ps-bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ps-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ps-primary-dark);
+}
