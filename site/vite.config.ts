@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/', // Will be served from powerspawn.com root
+  base: '/PowerSpawn/', // GitHub Pages project path
   build: {
     outDir: 'dist',
   },
