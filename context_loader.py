@@ -1,9 +1,37 @@
 """
-Context Loader Module
+Context Loader Module (EXAMPLE / FUTURE USE)
 
-Loads and formats project context files for injection into agent prompts.
-This ensures agents always have consistent, curated context without
-relying on them to read files themselves.
+This module provides utilities for custom context injection into agent prompts.
+
+CURRENT STATUS:
+    NOT ACTIVELY USED. PowerSpawn currently relies on the CLI tools' built-in
+    context loading:
+    - Claude CLI auto-loads CLAUDE.md from project root
+    - Codex CLI auto-loads AGENTS.md from project root
+
+    The MCP server passes context_level="none" to spawner.py, bypassing
+    all context injection in favor of the CLIs' native behavior.
+
+FUTURE USE - ROLE-BASED AGENTS:
+    This module could enable "role-based" agent configurations:
+
+    Example roles:
+    - "reviewer": Load only code review guidelines + current PR context
+    - "tester": Load test conventions + current test failures
+    - "architect": Load full architecture docs + design patterns
+    - "debugger": Load error logs + stack traces + relevant code
+
+    Each role would have a custom context profile that curates exactly
+    what information the agent receives, optimizing for token efficiency
+    and task focus.
+
+    Usage (future):
+        from context_loader import load_role_context
+        context = load_role_context("reviewer", pr_number=123)
+        result = spawn_claude(prompt, context=context)
+
+For now, this file is kept as a reference implementation showing how
+context injection COULD work when more sophisticated agent roles are needed.
 """
 
 import re

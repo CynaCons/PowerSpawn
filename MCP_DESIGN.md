@@ -124,11 +124,12 @@ Using both prevents hitting a single provider's rate limit.
 |------|---------|
 | `mcp_server.py` | MCP server implementation |
 | `spawner.py` | Core spawn functions |
-| `context_loader.py` | Loads and formats context |
+| `context_loader.py` | Example/future: role-based context (not currently used) |
 | `logger.py` | Writes to IAC.md |
-| `AGENTS.md` | Universal context for sub-agents |
+| `AGENTS.md` | Universal context for sub-agents (auto-loaded by Codex) |
+| `CLAUDE.md` | Project context (auto-loaded by Claude CLI, in project root) |
 | `IAC.md` | Inter-agent communication log |
-| `CONTEXT.md` | Recent runs summary |
+| `CONTEXT.md` | Active agents status |
 
 ## 8. Configuration
 

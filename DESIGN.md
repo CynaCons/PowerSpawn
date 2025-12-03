@@ -1,6 +1,6 @@
 # Multi-Agent Orchestration System - Design Document
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2025-12-03
 **Authors:** User + Claude (Orchestrator)
 **Status:** Implemented (with MCP integration)
@@ -136,16 +136,7 @@ spawn_claude("Analyze authentication")
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  1. CONTEXT LOADING (context_loader.py)                     │
-│     - Read PRD.md, PLAN.md, ARCHITECTURE.md                │
-│     - Read CLAUDE.md (coding conventions)                   │
-│     - Read CONTEXT.md (current state)                       │
-│     - Format into context block                             │
-└─────────────────────────────────┬───────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│  2. PRE-SPAWN LOGGING (logger.py)                           │
+│  1. PRE-SPAWN LOGGING (logger.py)                           │
 │     - Generate spawn ID                                     │
 │     - Write to IAC.md: timestamp, agent, prompt, config    │
 │     - Update CONTEXT.md: active_agents                      │
@@ -153,15 +144,16 @@ spawn_claude("Analyze authentication")
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  3. AGENT EXECUTION (spawner.py)                            │
+│  2. AGENT EXECUTION (spawner.py)                            │
 │     - Build CLI command                                     │
 │     - Execute subprocess                                    │
+│     - CLI auto-loads CLAUDE.md/AGENTS.md                   │
 │     - Capture output                                        │
 └─────────────────────────────────┬───────────────────────────┘
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  4. POST-SPAWN LOGGING (logger.py)                          │
+│  3. POST-SPAWN LOGGING (logger.py)                          │
 │     - Write to IAC.md: result, duration, cost              │
 │     - Update CONTEXT.md: recent_runs, clear active_agents  │
 └─────────────────────────────────┬───────────────────────────┘
@@ -170,32 +162,27 @@ spawn_claude("Analyze authentication")
               Return AgentResult to caller
 ```
 
-### 3.3 Context Injection Strategy
+### 3.3 Context Strategy
 
-The Python orchestrator automatically prepends project context to every prompt:
+**Current approach:** Rely on CLI tools' native context loading.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ # Project Context                                           │
-│                                                             │
-│ ## Product Requirements (from PRD.md)                       │
-│ [Condensed PRD content]                                     │
-│                                                             │
-│ ## Current Development State (from PLAN.md)                 │
-│ [Current iteration, active tasks]                           │
-│                                                             │
-│ ## Architecture Overview (from ARCHITECTURE.md)             │
-│ [Key architectural decisions]                               │
-│                                                             │
-│ ## Coding Conventions (from CLAUDE.md)                      │
-│ [Rules and patterns to follow]                              │
-│                                                             │
-│ ---                                                         │
-│                                                             │
-│ # Your Task                                                 │
-│ [Original user prompt]                                      │
-└─────────────────────────────────────────────────────────────┘
-```
+| Agent | CLI | Auto-loads |
+|-------|-----|------------|
+| Claude | `claude` | CLAUDE.md from project root |
+| Codex | `codex` | AGENTS.md from project root |
+
+**No additional context injection** - the MCP server passes `context_level="none"`.
+
+**Why not inject context via PowerSpawn?**
+- CLIs are optimized for their own context loading
+- Avoids duplicate/conflicting context
+- Simpler architecture
+- Consistent behavior whether spawned via MCP or directly
+
+**Future: Role-based context** (see `context_loader.py`):
+- Custom context profiles per agent role
+- Fine-grained control over what each agent sees
+- Kept as reference implementation for future use
 
 ---
 
@@ -297,17 +284,43 @@ PowerSpawn uses sensible defaults with optional environment variable overrides:
 | `ANTHROPIC_API_KEY` | For Claude agents | (from CLI config) |
 | `OPENAI_API_KEY` | For Codex agents | (from CLI config) |
 
-### 5.2 Context Injection
+### 5.2 Context Handling
 
-The MCP server automatically injects context files when spawning agents:
+PowerSpawn relies on the CLI tools' **built-in context loading**:
 
-- **AGENTS.md** - Universal instructions for all sub-agents (always injected)
-- **CLAUDE.md** - Project-specific coding conventions (if exists)
-- **CONTEXT.md** - Current agent state (if exists)
+| CLI Tool | Auto-loads | From |
+|----------|------------|------|
+| Claude CLI | `CLAUDE.md` | Project root |
+| Codex CLI | `AGENTS.md` | Project root |
 
-Context is loaded by `context_loader.py` and prepended to every prompt.
+**Current approach:** The MCP server passes `context_level="none"` to spawner.py,
+meaning **no additional context injection**. The CLIs handle it natively.
 
-### 5.3 Logging Defaults
+**Why this design?**
+- Simpler: No duplicate context
+- Efficient: CLIs are optimized for their own context loading
+- Consistent: Agents always get the same context whether spawned via MCP or directly
+
+### 5.3 Future: Role-Based Agents
+
+The `context_loader.py` module is kept for future role-based agent configurations:
+
+```python
+# Future usage example:
+context = load_role_context("reviewer", pr_number=123)
+result = spawn_claude(prompt, context=context, context_level="custom")
+```
+
+Potential roles:
+- **reviewer**: Code review guidelines + PR context
+- **tester**: Test conventions + failure logs
+- **architect**: Full architecture docs + design patterns
+- **debugger**: Error logs + stack traces + relevant code
+
+This would enable fine-grained control over what context each agent receives,
+optimizing for token efficiency and task focus.
+
+### 5.4 Logging Defaults
 
 | Setting | Value |
 |---------|-------|
@@ -478,3 +491,4 @@ When asked to run Playwright tests, Codex agents:
 | 1.1 | 2025-11-29 | Added MCP integration (see MCP_DESIGN.md for details) |
 | 1.2 | 2025-11-30 | Added Codex limitations and agent comparison matrix |
 | 1.3 | 2025-12-03 | Updated for standalone PowerSpawn: new file structure, IAC.md v1.4 format (newest-first, 15 entries), removed config.yaml |
+| 1.4 | 2025-12-03 | Context handling rework: rely on CLI auto-loading (CLAUDE.md, AGENTS.md), context_loader.py kept for future role-based agents |

@@ -2,7 +2,15 @@
 Agent Spawner Module
 
 Provides functions for spawning Claude and Codex CLI agents programmatically.
-Automatically injects project context and logs all interactions.
+All interactions are logged to IAC.md automatically.
+
+CONTEXT HANDLING:
+    PowerSpawn relies on the CLI tools' built-in context loading:
+    - Claude CLI: auto-loads CLAUDE.md from project root
+    - Codex CLI: auto-loads AGENTS.md from project root
+
+    The MCP server uses context_level="none" (no additional injection).
+    The context_loader.py module is kept for future "role-based" agents.
 
 See DESIGN.md for architecture rationale.
 """
@@ -20,8 +28,11 @@ from typing import Iterator, Optional, Any
 IS_WINDOWS = sys.platform == "win32"
 
 from parser import parse_claude_response, parse_codex_event
-from context_loader import format_prompt_with_context, load_project_context
 from logger import log_spawn_start, log_spawn_complete
+
+# Context loader is kept for future role-based agents, but currently unused
+# when called via MCP (which passes context_level="none")
+from context_loader import format_prompt_with_context
 
 
 @dataclass
@@ -95,17 +106,20 @@ def spawn_claude(
     working_dir: Optional[str] = None,
     timeout: int = 300,
     dangerously_skip_permissions: bool = False,
-    context_level: str = "standard",
+    context_level: str = "none",
     task_summary: Optional[str] = None,
 ) -> AgentResult:
     """
     Spawn a Claude CLI agent and wait for completion.
 
     Automatically:
-    - Injects project context (PRD, PLAN, CLAUDE.md, etc.)
     - Logs spawn start to IAC.md
     - Logs completion to IAC.md
-    - Updates CONTEXT.md
+
+    Context Handling:
+        Claude CLI automatically loads CLAUDE.md from the project root.
+        The default context_level="none" means no additional injection.
+        Use other context_level values for future role-based agents.
 
     Args:
         prompt: The task/instruction for the agent
@@ -116,7 +130,7 @@ def spawn_claude(
         working_dir: Working directory for the agent
         timeout: Timeout in seconds
         dangerously_skip_permissions: Skip permission checks (use in sandboxed env only)
-        context_level: "none", "minimal", "standard", or "full"
+        context_level: "none" (default), "minimal", "standard", or "full"
         task_summary: Optional short description for logging
 
     Returns:
@@ -354,12 +368,16 @@ def spawn_codex_stream(
     working_dir: Optional[str] = None,
     timeout: int = 300,
     full_auto: bool = False,
-    context_level: str = "minimal",
+    context_level: str = "none",
 ) -> Iterator[CodexEvent]:
     """
     Spawn a Codex CLI agent and stream events as they arrive.
 
     Note: This function does NOT log to IAC.md (use spawn_codex for logged execution).
+
+    Context Handling:
+        Codex CLI automatically loads AGENTS.md from the project root.
+        The default context_level="none" means no additional injection.
 
     Args:
         prompt: The task/instruction for the agent
@@ -368,7 +386,7 @@ def spawn_codex_stream(
         working_dir: Working directory for the agent
         timeout: Timeout in seconds
         full_auto: Enable full-auto mode
-        context_level: "none", "minimal", "standard", or "full"
+        context_level: "none" (default), "minimal", "standard", or "full"
 
     Yields:
         CodexEvent objects as they arrive from the agent
