@@ -4,15 +4,42 @@
 
 A lightweight MCP server for cross-model AI agent orchestration. Works with Claude Code, GitHub Copilot, and any MCP-compatible client.
 
-## What Makes This Different?
+## Why PowerSpawn?
+
+### 1. Uses Your Existing CLI Subscriptions
+PowerSpawn spawns **real CLI agents** (Claude Code, GitHub Copilot, Codex) that you already have installed. No API keys to manage separately - just use your existing subscriptions.
+
+### 2. Deterministic, Not Hopeful
+The MCP server **wraps** sub-agents and handles all logging deterministically. We don't rely on agents "following instructions" to update files - the orchestrator captures inputs/outputs automatically.
+
+### 3. Distribute Load Across Subscriptions
+Hit Claude's rate limit? Spawn a Codex agent instead. PowerSpawn lets you **balance work across multiple AI subscriptions**, maximizing your throughput.
+
+### 4. Full Oversight for User and Coordinator
+- **CONTEXT.md** - See which agents are currently running
+- **IAC.md** - Complete audit trail of all inputs and outputs (newest first, last 15 entries)
+
+### 5. Persistent Memory Across Sessions
+File-based state means **sessions can resume** even after:
+- Coordinator agent runs out of context window
+- Process restarts or crashes
+- Hours or days between work sessions
+
+### 6. Parallel Work in the Same Project
+Multiple agents can work on different tasks simultaneously. The file-based architecture prevents conflicts and provides clear separation.
+
+---
+
+## Comparison with Other Frameworks
 
 | Feature | PowerSpawn | AutoGen | CrewAI | LangGraph |
 |---------|------------|---------|--------|-----------|
 | Cross-model spawning | **Yes** (Claude + Codex) | No | No | No |
-| MCP protocol native | **Yes** | No | No | No |
-| File-based communication | **Yes** (IAC.md) | No | No | No |
+| Uses existing CLI subscriptions | **Yes** | No | No | No |
+| Deterministic logging | **Yes** | No | No | No |
+| File-based persistence | **Yes** (IAC.md) | No | No | No |
 | Zero infrastructure | **Yes** | Partial | Partial | No |
-| CLI-native | **Yes** | No | No | No |
+| MCP protocol native | **Yes** | No | No | No |
 
 ## The IAC.md Pattern (Novel)
 
@@ -259,30 +286,12 @@ Environment variables:
 
 Agent defaults are in the MCP server. Override via tool parameters.
 
-## Comparison with Other Frameworks
-
-### vs AutoGen (Microsoft)
-- AutoGen: Heavy SDK, in-memory, single-model focus
-- PowerSpawn: Lightweight MCP, file-based, cross-model
-
-### vs CrewAI
-- CrewAI: Role-based agents, complex setup
-- PowerSpawn: Simple spawn/wait pattern, zero config
-
-### vs LangGraph
-- LangGraph: Graph-based workflows, state machines
-- PowerSpawn: Imperative spawning, human-readable logs
-
-### vs claude-flow
-- claude-flow: Claude-only, swarm intelligence focus
-- PowerSpawn: Cross-model, simpler architecture
-
 ## Roadmap
 
-- [ ] Support for Gemini models
-- [ ] Web UI for monitoring agents
-- [ ] Cost tracking dashboard
+- [ ] GitHub Copilot compatibility testing
+- [ ] Landing page at powerspawn.com
 - [ ] MCP Registry submission
+- [ ] Support for Gemini models
 - [ ] Unit and integration test suite
 
 ## License
