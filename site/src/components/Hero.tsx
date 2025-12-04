@@ -6,12 +6,15 @@ const terminalLines = [
   { text: '→ Spawning Claude agent (sonnet)...', delay: 0.5, color: 'text-cyan-400' },
   { text: '→ Agent #a3f2 running', delay: 1, color: 'text-green-400' },
   { text: '', delay: 1.2 },
-  { text: '$ # Claude is busy? Spawn Codex instead!', delay: 1.5, color: 'text-gray-500' },
-  { text: '$ codex "Run the test suite"', delay: 2 },
-  { text: '→ Spawning Codex agent...', delay: 2.5, color: 'text-cyan-400' },
-  { text: '→ Agent #b7c1 running', delay: 3, color: 'text-green-400' },
-  { text: '', delay: 3.2 },
-  { text: '✓ Both agents working in parallel!', delay: 3.5, color: 'text-emerald-400' },
+  { text: '$ codex "Run the test suite"', delay: 1.5 },
+  { text: '→ Spawning Codex agent (gpt-5.1)...', delay: 2, color: 'text-cyan-400' },
+  { text: '→ Agent #b7c1 running', delay: 2.5, color: 'text-green-400' },
+  { text: '', delay: 2.7 },
+  { text: '$ copilot --model gemini "Analyze the codebase"', delay: 3 },
+  { text: '→ Spawning Copilot agent (gemini-3-pro)...', delay: 3.5, color: 'text-cyan-400' },
+  { text: '→ Agent #c9d4 running', delay: 4, color: 'text-green-400' },
+  { text: '', delay: 4.2 },
+  { text: '✓ Three agents working in parallel!', delay: 4.5, color: 'text-emerald-400' },
 ]
 
 function AnimatedTerminal() {
@@ -123,9 +126,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto"
         >
-          Spawn Claude and Codex from one coordinator.
+          Spawn Claude, Codex, and Copilot from one coordinator.
           <br />
-          <span className="text-gray-400">Your agents leave a paper trail.</span>
+          <span className="text-gray-400">GPT • Claude • Gemini — Your agents leave a paper trail.</span>
         </motion.p>
 
         {/* Install command */}

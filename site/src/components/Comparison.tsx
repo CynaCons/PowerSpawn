@@ -4,6 +4,7 @@ import { useRef } from 'react'
 
 const comparisonData = [
   { feature: 'Cross-model spawning', powerSpawn: true, autoGen: false, crewAI: false, langGraph: false },
+  { feature: 'Model diversity (GPT, Claude, Gemini)', powerSpawn: true, autoGen: 'partial', crewAI: 'partial', langGraph: 'partial' },
   { feature: 'Uses CLI subscriptions', powerSpawn: true, autoGen: false, crewAI: false, langGraph: false },
   { feature: 'Deterministic logging', powerSpawn: true, autoGen: false, crewAI: false, langGraph: false },
   { feature: 'File-based persistence', powerSpawn: true, autoGen: false, crewAI: false, langGraph: false },
