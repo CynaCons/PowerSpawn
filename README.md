@@ -1,5 +1,7 @@
 # PowerSpawn - Universal Multi-Agent MCP Server
 
+> **Version 1.4.0**
+
 > **Spawn Claude, Codex, AND Copilot from one coordinator. Your agents leave a paper trail.**
 
 A lightweight MCP server for cross-model AI agent orchestration. Works with Claude Code, GitHub Copilot, and any MCP-compatible client. Supports GPT, Claude, and Gemini models through multiple CLI providers.
@@ -183,6 +185,7 @@ powerspawn/
 ├── requirements.txt   # Python dependencies (just 'mcp')
 ├── schemas/           # JSON output schemas
 ├── examples/          # Usage examples
+├── site/              # Landing page (powerspawn.com)
 ├── README.md          # This file
 ├── MCP_DESIGN.md      # Detailed architecture docs
 └── DESIGN.md          # Original design document

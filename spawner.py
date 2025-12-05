@@ -15,24 +15,19 @@ CONTEXT HANDLING:
 See DESIGN.md for architecture rationale.
 """
 
-import json
 import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Iterator, Optional, Any
+from typing import Iterator, Optional
+
+from context_loader import format_prompt_with_context
+from logger import log_spawn_complete, log_spawn_start
+from parser import parse_claude_response, parse_codex_event
 
 # Windows compatibility: use shell=True for .cmd files
 IS_WINDOWS = sys.platform == "win32"
-
-from parser import parse_claude_response, parse_codex_event
-from logger import log_spawn_start, log_spawn_complete
-
-# Context loader is kept for future role-based agents, but currently unused
-# when called via MCP (which passes context_level="none")
-from context_loader import format_prompt_with_context
 
 
 @dataclass
@@ -537,12 +532,16 @@ def spawn_copilot(
     )
 
     # Build CLI command
+    # Note: --allow-all-tools doesn't include shell commands by default
+    # We need explicit --allow-tool shell and --allow-tool write for full access
     cmd = [
         "copilot",
-        "-p", prompt,           # Prompt mode (non-interactive)
         "-s",                   # Silent (output only response)
+        "-p", prompt,           # Prompt text (required for non-interactive mode)
         "--allow-all-tools",    # Auto-approve all tools
         "--allow-all-paths",    # Allow access to any path
+        "--allow-tool", "shell",  # Allow all shell commands
+        "--allow-tool", "write",  # Allow file write operations
         "--model", resolved_model,
     ]
 

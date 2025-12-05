@@ -1,7 +1,7 @@
 # MCP Agent Spawner - Design Document
 
-**Version:** 1.3
-**Date:** 2025-11-30
+**Version:** 1.4
+**Date:** 2025-12-05
 **Status:** Implemented
 
 ---
@@ -25,7 +25,7 @@ Parameters:
   model (optional)   - haiku | sonnet | opus (default: sonnet)
 ```
 
-All other settings are hardcoded:
+Settings:
 - Tools: Bash, Read, Write, Edit, Glob, Grep
 - Timeout: 300s (600s for test tasks)
 - Context: Claude CLI auto-loads CLAUDE.md from project root
@@ -39,12 +39,32 @@ Parameters:
   prompt (required)  - The task to perform
 ```
 
-All settings hardcoded:
+Settings:
 - Sandbox: `--dangerously-bypass-approvals-and-sandbox` (required for write access)
 - Timeout: 300s
 - Context: Codex CLI auto-loads AGENTS.md from project root
 
-**Note:** Codex's `--sandbox workspace-write` mode is broken ([GitHub issue](https://github.com/openai/codex/issues)). We use the bypass flag to enable file writes.
+### spawn_copilot
+
+Spawn a GitHub Copilot CLI sub-agent with any supported model.
+
+```
+Parameters:
+  prompt (required)  - The task to perform
+  model (optional)   - gpt-5.1 | gpt-5 | claude-sonnet | gemini (default: gpt-5.1)
+```
+
+Settings:
+- Flags: `-s -p <prompt> --allow-all-tools --allow-all-paths --allow-tool shell --allow-tool write`
+- Timeout: 600s
+- Context: Copilot CLI auto-loads AGENTS.md from project root
+
+**Supported models:**
+| Model | Provider |
+|-------|----------|
+| `gpt-5.1`, `gpt-5`, `gpt-5-mini` | OpenAI |
+| `claude-sonnet`, `claude-haiku`, `claude-opus` | Anthropic |
+| `gemini` | Google |
 
 ### list
 
@@ -63,6 +83,15 @@ Parameters:
   agent_id (required) - ID returned from spawn
 ```
 
+### wait_for_agents
+
+Block until all running agents complete, then return all results.
+
+```
+Parameters:
+  timeout (optional) - Max seconds to wait (default: 300)
+```
+
 ## 3. Architecture
 
 ```
@@ -75,11 +104,11 @@ Parameters:
                        │
                        ▼
 ┌──────────────────────────────────────────────────────┐
-│  MCP Server (agents/mcp_server.py)                   │
+│  MCP Server (mcp_server.py)                          │
 │                                                      │
 │  1. Log start to IAC.md                              │
-│  2. Spawn subprocess (claude/codex CLI)              │
-│     - CLI auto-loads context (CLAUDE.md/AGENTS.md)   │
+│  2. Spawn subprocess (claude/codex/copilot CLI)      │
+│     - CLI auto-loads context                         │
 │  3. Log completion to IAC.md                         │
 │  4. Return result                                    │
 └──────────────────────────────────────────────────────┘
@@ -88,35 +117,29 @@ Parameters:
 ## 4. Context Loading
 
 Context is loaded by the respective CLIs, not injected by the MCP server:
-- **Claude CLI:** Auto-loads `CLAUDE.md` from project root
-- **Codex CLI:** Auto-loads `AGENTS.md` from project root
 
-This avoids duplicate context and ensures each agent gets the appropriate instructions.
-
-The context files contain:
-- Project overview (what is PowerTimeline)
-- Codebase structure (where things are)
-- Commands (how to build, test)
-- Role guidelines (what to do and NOT do)
+| Agent | CLI | Auto-loads |
+|-------|-----|------------|
+| Claude | `claude` | `CLAUDE.md` from project root |
+| Codex | `codex` | `AGENTS.md` from project root |
+| Copilot | `copilot` | `AGENTS.md` from project root |
 
 ## 5. Logging
 
-**IAC.md** (Inter-Agent Communication) records:
+**IAC.md** records:
 - Spawn ID, agent type, timestamp (UTC)
 - Task summary and full input prompt
-- Duration, cost (for Claude, estimated for Codex)
-- Success/failure status with output
+- Duration, cost, success/failure status
 
-**CONTEXT.md** shows currently active agents only (resets on server restart).
+**CONTEXT.md** shows currently active agents (resets on server restart).
 
-## 6. Why Two Agent Types?
+## 6. Agent Comparison
 
-| Agent | Best For | Rate Limit |
-|-------|----------|------------|
-| Claude | Reasoning, analysis, complex tasks | Limited (Anthropic API) |
-| Codex | Any task, alternative quota | Separate (OpenAI API) |
-
-Using both prevents hitting a single provider's rate limit.
+| Agent | Best For | Rate Limit | Models |
+|-------|----------|------------|--------|
+| Claude | Reasoning, analysis | Anthropic quota | haiku/sonnet/opus |
+| Codex | Any task | OpenAI quota | GPT-5.1 |
+| Copilot | Any task, multi-model | GitHub subscription | GPT/Claude/Gemini |
 
 ## 7. Files
 
@@ -124,10 +147,7 @@ Using both prevents hitting a single provider's rate limit.
 |------|---------|
 | `mcp_server.py` | MCP server implementation |
 | `spawner.py` | Core spawn functions |
-| `context_loader.py` | Example/future: role-based context (not currently used) |
 | `logger.py` | Writes to IAC.md |
-| `AGENTS.md` | Universal context for sub-agents (auto-loaded by Codex) |
-| `CLAUDE.md` | Project context (auto-loaded by Claude CLI, in project root) |
 | `IAC.md` | Inter-agent communication log |
 | `CONTEXT.md` | Active agents status |
 
@@ -140,42 +160,8 @@ Using both prevents hitting a single provider's rate limit.
   "mcpServers": {
     "agents": {
       "command": "python",
-      "args": ["agents/mcp_server.py"],
-      "env": {
-        "PYTHONIOENCODING": "utf-8"
-      }
+      "args": ["powerspawn/mcp_server.py"]
     }
   }
-}
-```
-
-## 9. Usage Examples
-
-**Delegate analysis:**
-```json
-{
-  "tool": "mcp__agents__spawn_claude",
-  "prompt": "Find all usages of deprecated User.name field"
-}
-```
-
-**Delegate testing:**
-```json
-{
-  "tool": "mcp__agents__spawn_codex",
-  "prompt": "Run tests/editor/ and report failures"
-}
-```
-
-**Check status:**
-```json
-{"tool": "mcp__agents__list"}
-```
-
-**Get result:**
-```json
-{
-  "tool": "mcp__agents__result",
-  "agent_id": "abc123"
 }
 ```

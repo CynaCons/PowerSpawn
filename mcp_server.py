@@ -23,13 +23,27 @@ See MCP_DESIGN.md for architecture documentation.
 
 import asyncio
 import json
-import subprocess
 import sys
 import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+try:
+    from .spawner import (
+        AgentResult,
+        spawn_claude as _spawn_claude,
+        spawn_codex as _spawn_codex,
+        spawn_copilot as _spawn_copilot,
+    )
+except ImportError:
+    from spawner import (
+        AgentResult,
+        spawn_claude as _spawn_claude,
+        spawn_codex as _spawn_codex,
+        spawn_copilot as _spawn_copilot,
+    )
 
 # Ensure UTF-8 encoding on Windows
 if sys.platform == "win32":
@@ -51,21 +65,6 @@ try:
 except ImportError:
     print("ERROR: MCP SDK not installed. Run: pip install mcp", file=sys.stderr)
     sys.exit(1)
-
-# Add current directory to path for local imports when run as script
-_current_dir = Path(__file__).parent
-if str(_current_dir) not in sys.path:
-    sys.path.insert(0, str(_current_dir))
-
-# Import from local spawner module
-from spawner import (
-    spawn_claude as _spawn_claude,
-    spawn_codex as _spawn_codex,
-    spawn_copilot as _spawn_copilot,
-    AgentResult,
-    COPILOT_MODELS,
-)
-# Note: logging and context injection are handled by spawner.py internally
 
 # Initialize MCP server
 server = Server("agents")
@@ -103,8 +102,8 @@ def _cleanup_completed_agents():
 
 
 def get_workspace_dir() -> Path:
-    """Get workspace root directory."""
-    return agents_dir.parent
+    """Get workspace root directory (parent of powerspawn/)."""
+    return Path(__file__).parent.parent
 
 
 # =============================================================================

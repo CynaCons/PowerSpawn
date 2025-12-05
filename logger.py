@@ -7,21 +7,21 @@ Updates IAC.md (Inter-Agent Communication) and CONTEXT.md automatically.
 This module ensures all agent interactions are logged consistently,
 without relying on agents to update documentation themselves.
 
+All log files are created in the same directory as mcp_server.py,
+keeping PowerSpawn self-contained with no external dependencies.
+
 v0.5.14.1: Added file locking for concurrent agent safety
-v0.5.25: Added configurable output directory via POWERSPAWN_OUTPUT_DIR
 v0.5.25.1: Newest entries first, limit to 15 entries
+v0.5.26.1: Simplified - always write to script directory
 """
 
-import os
 import re
 import uuid
 import threading
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 from dataclasses import dataclass
-from contextlib import contextmanager
 
 # Global lock for file operations (thread-safe within process)
 _file_lock = threading.Lock()
@@ -42,16 +42,9 @@ IAC_HEADER = """# Inter-Agent Communication Log
 def get_output_dir() -> Path:
     """Get the output directory for IAC.md and CONTEXT.md.
 
-    Uses POWERSPAWN_OUTPUT_DIR environment variable if set,
-    otherwise falls back to the script directory.
-
-    This allows writing logs to the project root or any custom directory.
+    Always returns the same directory as mcp_server.py (powerspawn/).
+    This keeps PowerSpawn self-contained with no external dependencies.
     """
-    env_dir = os.environ.get("POWERSPAWN_OUTPUT_DIR")
-    if env_dir:
-        path = Path(env_dir)
-        path.mkdir(parents=True, exist_ok=True)
-        return path
     return Path(__file__).parent
 
 

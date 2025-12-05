@@ -5,10 +5,9 @@ Provides functions for parsing Claude JSON and Codex JSONL responses.
 """
 
 import json
-from typing import Optional, Any
+from typing import Optional, TYPE_CHECKING
 
 # Import types from spawner (avoiding circular import by using TYPE_CHECKING)
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from spawner import AgentResult, CodexEvent
 
