@@ -33,6 +33,11 @@ const features = [
     title: 'Parallel Execution',
     description: 'Multiple agents work simultaneously on different tasks. File-based architecture prevents conflicts.',
   },
+  {
+    icon: '📐',
+    title: 'Extend Your Context Window',
+    description: 'Sub-agents return concise summaries, not raw data. Your coordinator stays lean — enabling longer sessions and more complex tasks within model limits.',
+  },
 ]
 
 function FeatureCard({ feature, index }: { feature: typeof features[0], index: number }) {

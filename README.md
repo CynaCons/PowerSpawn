@@ -1,6 +1,6 @@
 # PowerSpawn - Universal Multi-Agent MCP Server
 
-> **Version 1.4.0**
+> **Version 1.4.2**
 
 > **Spawn Claude, Codex, AND Copilot from one coordinator. Your agents leave a paper trail.**
 
@@ -30,6 +30,12 @@ File-based state means **sessions can resume** even after:
 ### 6. Parallel Work in the Same Project
 Multiple agents can work on different tasks simultaneously. The file-based architecture prevents conflicts and provides clear separation.
 
+### 7. Extend Your Context Window
+Sub-agents do the heavy lifting — reading files, searching code, running tests — and return **concise summaries** instead of raw data. Your coordinator's context stays lean, enabling:
+- **Longer sessions** before hitting context limits
+- **More complex tasks** within model constraints
+- **Better focus** on orchestration, not file contents
+
 ---
 
 ## Comparison with Other Frameworks
@@ -41,6 +47,7 @@ Multiple agents can work on different tasks simultaneously. The file-based archi
 | Uses existing CLI subscriptions | **Yes** | No | No | No |
 | Deterministic logging | **Yes** | No | No | No |
 | File-based persistence | **Yes** (IAC.md) | No | No | No |
+| Context window optimization | **Yes** (summaries) | No | No | No |
 | Zero infrastructure | **Yes** | Partial | Partial | No |
 | MCP protocol native | **Yes** | No | No | No |
 
