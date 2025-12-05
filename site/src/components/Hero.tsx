@@ -1,46 +1,71 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 
+// User's natural language request to the coordinator
+const userPrompt = "Spawn a Claude agent to review auth, and a Codex agent to run tests. I'll update the docs. When done, spawn Gemini for the release."
+
+// Coordinator's actions
 const terminalLines = [
-  { text: '$ claude "Review the authentication module"', delay: 0 },
-  { text: '→ Spawning Claude agent (sonnet)...', delay: 0.5, color: 'text-cyan-400' },
-  { text: '→ Agent #a3f2 running', delay: 1, color: 'text-green-400' },
-  { text: '', delay: 1.2 },
-  { text: '$ codex "Run the test suite"', delay: 1.5 },
-  { text: '→ Spawning Codex agent (gpt-5.1)...', delay: 2, color: 'text-cyan-400' },
-  { text: '→ Agent #b7c1 running', delay: 2.5, color: 'text-green-400' },
-  { text: '', delay: 2.7 },
-  { text: '$ copilot --model gemini "Analyze the codebase"', delay: 3 },
-  { text: '→ Spawning Copilot agent (gemini-3-pro)...', delay: 3.5, color: 'text-cyan-400' },
-  { text: '→ Agent #c9d4 running', delay: 4, color: 'text-green-400' },
-  { text: '', delay: 4.2 },
-  { text: '✓ Three agents working in parallel!', delay: 4.5, color: 'text-emerald-400' },
+  { text: '# Coordinator thinking...', delay: 0, color: 'text-gray-500' },
+  { text: '', delay: 0.3 },
+  { text: 'spawn_claude("Review authentication module")', delay: 0.5, color: 'text-indigo-400' },
+  { text: '→ Agent #a3f2 running (sonnet)', delay: 0.8, color: 'text-green-400' },
+  { text: '', delay: 1 },
+  { text: 'spawn_codex("Run npm test, report failures")', delay: 1.2, color: 'text-indigo-400' },
+  { text: '→ Agent #b7c1 running (gpt-5.1)', delay: 1.5, color: 'text-green-400' },
+  { text: '', delay: 1.7 },
+  { text: '# Coordinator updates docs while agents work...', delay: 2, color: 'text-gray-500' },
+  { text: '', delay: 2.3 },
+  { text: 'wait_for_agents()  # Both complete ✓', delay: 2.8, color: 'text-cyan-400' },
+  { text: '', delay: 3.1 },
+  { text: 'spawn_copilot("Handle release", model="gemini")', delay: 3.4, color: 'text-indigo-400' },
+  { text: '→ Agent #c9d4 running (gemini)', delay: 3.7, color: 'text-green-400' },
+  { text: '', delay: 4 },
+  { text: '✓ Context stays lean. More work done.', delay: 4.3, color: 'text-emerald-400' },
 ]
 
 function AnimatedTerminal() {
   return (
-    <div className="bg-[#1e1e2e] rounded-lg border border-gray-700 shadow-2xl overflow-hidden max-w-2xl mx-auto">
-      {/* Terminal header */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-[#181825] border-b border-gray-700">
-        <div className="w-3 h-3 rounded-full bg-red-500" />
-        <div className="w-3 h-3 rounded-full bg-yellow-500" />
-        <div className="w-3 h-3 rounded-full bg-green-500" />
-        <span className="ml-4 text-sm text-gray-400 font-mono">powerspawn</span>
-      </div>
+    <div className="max-w-2xl mx-auto space-y-3">
+      {/* User prompt bubble */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-start gap-3"
+      >
+        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shrink-0">
+          U
+        </div>
+        <div className="bg-indigo-900/40 border border-indigo-500/30 rounded-lg rounded-tl-none px-4 py-3 text-sm text-gray-200 leading-relaxed">
+          {userPrompt}
+        </div>
+      </motion.div>
 
-      {/* Terminal content */}
-      <div className="p-4 font-mono text-sm space-y-1 min-h-[280px]">
-        {terminalLines.map((line, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: line.delay, duration: 0.3 }}
-            className={line.color || 'text-gray-200'}
-          >
-            {line.text || '\u00A0'}
-          </motion.div>
-        ))}
+      {/* Coordinator terminal */}
+      <div className="bg-[#1e1e2e] rounded-lg border border-gray-700 shadow-2xl overflow-hidden">
+        {/* Terminal header */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-[#181825] border-b border-gray-700">
+          <div className="w-3 h-3 rounded-full bg-red-500" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500" />
+          <div className="w-3 h-3 rounded-full bg-green-500" />
+          <span className="ml-4 text-sm text-gray-400 font-mono">coordinator</span>
+        </div>
+
+        {/* Terminal content */}
+        <div className="p-4 font-mono text-sm space-y-1 min-h-[320px]">
+          {terminalLines.map((line, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: line.delay, duration: 0.3 }}
+              className={line.color || 'text-gray-200'}
+            >
+              {line.text || '\u00A0'}
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   )
