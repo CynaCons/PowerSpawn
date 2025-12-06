@@ -112,6 +112,20 @@ git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn
 pip install mcp
 ```
 
+### Windows: Install PowerShell Core (required for Copilot shell commands)
+
+Copilot CLI uses PowerShell Core (`pwsh`) for shell commands on Windows. Without it, file operations (Create, Edit, Read) work, but shell commands fail.
+
+```powershell
+# Install via winget
+winget install Microsoft.PowerShell
+
+# Verify installation
+pwsh --version  # Should show PowerShell 7.x
+```
+
+> **Note:** After installation, restart your terminal for PATH changes to take effect.
+
 ### Configure your MCP client
 
 **Claude Code** (`.mcp.json` in project root):
