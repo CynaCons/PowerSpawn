@@ -164,11 +164,13 @@ def spawn_grok(
     max_tokens: int = 4096,
     timeout: int = 300,
     task_summary: Optional[str] = None,
+    enable_search: bool = True,  # Enable live web search by default
 ) -> AgentResult:
     """
     Spawn a Grok agent via X.ai API.
 
     Grok uses an OpenAI-compatible API, so we use the OpenAI SDK with a custom base_url.
+    Live search is enabled by default for real-time web access.
 
     Args:
         prompt: The task/instruction for the agent
@@ -178,6 +180,7 @@ def spawn_grok(
         max_tokens: Maximum tokens in response
         timeout: Timeout in seconds
         task_summary: Optional short description for logging
+        enable_search: Enable live web/X search (default True)
 
     Returns:
         AgentResult with the agent's response
@@ -208,13 +211,25 @@ def spawn_grok(
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        response = client.chat.completions.create(
-            model=resolved_model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            timeout=timeout,
-        )
+        # Build request kwargs
+        request_kwargs = {
+            "model": resolved_model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "timeout": timeout,
+        }
+
+        # Enable live search if requested (web + X search)
+        if enable_search:
+            request_kwargs["extra_body"] = {
+                "search_parameters": {
+                    "mode": "auto",  # Let Grok decide when to search
+                    "return_citations": True,
+                }
+            }
+
+        response = client.chat.completions.create(**request_kwargs)
 
         duration = time.time() - start_time
 
@@ -293,20 +308,19 @@ GEMINI_MODELS = {
 GEMINI_DEFAULT_MODEL = "gemini-3-pro"
 
 
-def _get_gemini_model(model_name: str):
-    """Get or create Gemini model instance."""
+def _get_gemini_client():
+    """Get or create Gemini client instance (new google.genai SDK)."""
     global _genai
     if _genai is None:
-        import google.generativeai as genai
+        from google import genai
         # Check multiple possible env var names
         api_key = _get_api_key(
             ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_AI_KEY"],
             "Google Gemini",
             "https://aistudio.google.com/apikey"
         )
-        genai.configure(api_key=api_key)
-        _genai = genai
-    return _genai.GenerativeModel(model_name)
+        _genai = genai.Client(api_key=api_key)
+    return _genai
 
 
 def spawn_gemini(
@@ -318,9 +332,12 @@ def spawn_gemini(
     max_tokens: int = 4096,
     timeout: int = 300,
     task_summary: Optional[str] = None,
+    enable_search: bool = True,  # Enable Google Search grounding by default
 ) -> AgentResult:
     """
     Spawn a Gemini agent via Google AI API.
+
+    Google Search grounding is enabled by default for real-time web access.
 
     Args:
         prompt: The task/instruction for the agent
@@ -330,6 +347,7 @@ def spawn_gemini(
         max_tokens: Maximum tokens in response
         timeout: Timeout in seconds (not directly supported, included for API consistency)
         task_summary: Optional short description for logging
+        enable_search: Enable Google Search grounding (default True)
 
     Returns:
         AgentResult with the agent's response
@@ -353,22 +371,31 @@ def spawn_gemini(
     )
 
     try:
-        gemini_model = _get_gemini_model(resolved_model)
+        client = _get_gemini_client()
 
-        # Build prompt (Gemini doesn't have separate system prompt in basic API)
+        # Build prompt (prepend system prompt if provided)
         full_prompt = prompt
         if system_prompt:
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
-        # Configure generation
-        generation_config = {
-            "temperature": temperature,
-            "max_output_tokens": max_tokens,
-        }
+        # Configure generation with optional Google Search grounding
+        from google.genai import types
 
-        response = gemini_model.generate_content(
-            full_prompt,
-            generation_config=generation_config,
+        # Build tools list
+        tools = []
+        if enable_search:
+            tools.append(types.Tool(google_search=types.GoogleSearch()))
+
+        generation_config = types.GenerateContentConfig(
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            tools=tools if tools else None,
+        )
+
+        response = client.models.generate_content(
+            model=resolved_model,
+            contents=full_prompt,
+            config=generation_config,
         )
 
         duration = time.time() - start_time
