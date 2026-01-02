@@ -17,17 +17,27 @@ pip install mcp`,
       "args": ["powerspawn/mcp_server.py"]
     }
   }
-}`,
+}
 
-  usage: `# In Claude Code or Copilot, just ask:
-"Spawn a Codex agent to run the tests"
-"PowerSpawn a Claude to review this PR"
+// For API agents, set environment variables:
+// XAI_API_KEY=... (for Grok)
+// GEMINI_API_KEY=... (for Gemini)
+// MISTRAL_API_KEY=... (for Mistral)`,
 
-# Or use the MCP tools directly:
-mcp__agents__spawn_claude
-mcp__agents__spawn_codex
-mcp__agents__list
-mcp__agents__wait_for_agents`,
+  usage: `# CLI Agents - Full file system access
+spawn_claude("Review authentication module")
+spawn_codex("Run npm test, report failures")
+spawn_copilot("Refactor database queries")
+
+# API Agents - Text responses, coordinator applies
+spawn_grok("Analyze this architecture decision")
+spawn_gemini("Generate test cases for this function")
+spawn_mistral("Review this code for security issues")
+
+# MCP tools available:
+# CLI: spawn_claude, spawn_codex, spawn_copilot
+# API: spawn_grok, spawn_gemini, spawn_mistral
+# Utils: list_agents, wait_for_agents`,
 }
 
 function CodeBlock({ code }: { code: string }) {

@@ -1,11 +1,21 @@
 # MCP Agent Spawner Dependencies
-# Install with: pip install -r agents/requirements.txt
+# Install with: pip install -r powerspawn/requirements.txt
 
 # MCP SDK for Model Context Protocol server
 mcp>=1.0.0
 
+# API-based providers (optional - install if using these providers)
+openai>=1.0.0          # For Grok (X.ai) - uses OpenAI-compatible API
+google-generativeai>=0.8.0  # For Google Gemini
+mistralai>=1.0.0       # For Mistral AI
+
 # Testing dependencies
 pytest>=8.0.0
 
-# Note: The agents module also requires the Claude CLI and optionally Codex CLI
-# to be installed and available in PATH for spawning sub-agents.
+# Note: The CLI-based providers (spawn_claude, spawn_codex, spawn_copilot)
+# require the respective CLI tools to be installed and available in PATH.
+#
+# API-based providers require environment variables:
+#   - XAI_API_KEY: For Grok (from console.x.ai)
+#   - GEMINI_API_KEY: For Gemini (from ai.google.dev)
+#   - MISTRAL_API_KEY: For Mistral (from console.mistral.ai)

@@ -1,39 +1,54 @@
 """
-Multi-Agent Orchestration System
+PowerSpawn - Multi-Agent Orchestration System v1.5
 
-Provides CLI-based spawning and coordination of AI agents (Claude and Codex)
-for automated development workflows.
+Two modes of agent spawning:
+
+CLI AGENTS (Full Autonomy):
+    spawn_claude   - Claude Code sub-agent (can edit files, run commands)
+    spawn_codex    - Codex sub-agent (can edit files, run commands)
+    spawn_copilot  - Copilot sub-agent (can edit files, run commands)
+
+API AGENTS (Text Response Only):
+    spawn_grok     - X.ai Grok (text analysis, research)
+    spawn_gemini   - Google Gemini (long context, multimodal)
+    spawn_mistral  - Mistral AI (European model, code tasks)
 
 Key features:
-- Automatic project context injection (PRD, PLAN, CLAUDE.md)
 - Automatic logging to IAC.md (Inter-Agent Communication)
 - Automatic CONTEXT.md updates
+- CLI agents auto-load context (CLAUDE.md / AGENTS.md)
+- API agents return text; coordinator applies changes
 
 See DESIGN.md for architecture rationale.
 
 Usage:
-    from agents import spawn_claude, spawn_codex, AgentResult
+    from PowerSpawn import spawn_claude, spawn_grok, AgentResult
 
-    # Spawn Claude for code tasks (auto-injects context, auto-logs)
-    result = spawn_claude(
-        "Analyze the authentication flow",
-        model="haiku",
-        context_level="standard",  # none, minimal, standard, full
-    )
+    # CLI Agent - can modify files directly
+    result = spawn_claude("Refactor the auth module", model="sonnet")
     print(result.text)
-    print(f"Logged as spawn #{result.spawn_id}")
 
-    # Spawn Codex for testing
-    result = spawn_codex("Run the test suite", sandbox="read-only")
-    print(result.text)
+    # API Agent - returns text response
+    result = spawn_grok("Analyze this code for security issues")
+    print(result.text)  # Coordinator applies suggestions
 """
 
 from spawner import (
     spawn_claude,
     spawn_codex,
     spawn_codex_stream,
+    spawn_copilot,
     AgentResult,
     CodexEvent,
+)
+from api_providers import (
+    spawn_grok,
+    spawn_gemini,
+    spawn_mistral,
+    get_available_api_providers,
+    GROK_MODELS,
+    GEMINI_MODELS,
+    MISTRAL_MODELS,
 )
 from parser import (
     parse_claude_response,
@@ -51,12 +66,22 @@ from logger import (
     get_logger,
 )
 
-__version__ = "0.2.0"
+__version__ = "1.5.0"
 __all__ = [
-    # Core spawning
+    # CLI Agents (full file/command access)
     "spawn_claude",
     "spawn_codex",
     "spawn_codex_stream",
+    "spawn_copilot",
+    # API Agents (text response only)
+    "spawn_grok",
+    "spawn_gemini",
+    "spawn_mistral",
+    "get_available_api_providers",
+    "GROK_MODELS",
+    "GEMINI_MODELS",
+    "MISTRAL_MODELS",
+    # Results
     "AgentResult",
     "CodexEvent",
     # Parsing

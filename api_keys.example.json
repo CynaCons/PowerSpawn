@@ -1,0 +1,18 @@
+{
+    "_comment": "Copy this file to api_keys.json and fill in your API keys",
+    "_priority": "This file takes priority over environment variables (allows overriding)",
+    "_aliases": {
+        "Grok": ["XAI_API_KEY", "GROK_API_KEY", "X_API_KEY"],
+        "Gemini": ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_AI_KEY"],
+        "Mistral": ["MISTRAL_API_KEY"]
+    },
+    "_docs": {
+        "XAI_API_KEY": "Get from https://console.x.ai (X.ai Grok models)",
+        "GEMINI_API_KEY": "Get from https://aistudio.google.com/apikey (Google Gemini)",
+        "MISTRAL_API_KEY": "Get from https://console.mistral.ai (Mistral AI)"
+    },
+    "_test": "Run: python -c \"from api_providers import get_available_api_providers; print(get_available_api_providers())\"",
+    "XAI_API_KEY": "",
+    "GEMINI_API_KEY": "",
+    "MISTRAL_API_KEY": ""
+}

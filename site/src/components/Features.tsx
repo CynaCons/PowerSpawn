@@ -4,9 +4,14 @@ import { useRef } from 'react'
 
 const features = [
   {
+    icon: '🔀',
+    title: 'Dual-Mode Architecture',
+    description: 'CLI Agents (Claude, Codex, Copilot) have full file access. API Agents (Grok, Gemini, Mistral) return text responses that the coordinator applies.',
+  },
+  {
     icon: '🔌',
     title: 'Uses Your CLI Subscriptions',
-    description: 'Spawns real CLI agents (Claude Code, Copilot, Codex) you already have. No separate API keys needed.',
+    description: 'CLI agents use your existing subscriptions. API agents need API keys. Mix and match based on your setup.',
   },
   {
     icon: '🎯',

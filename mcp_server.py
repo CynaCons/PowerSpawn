@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.4
+MCP Agent Spawner Server v1.5
 
 Exposes agent spawning as MCP tools for Claude Code.
 Simplified design with minimal parameters.
 
-Tools:
+Tools (CLI-based):
   spawn_claude(prompt, model?)  - Spawn Claude sub-agent (auto-loads CLAUDE.md)
   spawn_codex(prompt)           - Spawn Codex sub-agent (auto-loads AGENTS.md)
+  spawn_copilot(prompt, model?) - Spawn Copilot sub-agent (GPT/Claude/Gemini)
+
+Tools (API-based):
+  spawn_grok(prompt, model?)    - Spawn Grok via X.ai API (requires XAI_API_KEY)
+  spawn_gemini(prompt, model?)  - Spawn Gemini via Google API (requires GEMINI_API_KEY)
+  spawn_mistral(prompt, model?) - Spawn Mistral via API (requires MISTRAL_API_KEY)
+
+Management:
   list()                        - List running agents (compact output)
   result(agent_id)              - Get agent result
   wait_for_agents(timeout?)     - Block until all agents complete, return results
@@ -16,7 +24,7 @@ Context is auto-loaded by the respective CLIs:
   - Claude CLI: auto-loads CLAUDE.md
   - Codex CLI: auto-loads AGENTS.md
 
-All logging to IAC.md is automatic via spawner.py.
+All logging to IAC.md is automatic via spawner.py/api_providers.py.
 
 See MCP_DESIGN.md for architecture documentation.
 """
@@ -37,12 +45,30 @@ try:
         spawn_codex as _spawn_codex,
         spawn_copilot as _spawn_copilot,
     )
+    from .api_providers import (
+        spawn_grok as _spawn_grok,
+        spawn_gemini as _spawn_gemini,
+        spawn_mistral as _spawn_mistral,
+        get_available_api_providers,
+        GROK_MODELS,
+        GEMINI_MODELS,
+        MISTRAL_MODELS,
+    )
 except ImportError:
     from spawner import (
         AgentResult,
         spawn_claude as _spawn_claude,
         spawn_codex as _spawn_codex,
         spawn_copilot as _spawn_copilot,
+    )
+    from api_providers import (
+        spawn_grok as _spawn_grok,
+        spawn_gemini as _spawn_gemini,
+        spawn_mistral as _spawn_mistral,
+        get_available_api_providers,
+        GROK_MODELS,
+        GEMINI_MODELS,
+        MISTRAL_MODELS,
     )
 
 # Ensure UTF-8 encoding on Windows
@@ -53,7 +79,7 @@ if sys.platform == "win32":
 IS_WINDOWS = sys.platform == "win32"
 
 # Version (single source of truth)
-SERVER_VERSION = "1.4.0"
+SERVER_VERSION = "1.5.0"
 
 # MCP SDK imports
 try:
@@ -187,6 +213,90 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
+            name="spawn_grok",
+            description=(
+                "Spawn a Grok (X.ai) sub-agent via API. "
+                "Use for: fast reasoning, real-time knowledge, alternative perspective. "
+                "Requires XAI_API_KEY environment variable."
+            ),
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "The task for the sub-agent to perform"
+                    },
+                    "model": {
+                        "type": "string",
+                        "enum": list(GROK_MODELS.keys()),
+                        "default": "grok-4",
+                        "description": "Model: grok-4 (default), grok-4.1, grok-code-fast"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "description": "Optional system prompt for role/context"
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="spawn_gemini",
+            description=(
+                "Spawn a Google Gemini sub-agent via API. "
+                "Use for: multimodal tasks, long context, alternative perspective. "
+                "Requires GEMINI_API_KEY environment variable."
+            ),
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "The task for the sub-agent to perform"
+                    },
+                    "model": {
+                        "type": "string",
+                        "enum": list(GEMINI_MODELS.keys()),
+                        "default": "gemini-3-pro",
+                        "description": "Model: gemini-3-pro (default), gemini-2.5-pro, gemini-2.0-flash"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "description": "Optional system prompt for role/context"
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="spawn_mistral",
+            description=(
+                "Spawn a Mistral AI sub-agent via API. "
+                "Use for: code generation, European AI alternative, efficiency. "
+                "Requires MISTRAL_API_KEY environment variable."
+            ),
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "The task for the sub-agent to perform"
+                    },
+                    "model": {
+                        "type": "string",
+                        "enum": list(MISTRAL_MODELS.keys()),
+                        "default": "mistral-large",
+                        "description": "Model: mistral-large (default), codestral, devstral, mixtral"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "description": "Optional system prompt for role/context"
+                    }
+                }
+            }
+        ),
+        Tool(
             name="list",
             description="List running and recently completed agents",
             inputSchema={
@@ -242,6 +352,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_spawn_codex(arguments)
         elif name == "spawn_copilot":
             return await handle_spawn_copilot(arguments)
+        elif name == "spawn_grok":
+            return await handle_spawn_grok(arguments)
+        elif name == "spawn_gemini":
+            return await handle_spawn_gemini(arguments)
+        elif name == "spawn_mistral":
+            return await handle_spawn_mistral(arguments)
         elif name == "list":
             return await handle_list()
         elif name == "result":
@@ -493,6 +609,244 @@ async def handle_spawn_copilot(args: dict) -> list[TextContent]:
         "model": model,
         "status": "running",
         "message": "Copilot agent spawned. Use 'list' to monitor, 'result' to get output.",
+    }, indent=2, ensure_ascii=False))]
+
+
+# =============================================================================
+# API-BASED PROVIDERS (Grok, Gemini, Mistral)
+# =============================================================================
+
+def _run_grok_background(agent_id: str, prompt: str, model: str, system_prompt: str | None):
+    """Run Grok spawn in background thread."""
+    try:
+        result = _spawn_grok(
+            prompt=prompt,
+            model=model,
+            system_prompt=system_prompt,
+            task_summary=prompt[:50] + "..." if len(prompt) > 50 else prompt,
+        )
+
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "grok",
+                "model": model,
+                "success": result.success,
+                "result": sanitize_for_json(result.text),
+                "cost_usd": round(result.cost_usd, 4),
+                "completed_at": utc_now_iso(),
+                "error": result.error,
+                "usage": result.usage,
+            }
+            _cleanup_completed_agents()
+
+    except Exception as e:
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "grok",
+                "model": model,
+                "success": False,
+                "result": "",
+                "cost_usd": 0,
+                "completed_at": utc_now_iso(),
+                "error": str(e),
+            }
+    finally:
+        with _agents_lock:
+            running_agents.pop(agent_id, None)
+            background_threads.pop(agent_id, None)
+
+
+async def handle_spawn_grok(args: dict) -> list[TextContent]:
+    """Handle spawn_grok tool call."""
+    prompt = args["prompt"]
+    model = args.get("model", "grok-4")
+    system_prompt = args.get("system_prompt")
+
+    agent_id = uuid.uuid4().hex[:8]
+    started_at = utc_now_iso()
+
+    with _agents_lock:
+        running_agents[agent_id] = {
+            "agent_id": agent_id,
+            "agent_type": "grok",
+            "model": model,
+            "started_at": started_at,
+            "task": prompt[:100].replace('\n', ' '),
+        }
+
+    thread = threading.Thread(
+        target=_run_grok_background,
+        args=(agent_id, prompt, model, system_prompt),
+        daemon=True,
+    )
+    thread.start()
+    with _agents_lock:
+        background_threads[agent_id] = thread
+
+    return [TextContent(type="text", text=json.dumps({
+        "agent_id": agent_id,
+        "agent_type": "grok",
+        "model": model,
+        "status": "running",
+        "message": "Grok agent spawned via X.ai API. Use 'list' to monitor, 'result' to get output.",
+    }, indent=2, ensure_ascii=False))]
+
+
+def _run_gemini_background(agent_id: str, prompt: str, model: str, system_prompt: str | None):
+    """Run Gemini spawn in background thread."""
+    try:
+        result = _spawn_gemini(
+            prompt=prompt,
+            model=model,
+            system_prompt=system_prompt,
+            task_summary=prompt[:50] + "..." if len(prompt) > 50 else prompt,
+        )
+
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "gemini",
+                "model": model,
+                "success": result.success,
+                "result": sanitize_for_json(result.text),
+                "cost_usd": round(result.cost_usd, 4),
+                "completed_at": utc_now_iso(),
+                "error": result.error,
+                "usage": result.usage,
+            }
+            _cleanup_completed_agents()
+
+    except Exception as e:
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "gemini",
+                "model": model,
+                "success": False,
+                "result": "",
+                "cost_usd": 0,
+                "completed_at": utc_now_iso(),
+                "error": str(e),
+            }
+    finally:
+        with _agents_lock:
+            running_agents.pop(agent_id, None)
+            background_threads.pop(agent_id, None)
+
+
+async def handle_spawn_gemini(args: dict) -> list[TextContent]:
+    """Handle spawn_gemini tool call."""
+    prompt = args["prompt"]
+    model = args.get("model", "gemini-3-pro")
+    system_prompt = args.get("system_prompt")
+
+    agent_id = uuid.uuid4().hex[:8]
+    started_at = utc_now_iso()
+
+    with _agents_lock:
+        running_agents[agent_id] = {
+            "agent_id": agent_id,
+            "agent_type": "gemini",
+            "model": model,
+            "started_at": started_at,
+            "task": prompt[:100].replace('\n', ' '),
+        }
+
+    thread = threading.Thread(
+        target=_run_gemini_background,
+        args=(agent_id, prompt, model, system_prompt),
+        daemon=True,
+    )
+    thread.start()
+    with _agents_lock:
+        background_threads[agent_id] = thread
+
+    return [TextContent(type="text", text=json.dumps({
+        "agent_id": agent_id,
+        "agent_type": "gemini",
+        "model": model,
+        "status": "running",
+        "message": "Gemini agent spawned via Google AI API. Use 'list' to monitor, 'result' to get output.",
+    }, indent=2, ensure_ascii=False))]
+
+
+def _run_mistral_background(agent_id: str, prompt: str, model: str, system_prompt: str | None):
+    """Run Mistral spawn in background thread."""
+    try:
+        result = _spawn_mistral(
+            prompt=prompt,
+            model=model,
+            system_prompt=system_prompt,
+            task_summary=prompt[:50] + "..." if len(prompt) > 50 else prompt,
+        )
+
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "mistral",
+                "model": model,
+                "success": result.success,
+                "result": sanitize_for_json(result.text),
+                "cost_usd": round(result.cost_usd, 4),
+                "completed_at": utc_now_iso(),
+                "error": result.error,
+                "usage": result.usage,
+            }
+            _cleanup_completed_agents()
+
+    except Exception as e:
+        with _agents_lock:
+            completed_agents[agent_id] = {
+                "agent_id": agent_id,
+                "agent_type": "mistral",
+                "model": model,
+                "success": False,
+                "result": "",
+                "cost_usd": 0,
+                "completed_at": utc_now_iso(),
+                "error": str(e),
+            }
+    finally:
+        with _agents_lock:
+            running_agents.pop(agent_id, None)
+            background_threads.pop(agent_id, None)
+
+
+async def handle_spawn_mistral(args: dict) -> list[TextContent]:
+    """Handle spawn_mistral tool call."""
+    prompt = args["prompt"]
+    model = args.get("model", "mistral-large")
+    system_prompt = args.get("system_prompt")
+
+    agent_id = uuid.uuid4().hex[:8]
+    started_at = utc_now_iso()
+
+    with _agents_lock:
+        running_agents[agent_id] = {
+            "agent_id": agent_id,
+            "agent_type": "mistral",
+            "model": model,
+            "started_at": started_at,
+            "task": prompt[:100].replace('\n', ' '),
+        }
+
+    thread = threading.Thread(
+        target=_run_mistral_background,
+        args=(agent_id, prompt, model, system_prompt),
+        daemon=True,
+    )
+    thread.start()
+    with _agents_lock:
+        background_threads[agent_id] = thread
+
+    return [TextContent(type="text", text=json.dumps({
+        "agent_id": agent_id,
+        "agent_type": "mistral",
+        "model": model,
+        "status": "running",
+        "message": "Mistral agent spawned via Mistral AI API. Use 'list' to monitor, 'result' to get output.",
     }, indent=2, ensure_ascii=False))]
 
 

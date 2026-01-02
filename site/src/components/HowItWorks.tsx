@@ -74,48 +74,126 @@ export function HowItWorks() {
             </div>
           </div>
 
-          {/* Arrow down split */}
-          <div className="flex justify-center gap-32 mb-8">
+          {/* Two-Mode Architecture Labels */}
+          <div className="flex justify-center gap-8 mb-4">
+            <div className="text-center">
+              <div className="text-sm font-mono text-emerald-400 mb-2">CLI AGENTS</div>
+              <div className="text-xs text-gray-500">Full File Access</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-mono text-orange-400 mb-2">API AGENTS</div>
+              <div className="text-xs text-gray-500">Text Response Only</div>
+            </div>
+          </div>
+
+          {/* Arrow down split - 4 arrows for 4 agent types */}
+          <div className="flex justify-center gap-12 mb-8">
             <motion.div
               animate={{ y: [0, 5, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
-              className="text-gray-500 text-2xl"
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+              className="text-emerald-500 text-2xl"
+            >
+              ↓
+            </motion.div>
+            <motion.div
+              animate={{ y: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+              className="text-emerald-500 text-2xl"
             >
               ↓
             </motion.div>
             <motion.div
               animate={{ y: [0, 5, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
-              className="text-gray-500 text-2xl"
+              className="text-orange-500 text-2xl"
+            >
+              ↓
+            </motion.div>
+            <motion.div
+              animate={{ y: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.8 }}
+              className="text-orange-500 text-2xl"
             >
               ↓
             </motion.div>
           </div>
 
-          {/* Sub-agents */}
-          <div className="flex justify-center gap-8 flex-wrap">
+          {/* Sub-agents - CLI and API */}
+          <div className="flex justify-center gap-4 flex-wrap">
+            {/* CLI Agents */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="px-6 py-4 bg-emerald-600/20 border border-emerald-500 rounded-xl text-center"
+              className="px-4 py-3 bg-emerald-600/20 border border-emerald-500 rounded-xl text-center"
             >
               <div className="text-emerald-400 font-bold mb-1">CODEX</div>
-              <div className="text-sm text-gray-400">GPT-5.1 models</div>
-              <div className="text-xs text-gray-500 mt-2">Reads AGENTS.md</div>
+              <div className="text-xs text-gray-400">GPT-5.1</div>
+              <div className="text-xs text-emerald-500/70 mt-1">CLI</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.45 }}
+              className="px-4 py-3 bg-indigo-600/20 border border-indigo-500 rounded-xl text-center"
+            >
+              <div className="text-indigo-400 font-bold mb-1">CLAUDE</div>
+              <div className="text-xs text-gray-400">Sonnet/Opus</div>
+              <div className="text-xs text-emerald-500/70 mt-1">CLI</div>
+            </motion.div>
+
+            {/* API Agents */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="px-4 py-3 bg-orange-600/20 border border-orange-500 rounded-xl text-center"
+            >
+              <div className="text-orange-400 font-bold mb-1">GROK</div>
+              <div className="text-xs text-gray-400">grok-3</div>
+              <div className="text-xs text-orange-500/70 mt-1">API</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 15 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.55 }}
+              className="px-4 py-3 bg-orange-600/20 border border-orange-500 rounded-xl text-center"
+            >
+              <div className="text-orange-400 font-bold mb-1">GEMINI</div>
+              <div className="text-xs text-gray-400">2.0 Flash</div>
+              <div className="text-xs text-orange-500/70 mt-1">API</div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="px-6 py-4 bg-indigo-600/20 border border-indigo-500 rounded-xl text-center"
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="px-4 py-3 bg-orange-600/20 border border-orange-500 rounded-xl text-center"
             >
-              <div className="text-indigo-400 font-bold mb-1">CLAUDE</div>
-              <div className="text-sm text-gray-400">Claude models</div>
-              <div className="text-xs text-gray-500 mt-2">Reads CLAUDE.md</div>
+              <div className="text-orange-400 font-bold mb-1">MISTRAL</div>
+              <div className="text-xs text-gray-400">Large</div>
+              <div className="text-xs text-orange-500/70 mt-1">API</div>
             </motion.div>
           </div>
+
+          {/* Mode explanation */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.7 }}
+            className="mt-8 flex justify-center gap-6 text-xs"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+              <span className="text-gray-400">CLI: Writes files directly</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+              <span className="text-gray-400">API: Returns text to coordinator</span>
+            </div>
+          </motion.div>
         </motion.div>
 
         {/* Benefits */}

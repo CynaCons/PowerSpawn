@@ -35,3 +35,6 @@ venv/
 # Auto-generated files
 IAC.md
 CONTEXT.md
+
+# API Keys (never commit!)
+api_keys.json

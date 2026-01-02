@@ -1,6 +1,6 @@
 # Multi-Agent Orchestration System - Design Document
 
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2025-12-03
 **Authors:** User + Claude (Orchestrator)
 **Status:** Implemented (with MCP integration)
@@ -103,6 +103,34 @@ Agents are unreliable at:
 │   - No responsibility for documentation                     │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### 2.4 Two-Mode Agent Architecture
+
+PowerSpawn v1.5 introduces a dual-mode architecture:
+
+**CLI Agents (Full Autonomy)**
+- spawn_claude, spawn_codex, spawn_copilot
+- Can read/write files, execute commands, run git operations
+- Auto-load context from CLAUDE.md / AGENTS.md
+- Suitable for: code generation, refactoring, testing, automation
+
+**API Agents (Text Response Only)**
+- spawn_grok, spawn_gemini, spawn_mistral
+- Return text analysis only; cannot modify files or run commands
+- Receive prompt text only (no context file loading)
+- Suitable for: research, analysis, drafting, second opinions
+
+This design follows the Determinism Principle (2.1): CLI agents deterministically log their file modifications, while API agents return text that the coordinator can apply deterministically.
+
+**When to use each mode:**
+| Task Type | Recommended Mode | Reason |
+|-----------|-----------------|--------|
+| Code refactoring | CLI (Claude/Codex) | Needs file access |
+| Running tests | CLI (Codex) | Needs command execution |
+| Code review analysis | API (Grok/Gemini) | Text feedback sufficient |
+| Research/summarization | API (any) | No file modifications needed |
+| Drafting documentation | API (Mistral) | Coordinator applies result |
+| Parallel queries | API (multiple) | Fast, no conflicts |
 
 ---
 
@@ -469,7 +497,46 @@ When asked to run Playwright tests, Codex agents:
 
 **Cost:** ~$0.005 per request (estimated, not metered)
 
-### 11.3 Recommendation Matrix
+### 11.3 Grok (API Agent)
+
+**Strengths:**
+- Fast response times
+- Real-time information access
+- OpenAI-compatible API
+
+**Limitations:**
+- Text response only (no file/command access)
+- Requires XAI_API_KEY
+
+**Best for:** Quick analysis, real-time queries, text generation
+
+### 11.4 Gemini (API Agent)
+
+**Strengths:**
+- Long context window (up to 2M tokens)
+- Multimodal capabilities
+- Free tier available
+
+**Limitations:**
+- Text response only (no file/command access)
+- Requires GEMINI_API_KEY
+
+**Best for:** Long document analysis, research summaries, multimodal tasks
+
+### 11.5 Mistral (API Agent)
+
+**Strengths:**
+- European-based (GDPR compliant)
+- Specialized code models (Codestral, Devstral)
+- Competitive pricing
+
+**Limitations:**
+- Text response only (no file/command access)
+- Requires MISTRAL_API_KEY
+
+**Best for:** Code analysis, European compliance needs, specialized code tasks
+
+### 11.6 Recommendation Matrix
 
 | Task Type | Recommended Agent | Model |
 |-----------|------------------|-------|
@@ -480,6 +547,9 @@ When asked to run Playwright tests, Codex agents:
 | Documentation query | Codex | - |
 | Multi-file refactor | Claude | sonnet/opus |
 | Simple grep/search | Direct Bash | - |
+| Real-time queries | Grok | - |
+| Long doc analysis | Gemini | - |
+| Code-focused tasks | Mistral | codestral |
 
 ---
 
@@ -492,3 +562,4 @@ When asked to run Playwright tests, Codex agents:
 | 1.2 | 2025-11-30 | Added Codex limitations and agent comparison matrix |
 | 1.3 | 2025-12-03 | Updated for standalone PowerSpawn: new file structure, IAC.md v1.4 format (newest-first, 15 entries), removed config.yaml |
 | 1.4 | 2025-12-03 | Context handling rework: rely on CLI auto-loading (CLAUDE.md, AGENTS.md), context_loader.py kept for future role-based agents |
+| 1.5 | 2026-01-02 | Two-Mode Architecture: added API agents (Grok, Gemini, Mistral) alongside CLI agents, documented dual-mode design pattern |

@@ -2,26 +2,26 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 
 // User's natural language request to the coordinator
-const userPrompt = "Spawn a Claude agent to review auth, and a Codex agent to run tests. I'll update the docs. When done, spawn Gemini for the release."
+const userPrompt = "Spawn a Claude agent to review auth, and a Codex agent to run tests. Then get Grok's opinion on the architecture."
 
-// Coordinator's actions
+// Coordinator's actions - demonstrating CLI agents vs API agents
 const terminalLines = [
   { text: '# Coordinator thinking...', delay: 0, color: 'text-gray-500' },
   { text: '', delay: 0.3 },
-  { text: 'spawn_claude("Review authentication module")', delay: 0.5, color: 'text-indigo-400' },
-  { text: '→ Agent #a3f2 running (sonnet)', delay: 0.8, color: 'text-green-400' },
-  { text: '', delay: 1 },
-  { text: 'spawn_codex("Run npm test, report failures")', delay: 1.2, color: 'text-indigo-400' },
-  { text: '→ Agent #b7c1 running (gpt-5.1)', delay: 1.5, color: 'text-green-400' },
-  { text: '', delay: 1.7 },
-  { text: '# Coordinator updates docs while agents work...', delay: 2, color: 'text-gray-500' },
-  { text: '', delay: 2.3 },
-  { text: 'wait_for_agents()  # Both complete ✓', delay: 2.8, color: 'text-cyan-400' },
+  { text: '# CLI Agents - Full file system access', delay: 0.5, color: 'text-cyan-400' },
+  { text: 'spawn_claude("Review authentication module")', delay: 0.8, color: 'text-indigo-400' },
+  { text: '→ Agent #a3f2 running (sonnet) [CLI]', delay: 1.1, color: 'text-green-400' },
+  { text: '', delay: 1.3 },
+  { text: 'spawn_codex("Run npm test, report failures")', delay: 1.5, color: 'text-indigo-400' },
+  { text: '→ Agent #b7c1 running (gpt-5.1) [CLI]', delay: 1.8, color: 'text-green-400' },
+  { text: '', delay: 2 },
+  { text: '# API Agents - Text responses, coordinator applies', delay: 2.3, color: 'text-cyan-400' },
+  { text: 'spawn_grok("Analyze architecture decisions")', delay: 2.6, color: 'text-orange-400' },
+  { text: '→ Agent #d5e2 running (grok-3) [API]', delay: 2.9, color: 'text-green-400' },
   { text: '', delay: 3.1 },
-  { text: 'spawn_copilot("Handle release", model="gemini")', delay: 3.4, color: 'text-indigo-400' },
-  { text: '→ Agent #c9d4 running (gemini)', delay: 3.7, color: 'text-green-400' },
-  { text: '', delay: 4 },
-  { text: '✓ Context stays lean. More work done.', delay: 4.3, color: 'text-emerald-400' },
+  { text: 'wait_for_agents()  # All complete ✓', delay: 3.4, color: 'text-cyan-400' },
+  { text: '', delay: 3.7 },
+  { text: '✓ CLI + API agents. More models. More power.', delay: 4, color: 'text-emerald-400' },
 ]
 
 function AnimatedTerminal() {
@@ -151,9 +151,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto"
         >
-          Spawn Claude, Codex, and Copilot from one coordinator.
+          Two modes. Six models. One coordinator.
           <br />
-          <span className="text-gray-400">GPT • Claude • Gemini — Your agents leave a paper trail.</span>
+          <span className="text-gray-400">CLI Agents (Claude, Codex, Copilot) | API Agents (Grok, Gemini, Mistral)</span>
         </motion.p>
 
         {/* Install command */}

@@ -8,11 +8,12 @@ const roadmapItems = [
   { version: 'v0.2', title: 'MCP Server', desc: 'Full MCP protocol, wait_for_agents, context handling', status: 'completed' },
   { version: 'v0.3', title: 'Landing Page', desc: 'powerspawn.com with React + Tailwind', status: 'completed' },
   { version: 'v0.4', title: 'Copilot Integration', desc: 'spawn_copilot with GPT, Claude, and Gemini models', status: 'completed' },
+  { version: 'v0.5', title: 'API Agents', desc: 'spawn_grok, spawn_gemini, spawn_mistral - Text-response agents via API', status: 'completed' },
   // Current
-  { version: 'v0.5', title: 'VS Code MCP Testing', desc: 'Copilot + VS Code MCP configuration validation', status: 'current' },
+  { version: 'v0.6', title: 'Two-Mode Architecture', desc: 'CLI agents (file access) + API agents (text response) unified', status: 'current' },
   // Upcoming
-  { version: 'v0.6', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
-  { version: 'v0.7', title: 'Test Suite', desc: 'Unit and integration tests with CI/CD', status: 'upcoming' },
+  { version: 'v0.7', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
+  { version: 'v0.8', title: 'Test Suite', desc: 'Unit and integration tests with CI/CD', status: 'upcoming' },
   { version: 'v1.0', title: 'Stable Release', desc: 'Production-ready with full documentation', status: 'upcoming' },
 ]
 
