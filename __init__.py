@@ -40,6 +40,8 @@ from spawner import (
     spawn_copilot,
     AgentResult,
     CodexEvent,
+    CODEX_MODELS,
+    CODEX_DEFAULT_MODEL,
     COPILOT_MODELS,
     COPILOT_DEFAULT_MODEL,
 )
@@ -78,6 +80,9 @@ __all__ = [
     "spawn_codex",
     "spawn_codex_stream",
     "spawn_copilot",
+    # CLI Agent model configs
+    "CODEX_MODELS",
+    "CODEX_DEFAULT_MODEL",
     "COPILOT_MODELS",
     "COPILOT_DEFAULT_MODEL",
     # API Agents (text response only)
@@ -85,7 +90,7 @@ __all__ = [
     "spawn_gemini",
     "spawn_mistral",
     "get_available_api_providers",
-    # Model configs
+    # API Agent model configs
     "GROK_MODELS",
     "GROK_DEFAULT_MODEL",
     "GEMINI_MODELS",

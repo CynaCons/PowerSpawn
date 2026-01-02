@@ -133,8 +133,8 @@ GROK_MODELS = {
     "grok-code": "grok-code-fast-1",  # Best for agentic coding
 }
 
-# Default model for Grok (best general-purpose)
-GROK_DEFAULT_MODEL = "grok-4.1"
+# Default model for Grok (reasoning model for complex tasks)
+GROK_DEFAULT_MODEL = "grok-4.1-reasoning"
 
 
 def _get_openai_client_for_grok():

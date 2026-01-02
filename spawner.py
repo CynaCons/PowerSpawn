@@ -250,9 +250,33 @@ def spawn_claude(
         )
 
 
+# =============================================================================
+# CODEX CLI MODELS
+# =============================================================================
+
+# Available models in Codex CLI (as of Jan 2026)
+# Run `codex --help` to see current list
+CODEX_MODELS = {
+    # GPT Codex models (optimized for coding)
+    "gpt-5.2-codex": "gpt-5.2-codex",        # Latest and best
+    "gpt-5.1-codex-max": "gpt-5.1-codex-max",
+    "gpt-5.1-codex": "gpt-5.1-codex",
+    # Reasoning models
+    "o3": "o3",                               # Advanced reasoning
+    "o4-mini": "o4-mini",                     # Fast reasoning
+    # Aliases
+    "codex": "gpt-5.2-codex",
+    "codex-max": "gpt-5.1-codex-max",
+}
+
+# Default model for Codex CLI (latest and best)
+CODEX_DEFAULT_MODEL = "gpt-5.2-codex"
+
+
 def spawn_codex(
     prompt: str,
     *,
+    model: str = None,  # Defaults to CODEX_DEFAULT_MODEL
     bypass_sandbox: bool = True,
     working_dir: Optional[str] = None,
     timeout: int = 300,
@@ -270,6 +294,8 @@ def spawn_codex(
 
     Args:
         prompt: The task/instruction for the agent
+        model: Model to use (see CODEX_MODELS for options):
+               - "gpt-5.2-codex" (default), "gpt-5.1-codex-max", "o3", "o4-mini"
         bypass_sandbox: If True (default), use --dangerously-bypass-approvals-and-sandbox
                         to enable file writes. Codex's workspace-write mode is broken.
         working_dir: Working directory for the agent
@@ -282,6 +308,13 @@ def spawn_codex(
     """
     start_time = time.time()
 
+    # Use default model if not specified
+    if model is None:
+        model = CODEX_DEFAULT_MODEL
+
+    # Resolve model alias
+    resolved_model = CODEX_MODELS.get(model, model)
+
     # Codex loads AGENTS.md automatically, so we default to no additional context.
     # If context_level is not "none", we still inject (for backwards compatibility).
     full_prompt = format_prompt_with_context(prompt, context_level=context_level)
@@ -290,7 +323,7 @@ def spawn_codex(
     sandbox_mode = "bypass" if bypass_sandbox else "workspace-write"
     spawn_id = log_spawn_start(
         agent="Codex",
-        model="gpt-5.1-codex-max",
+        model=resolved_model,
         prompt=prompt,
         tools=[f"sandbox:{sandbox_mode}"],
         task_summary=task_summary,
@@ -298,6 +331,7 @@ def spawn_codex(
 
     events = list(_spawn_codex_stream_internal(
         full_prompt,
+        model=resolved_model,
         bypass_sandbox=bypass_sandbox,
         working_dir=working_dir,
         timeout=timeout,
@@ -359,6 +393,7 @@ def spawn_codex(
 def spawn_codex_stream(
     prompt: str,
     *,
+    model: str = None,  # Defaults to CODEX_DEFAULT_MODEL
     bypass_sandbox: bool = True,
     working_dir: Optional[str] = None,
     timeout: int = 300,
@@ -376,6 +411,8 @@ def spawn_codex_stream(
 
     Args:
         prompt: The task/instruction for the agent
+        model: Model to use (see CODEX_MODELS for options):
+               - "gpt-5.2-codex" (default), "gpt-5.1-codex-max", "o3", "o4-mini"
         bypass_sandbox: If True (default), use --dangerously-bypass-approvals-and-sandbox
                         to enable file writes. Codex's workspace-write mode is broken.
         working_dir: Working directory for the agent
@@ -386,11 +423,19 @@ def spawn_codex_stream(
     Yields:
         CodexEvent objects as they arrive from the agent
     """
+    # Use default model if not specified
+    if model is None:
+        model = CODEX_DEFAULT_MODEL
+
+    # Resolve model alias
+    resolved_model = CODEX_MODELS.get(model, model)
+
     # Build the full prompt with context injection
     full_prompt = format_prompt_with_context(prompt, context_level=context_level)
 
     yield from _spawn_codex_stream_internal(
         full_prompt,
+        model=resolved_model,
         bypass_sandbox=bypass_sandbox,
         working_dir=working_dir,
         timeout=timeout,
@@ -401,6 +446,7 @@ def spawn_codex_stream(
 def _spawn_codex_stream_internal(
     prompt: str,
     *,
+    model: str = None,
     bypass_sandbox: bool = True,
     working_dir: Optional[str] = None,
     timeout: int = 300,
@@ -408,6 +454,10 @@ def _spawn_codex_stream_internal(
 ) -> Iterator[CodexEvent]:
     """Internal streaming implementation without context injection."""
     cmd = ["codex", "exec", "--json"]
+
+    # Model selection
+    if model:
+        cmd.extend(["--model", model])
 
     # Sandbox mode - use bypass flag for write access (workspace-write is broken)
     if bypass_sandbox:
@@ -474,28 +524,29 @@ def _spawn_codex_stream_internal(
 # Run `copilot --help` to see current list
 COPILOT_MODELS = {
     # Claude models (Anthropic)
-    "claude-sonnet-4.5": "claude-sonnet-4.5",  # Default for Claude
+    "claude-sonnet-4.5": "claude-sonnet-4.5",
     "claude-sonnet-4": "claude-sonnet-4",
     "claude-haiku-4.5": "claude-haiku-4.5",
     "claude-opus-4.5": "claude-opus-4.5",
-    # Aliases
+    # Claude aliases
     "claude-sonnet": "claude-sonnet-4.5",
     "claude-haiku": "claude-haiku-4.5",
     "claude-opus": "claude-opus-4.5",
     # GPT models (OpenAI)
-    "gpt-5.1-codex": "gpt-5.1-codex",  # Default - best for coding
+    "gpt-5.2": "gpt-5.2",                # Latest GPT - default
+    "gpt-5.1-codex": "gpt-5.1-codex",    # Best for coding
     "gpt-5.1-codex-mini": "gpt-5.1-codex-mini",
     "gpt-5.1": "gpt-5.1",
     "gpt-5": "gpt-5",
     "gpt-5-mini": "gpt-5-mini",
     "gpt-4.1": "gpt-4.1",
     # Gemini models (Google)
-    "gemini-3-pro-preview": "gemini-3-pro-preview",  # Default for Gemini
-    "gemini": "gemini-3-pro-preview",  # Alias
+    "gemini-3-pro-preview": "gemini-3-pro-preview",
+    "gemini": "gemini-3-pro-preview",    # Alias
 }
 
-# Default model for Copilot CLI (best coding model)
-COPILOT_DEFAULT_MODEL = "gpt-5.1-codex"
+# Default model for Copilot CLI (latest strongest model)
+COPILOT_DEFAULT_MODEL = "gpt-5.2"
 
 
 def spawn_copilot(
