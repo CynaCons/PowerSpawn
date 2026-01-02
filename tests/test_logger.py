@@ -181,9 +181,10 @@ def test_multiple_spawns_newest_first(tmp_path):
         iac_file = tmp_path / "IAC.md"
         content = iac_file.read_text(encoding='utf-8')
 
-        # Task 2 should appear before Task 1 (newest first)
-        pos_task_1 = content.find("Task 1")
-        pos_task_2 = content.find("Task 2")
+        # Task 2 entry should appear before Task 1 entry (newest first)
+        # Use entry headers to avoid matching Active Agents table
+        pos_task_1 = content.find("### 🤖 Task 1")
+        pos_task_2 = content.find("### 🤖 Task 2")
 
         assert pos_task_2 < pos_task_1, "Newest entry should appear first"
 
@@ -208,63 +209,11 @@ def test_max_entries_limit(tmp_path):
         iac_file = tmp_path / "IAC.md"
         content = iac_file.read_text(encoding='utf-8')
 
-        # Should only have last 15 tasks
-        assert "Task 19" in content  # Most recent
-        assert "Task 5" in content   # 15th from end
-        assert "Task 4" not in content  # Should be trimmed
-
-
-def test_context_md_created(tmp_path):
-    """Test that CONTEXT.md is created and updated."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
-        logger = AgentLogger()
-
-        spawn_id = logger.log_spawn_start(
-            agent="Claude",
-            model="sonnet",
-            prompt="Test prompt",
-            tools=["Read"],
-            task_summary="Test task"
-        )
-
-        context_file = tmp_path / "CONTEXT.md"
-        assert context_file.exists()
-
-        content = context_file.read_text(encoding='utf-8')
-
-        # Should show active agent
-        assert spawn_id in content
-        assert "Test task" in content
-        assert "Claude" in content
-
-
-def test_context_md_cleared_on_completion(tmp_path):
-    """Test that CONTEXT.md removes completed spawns."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
-        logger = AgentLogger()
-
-        spawn_id = logger.log_spawn_start(
-            agent="Claude",
-            model="haiku",
-            prompt="Test",
-            tools=[],
-            task_summary="Test"
-        )
-
-        # Complete the spawn
-        logger.log_spawn_complete(
-            spawn_id=spawn_id,
-            success=True,
-            result_text="Done",
-            duration_seconds=1.0,
-            cost_usd=0.0
-        )
-
-        context_file = tmp_path / "CONTEXT.md"
-        content = context_file.read_text(encoding='utf-8')
-
-        # Should show no active agents
-        assert "No active agents" in content
+        # Should only have last 15 task ENTRIES (not in Active Agents table)
+        # Check for entry headers (### 🤖 Task X) to verify entry limits
+        assert "### 🤖 Task 19" in content  # Most recent entry
+        assert "### 🤖 Task 5" in content   # 15th from end
+        assert "### 🤖 Task 4" not in content  # Entry should be trimmed
 
 
 def test_global_logger_functions(tmp_path):

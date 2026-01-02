@@ -40,7 +40,6 @@ python -m pytest tests/ --cov=. --cov-report=html
 - ✅ Failure handling
 - ✅ Newest-first ordering
 - ✅ Entry limit enforcement (MAX_IAC_ENTRIES)
-- ✅ CONTEXT.md active agent tracking
 - ✅ Global logger functions
 
 ### Parser Module (`test_parser.py`)

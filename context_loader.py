@@ -187,12 +187,12 @@ def load_project_context(
             sections.append(arch)
             sections.append("")
 
-    # agents/CONTEXT.md - Current agent state
+    # agents/IAC.md - Current agent state and history
     if include_agents_context:
-        context_md = read_file_safe(Path(__file__).parent / "CONTEXT.md")
-        if context_md:
-            sections.append("## Current Agent State (agents/CONTEXT.md)\n")
-            sections.append(context_md)
+        iac_md = read_file_safe(Path(__file__).parent / "IAC.md")
+        if iac_md:
+            sections.append("## Current Agent State (agents/IAC.md)\n")
+            sections.append(iac_md)
             sections.append("")
 
     return '\n'.join(sections)

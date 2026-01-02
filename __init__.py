@@ -14,8 +14,8 @@ API AGENTS (Text Response Only):
     spawn_mistral  - Mistral AI (European model, code tasks)
 
 Key features:
-- Automatic logging to IAC.md (Inter-Agent Communication)
-- Automatic CONTEXT.md updates
+- Automatic logging to IAC.md (Inter Agent Context)
+- IAC.md contains Active Agents table + Interaction History
 - CLI agents auto-load context (CLAUDE.md / AGENTS.md)
 - API agents return text; coordinator applies changes
 

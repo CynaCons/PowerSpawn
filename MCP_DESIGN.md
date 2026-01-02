@@ -9,7 +9,7 @@
 ## 1. Purpose
 
 Expose agent spawning as MCP tools so the orchestrator (Claude Code) can delegate tasks to sub-agents with:
-- Automatic logging (IAC.md, CONTEXT.md)
+- Automatic logging (IAC.md - Inter Agent Context)
 - Deterministic behavior (no memory required)
 - Thread-safe concurrent execution
 
@@ -180,12 +180,12 @@ Context is loaded by the respective CLIs, not injected by the MCP server:
 
 ## 5. Logging
 
-**IAC.md** records:
-- Spawn ID, agent type, timestamp (UTC)
-- Task summary and full input prompt
-- Duration, cost, success/failure status
-
-**CONTEXT.md** shows currently active agents (resets on server restart).
+**IAC.md** (Inter Agent Context) contains:
+- **Active Agents table** at top (running agents, resets on server restart)
+- **Interaction History** below with:
+  - Spawn ID, agent type, timestamp (UTC)
+  - Task summary and full input prompt
+  - Duration, cost, success/failure status
 
 ## 6. Agent Comparison
 
@@ -205,8 +205,7 @@ Context is loaded by the respective CLIs, not injected by the MCP server:
 | `mcp_server.py` | MCP server implementation |
 | `spawner.py` | Core spawn functions |
 | `logger.py` | Writes to IAC.md |
-| `IAC.md` | Inter-agent communication log |
-| `CONTEXT.md` | Active agents status |
+| `IAC.md` | Inter Agent Context (active agents + interaction history) |
 
 ## 8. API Key Configuration
 
