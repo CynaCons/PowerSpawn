@@ -9,7 +9,7 @@ git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn
 # Install dependencies
 pip install mcp`,
 
-  config: `// .mcp.json (Claude Code)
+  config: `// .mcp.json - copy this as-is to your project root
 {
   "mcpServers": {
     "agents": {
@@ -19,25 +19,44 @@ pip install mcp`,
   }
 }
 
-// For API agents, set environment variables:
-// XAI_API_KEY=... (for Grok)
-// GEMINI_API_KEY=... (for Gemini)
-// MISTRAL_API_KEY=... (for Mistral)`,
+// Then configure your agents (pick ONE or BOTH):
 
-  usage: `# CLI Agents - Full file system access
-spawn_claude("Review authentication module")
-spawn_codex("Run npm test, report failures")
-spawn_copilot("Refactor database queries")
+// OPTION A: CLI Agents (Claude, Codex, Copilot)
+// Install the CLI tools you want to use:
+//   npm install -g @anthropic-ai/claude-code
+//   pip install codex-cli
+//   gh extension install github/gh-copilot
 
-# API Agents - Text responses, coordinator applies
-spawn_grok("Analyze this architecture decision")
-spawn_gemini("Generate test cases for this function")
-spawn_mistral("Review this code for security issues")
+// OPTION B: API Agents (Grok, Gemini, Mistral)
+// Set environment variables OR create api_keys.json:
+//   export XAI_API_KEY=...     # for Grok
+//   export GEMINI_API_KEY=...  # for Gemini
+//   export MISTRAL_API_KEY=... # for Mistral`,
 
-# MCP tools available:
-# CLI: spawn_claude, spawn_codex, spawn_copilot
-# API: spawn_grok, spawn_gemini, spawn_mistral
-# Utils: list_agents, wait_for_agents`,
+  usage: `User: "Review the auth module and run the tests.
+        Get a second opinion from Grok on the architecture."
+
+Coordinator thinking...
+
+spawn_claude("Review authentication module for security issues")
+→ Agent #a1b2 running (sonnet) [CLI]
+
+spawn_codex("Run npm test, report any failures")
+→ Agent #c3d4 running (gpt-5.1) [CLI]
+
+# Waiting for CLI agents to complete...
+wait_for_agents()
+✓ Claude: Found 2 potential issues
+✓ Codex: All 47 tests passing
+
+# Now getting API agent analysis
+spawn_grok("Analyze the auth architecture, suggest improvements")
+→ Agent #e5f6 running (grok-3) [API]
+
+wait_for_agents()
+✓ Grok: 3 architectural recommendations
+
+# Coordinator synthesizes results and presents to user`,
 }
 
 function CodeBlock({ code }: { code: string }) {

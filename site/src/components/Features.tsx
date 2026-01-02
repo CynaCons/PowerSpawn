@@ -16,22 +16,22 @@ const features = [
   {
     icon: '🎯',
     title: 'Deterministic, Not Hopeful',
-    description: 'MCP wraps agents and captures all I/O automatically. Agents fail 95% of the time at self-reporting — we don\'t ask them to try.',
+    description: 'Python MCP wraps CLIs (Claude, Codex, Copilot) and APIs (Grok, Gemini, Mistral), logging ALL inputs and outputs automatically. Great for reuse, transparency, and review.',
   },
   {
     icon: '⚖️',
     title: 'Load Balancing',
-    description: 'Hit Claude rate limit? Spawn Codex instead. Distribute work across multiple AI subscriptions.',
+    description: 'Hit Claude rate limit? Spawn Codex or Copilot. One Copilot CLI gives you GPT, Claude, AND Gemini models.',
   },
   {
     icon: '👁️',
     title: 'Full Oversight',
-    description: 'CONTEXT.md shows running agents. IAC.md logs all inputs/outputs. Complete audit trail.',
+    description: 'IAC.md (Inter Agent Context) tracks running agents, logs all inputs/outputs, and maintains complete audit trail.',
   },
   {
     icon: '💾',
-    title: 'Persistent Memory',
-    description: 'File-based state survives context window exhaustion, crashes, and days between sessions.',
+    title: 'Session Resilience',
+    description: 'File-based state survives process restarts, context window exhaustion, crashes, and days between sessions. Pick up exactly where you left off.',
   },
   {
     icon: '🚀',
@@ -102,12 +102,12 @@ export function Features() {
           <div className="text-center">
             <div className="text-indigo-400 font-mono text-sm mb-2">THE DETERMINISM PRINCIPLE</div>
             <blockquote className="text-xl md:text-2xl text-white font-medium italic">
-              "Everything that CAN be done deterministically SHOULD be done deterministically."
+              "Everything that CAN be done deterministically SHALL be done deterministically."
             </blockquote>
             <p className="mt-4 text-gray-400 text-sm">
-              Agents excel at reasoning and code generation. They're terrible at administrative tasks.
+              The Python MCP wraps CLIs and APIs, capturing every input and output deterministically.
               <br />
-              <span className="text-gray-500">Let Python handle the bookkeeping. Let agents do what they're good at.</span>
+              <span className="text-gray-500">Complete transparency. Easy reuse. Full audit trail for review.</span>
             </p>
           </div>
         </motion.div>

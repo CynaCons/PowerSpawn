@@ -151,9 +151,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto"
         >
-          Two modes. Six models. One coordinator.
+          Multi-Agent AI Orchestration Made Simple
           <br />
-          <span className="text-gray-400">CLI Agents (Claude, Codex, Copilot) | API Agents (Grok, Gemini, Mistral)</span>
+          <span className="text-gray-400">A Python MCP that wraps CLIs and APIs, logging all inputs/outputs deterministically for transparency, reuse, and review.</span>
         </motion.p>
 
         {/* Install command */}

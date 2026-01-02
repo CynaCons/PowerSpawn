@@ -23,7 +23,7 @@ export function HowItWorks() {
             Layered Supervision: User → Coordinator → Python → Sub-agents
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            The IAC.md pattern provides file-based inter-agent communication
+            The IAC.md pattern provides file-based Inter Agent Context
           </p>
         </motion.div>
 
@@ -57,7 +57,11 @@ export function HowItWorks() {
           <div className="flex justify-center mb-8">
             <div className="px-12 py-6 bg-[var(--ps-bg-card)] rounded-xl border-2 border-cyan-500 text-center max-w-md">
               <div className="text-cyan-400 font-mono font-bold text-xl mb-3">IAC.md</div>
+              <div className="text-xs text-gray-500 mb-3">(Inter Agent Context)</div>
               <div className="space-y-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Running agents status
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-green-400">✓</span> Task assignments
                 </div>
@@ -66,9 +70,6 @@ export function HowItWorks() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-green-400">✓</span> Human-readable log
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-400">✓</span> Git-trackable
                 </div>
               </div>
             </div>
@@ -141,6 +142,18 @@ export function HowItWorks() {
               <div className="text-indigo-400 font-bold mb-1">CLAUDE</div>
               <div className="text-xs text-gray-400">Sonnet/Opus</div>
               <div className="text-xs text-emerald-500/70 mt-1">CLI</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 0 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.47 }}
+              className="px-4 py-3 bg-purple-600/20 border border-purple-500 rounded-xl text-center"
+            >
+              <div className="text-purple-400 font-bold mb-1">COPILOT</div>
+              <div className="text-xs text-gray-400">GPT/Claude/Gemini</div>
+              <div className="text-xs text-emerald-500/70 mt-1">CLI</div>
+              <div className="text-xs text-purple-300/60 mt-1">1 sub = many models</div>
             </motion.div>
 
             {/* API Agents */}
@@ -225,10 +238,10 @@ export function HowItWorks() {
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 rounded-lg bg-[var(--ps-bg-card)]">
-            <span className="text-2xl">🔀</span>
+            <span className="text-2xl">🔄</span>
             <div>
-              <div className="font-semibold text-white">Version Control</div>
-              <div className="text-sm text-gray-400">Git tracks your entire agent history</div>
+              <div className="font-semibold text-white">Session Resilience</div>
+              <div className="text-sm text-gray-400">Resume exactly where you left off after restarts or context exhaustion</div>
             </div>
           </div>
         </motion.div>

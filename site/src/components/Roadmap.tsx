@@ -13,7 +13,8 @@ const roadmapItems = [
   { version: 'v0.6', title: 'Two-Mode Architecture', desc: 'CLI agents (file access) + API agents (text response) unified', status: 'current' },
   // Upcoming
   { version: 'v0.7', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
-  { version: 'v0.8', title: 'Test Suite', desc: 'Unit and integration tests with CI/CD', status: 'upcoming' },
+  { version: 'v0.8', title: 'Reusable Contexts', desc: 'Spawn agents with previous session I/O. Chain agent generations with full context history in IAC', status: 'upcoming' },
+  { version: 'v0.9', title: 'Test Suite', desc: 'Unit and integration tests with CI/CD', status: 'upcoming' },
   { version: 'v1.0', title: 'Stable Release', desc: 'Production-ready with full documentation', status: 'upcoming' },
 ]
 
