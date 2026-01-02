@@ -470,26 +470,38 @@ def _spawn_codex_stream_internal(
 # COPILOT CLI SPAWNING
 # =============================================================================
 
-# Available models in Copilot CLI (as of Dec 2025)
+# Available models in Copilot CLI (as of Jan 2026)
+# Run `copilot --help` to see current list
 COPILOT_MODELS = {
-    # Claude models
+    # Claude models (Anthropic)
+    "claude-sonnet-4.5": "claude-sonnet-4.5",  # Default for Claude
+    "claude-sonnet-4": "claude-sonnet-4",
+    "claude-haiku-4.5": "claude-haiku-4.5",
+    "claude-opus-4.5": "claude-opus-4.5",
+    # Aliases
     "claude-sonnet": "claude-sonnet-4.5",
     "claude-haiku": "claude-haiku-4.5",
     "claude-opus": "claude-opus-4.5",
-    # GPT models
-    "gpt-5": "gpt-5",
+    # GPT models (OpenAI)
+    "gpt-5.1-codex": "gpt-5.1-codex",  # Default - best for coding
+    "gpt-5.1-codex-mini": "gpt-5.1-codex-mini",
     "gpt-5.1": "gpt-5.1",
-    "gpt-5.1-codex": "gpt-5.1-codex",
+    "gpt-5": "gpt-5",
     "gpt-5-mini": "gpt-5-mini",
-    # Gemini models
-    "gemini": "gemini-3-pro-preview",
+    "gpt-4.1": "gpt-4.1",
+    # Gemini models (Google)
+    "gemini-3-pro-preview": "gemini-3-pro-preview",  # Default for Gemini
+    "gemini": "gemini-3-pro-preview",  # Alias
 }
+
+# Default model for Copilot CLI (best coding model)
+COPILOT_DEFAULT_MODEL = "gpt-5.1-codex"
 
 
 def spawn_copilot(
     prompt: str,
     *,
-    model: str = "gpt-5.1",
+    model: str = None,  # Defaults to COPILOT_DEFAULT_MODEL
     working_dir: Optional[str] = None,
     timeout: int = 300,
     task_summary: Optional[str] = None,
@@ -518,6 +530,10 @@ def spawn_copilot(
         AgentResult with the agent's response
     """
     start_time = time.time()
+
+    # Use default model if not specified
+    if model is None:
+        model = COPILOT_DEFAULT_MODEL
 
     # Resolve model alias
     resolved_model = COPILOT_MODELS.get(model, model)

@@ -40,6 +40,8 @@ from spawner import (
     spawn_copilot,
     AgentResult,
     CodexEvent,
+    COPILOT_MODELS,
+    COPILOT_DEFAULT_MODEL,
 )
 from api_providers import (
     spawn_grok,
@@ -47,8 +49,11 @@ from api_providers import (
     spawn_mistral,
     get_available_api_providers,
     GROK_MODELS,
+    GROK_DEFAULT_MODEL,
     GEMINI_MODELS,
+    GEMINI_DEFAULT_MODEL,
     MISTRAL_MODELS,
+    MISTRAL_DEFAULT_MODEL,
 )
 from parser import (
     parse_claude_response,
@@ -66,21 +71,27 @@ from logger import (
     get_logger,
 )
 
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 __all__ = [
     # CLI Agents (full file/command access)
     "spawn_claude",
     "spawn_codex",
     "spawn_codex_stream",
     "spawn_copilot",
+    "COPILOT_MODELS",
+    "COPILOT_DEFAULT_MODEL",
     # API Agents (text response only)
     "spawn_grok",
     "spawn_gemini",
     "spawn_mistral",
     "get_available_api_providers",
+    # Model configs
     "GROK_MODELS",
+    "GROK_DEFAULT_MODEL",
     "GEMINI_MODELS",
+    "GEMINI_DEFAULT_MODEL",
     "MISTRAL_MODELS",
+    "MISTRAL_DEFAULT_MODEL",
     # Results
     "AgentResult",
     "CodexEvent",

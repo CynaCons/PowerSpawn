@@ -116,12 +116,25 @@ class AgentResult:
 # GROK (X.AI) - OpenAI-Compatible API
 # =============================================================================
 
+# Available Grok models (as of Jan 2026)
+# See: https://docs.x.ai/docs/models
 GROK_MODELS = {
-    "grok-4": "grok-4",
-    "grok-4.1": "grok-4.1",
-    "grok-code-fast": "grok-code-fast",
-    "grok-3": "grok-3",  # Legacy
+    # Grok 4.1 family (latest - Dec 2025)
+    "grok-4.1": "grok-4-1-fast-non-reasoning",  # Default - best tool-calling
+    "grok-4.1-reasoning": "grok-4-1-fast-reasoning",  # With extended thinking
+    # Grok 4 family
+    "grok-4": "grok-4-fast-non-reasoning",
+    "grok-4-reasoning": "grok-4-fast-reasoning",
+    # Grok 3 family (legacy)
+    "grok-3": "grok-3-beta",
+    "grok-3-fast": "grok-3-fast-beta",
+    "grok-3-mini": "grok-3-mini-beta",
+    # Specialized
+    "grok-code": "grok-code-fast-1",  # Best for agentic coding
 }
+
+# Default model for Grok (best general-purpose)
+GROK_DEFAULT_MODEL = "grok-4.1"
 
 
 def _get_openai_client_for_grok():
@@ -145,7 +158,7 @@ def _get_openai_client_for_grok():
 def spawn_grok(
     prompt: str,
     *,
-    model: str = "grok-4",
+    model: str = None,  # Defaults to GROK_DEFAULT_MODEL
     system_prompt: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 4096,
@@ -170,6 +183,10 @@ def spawn_grok(
         AgentResult with the agent's response
     """
     start_time = time.time()
+
+    # Use default model if not specified
+    if model is None:
+        model = GROK_DEFAULT_MODEL
 
     # Resolve model alias
     resolved_model = GROK_MODELS.get(model, model)
@@ -257,12 +274,23 @@ def spawn_grok(
 # GOOGLE GEMINI
 # =============================================================================
 
+# Available Gemini models (as of Jan 2026)
+# See: https://ai.google.dev/gemini-api/docs/models
 GEMINI_MODELS = {
-    "gemini-3-pro": "gemini-3-pro",
-    "gemini-2.5-pro": "gemini-2.5-pro",
+    # Gemini 3 family (latest - Dec 2025)
+    "gemini-3-pro": "gemini-3-pro-preview",  # Default - best reasoning
+    "gemini-3-flash": "gemini-3-flash-preview",  # Fast & efficient
+    # Gemini 2.x family
     "gemini-2.0-flash": "gemini-2.0-flash",
-    "gemini-pro": "gemini-pro",  # Legacy
+    "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+    "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
+    # Aliases
+    "gemini-pro": "gemini-3-pro-preview",  # Alias for latest pro
+    "gemini-flash": "gemini-3-flash-preview",  # Alias for latest flash
 }
+
+# Default model for Gemini (best reasoning)
+GEMINI_DEFAULT_MODEL = "gemini-3-pro"
 
 
 def _get_gemini_model(model_name: str):
@@ -284,7 +312,7 @@ def _get_gemini_model(model_name: str):
 def spawn_gemini(
     prompt: str,
     *,
-    model: str = "gemini-3-pro",
+    model: str = None,  # Defaults to GEMINI_DEFAULT_MODEL
     system_prompt: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 4096,
@@ -307,6 +335,10 @@ def spawn_gemini(
         AgentResult with the agent's response
     """
     start_time = time.time()
+
+    # Use default model if not specified
+    if model is None:
+        model = GEMINI_DEFAULT_MODEL
 
     # Resolve model alias
     resolved_model = GEMINI_MODELS.get(model, model)
@@ -397,14 +429,33 @@ def spawn_gemini(
 # MISTRAL AI
 # =============================================================================
 
+# Available Mistral models (as of Jan 2026)
+# See: https://docs.mistral.ai/getting-started/models
 MISTRAL_MODELS = {
-    "mistral-large": "mistral-large-latest",
+    # Mistral 3 family (latest - Dec 2025)
+    "mistral-large": "mistral-large-latest",  # Default - best reasoning
+    "mistral-large-3": "mistral-large-3-25-12",  # Specific version
     "mistral-medium": "mistral-medium-latest",
     "mistral-small": "mistral-small-latest",
+    # Coding models
+    "devstral": "devstral-2-25-12",  # Best coding agent (123B)
+    "devstral-2": "devstral-2-25-12",
+    "devstral-small": "devstral-small-2-25-12",  # Runs locally (24B)
+    "codestral": "codestral-latest",  # Code completion
+    # Ministral family (small dense models)
+    "ministral-14b": "ministral-3-14b-25-12",
+    "ministral-8b": "ministral-3-8b-25-12",
+    "ministral-3b": "ministral-3-3b-25-12",
+    # Reasoning models
+    "magistral": "magistral-medium-1-2-25-09",
+    "magistral-small": "magistral-small-1-2-25-09",
+    # Legacy
     "mixtral": "open-mixtral-8x22b",
-    "devstral": "devstral-small-latest",
-    "codestral": "codestral-latest",
+    "mistral-nemo": "mistral-nemo-12b-24-07",
 }
+
+# Default model for Mistral (best general-purpose)
+MISTRAL_DEFAULT_MODEL = "mistral-large"
 
 
 def _get_mistral_client():
@@ -420,7 +471,7 @@ def _get_mistral_client():
 def spawn_mistral(
     prompt: str,
     *,
-    model: str = "mistral-large",
+    model: str = None,  # Defaults to MISTRAL_DEFAULT_MODEL
     system_prompt: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 4096,
@@ -443,6 +494,10 @@ def spawn_mistral(
         AgentResult with the agent's response
     """
     start_time = time.time()
+
+    # Use default model if not specified
+    if model is None:
+        model = MISTRAL_DEFAULT_MODEL
 
     # Resolve model alias
     resolved_model = MISTRAL_MODELS.get(model, model)
