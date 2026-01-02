@@ -9,29 +9,36 @@ git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn
 # Install dependencies
 pip install mcp`,
 
-  config: `// .mcp.json - copy this as-is to your project root
+  config: `# For Claude Code, create TWO files:
+
+# FILE 1: .mcp.json (project root)
 {
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp.json",
   "mcpServers": {
     "agents": {
       "command": "python",
-      "args": ["powerspawn/mcp_server.py"]
+      "args": ["powerspawn/mcp_server.py"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1"
+      }
     }
   }
 }
 
-// Then configure your agents (pick ONE or BOTH):
+# FILE 2: .claude/settings.local.json
+{
+  "permissions": { "allow": [], "deny": [], "ask": [] },
+  "enabledMcpjsonServers": ["agents"],
+  "enableAllProjectMcpServers": true
+}
 
-// OPTION A: CLI Agents (Claude, Codex, Copilot)
-// Install the CLI tools you want to use:
-//   npm install -g @anthropic-ai/claude-code
-//   pip install codex-cli
-//   gh extension install github/gh-copilot
+# Then restart Claude Code to load the MCP server!
 
-// OPTION B: API Agents (Grok, Gemini, Mistral)
-// Set environment variables OR create api_keys.json:
-//   export XAI_API_KEY=...     # for Grok
-//   export GEMINI_API_KEY=...  # for Gemini
-//   export MISTRAL_API_KEY=... # for Mistral`,
+# For API agents, set env vars or create api_keys.json:
+#   export XAI_API_KEY=...     # for Grok
+#   export GEMINI_API_KEY=...  # for Gemini
+#   export MISTRAL_API_KEY=... # for Mistral`,
 
   usage: `User: "Review the auth module and run the tests.
         Get a second opinion from Grok on the architecture."

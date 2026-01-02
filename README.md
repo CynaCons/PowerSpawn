@@ -180,19 +180,47 @@ pwsh --version  # Should show PowerShell 7.x
 
 ### Configure your MCP client
 
-**Claude Code** (`.mcp.json` in project root):
+#### Claude Code (Two files required)
+
+**Step 1: Define the MCP server** (`.mcp.json` in project root):
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp.json",
   "mcpServers": {
     "agents": {
       "command": "python",
-      "args": ["powerspawn/mcp_server.py"]
+      "args": ["powerspawn/mcp_server.py"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1"
+      }
     }
   }
 }
 ```
 
-**GitHub Copilot** (`.vscode/mcp.json`):
+**Step 2: Enable the MCP server** (`.claude/settings.local.json`):
+```json
+{
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "ask": []
+  },
+  "enabledMcpjsonServers": [
+    "agents"
+  ],
+  "enableAllProjectMcpServers": true
+}
+```
+
+**Step 3: Restart Claude Code** to load the MCP server.
+
+> **Note:** The `.claude/` directory is created automatically if it doesn't exist. Both files are required - `.mcp.json` defines the server, and `settings.local.json` enables it.
+
+#### GitHub Copilot (Single file)
+
+**`.vscode/mcp.json`:**
 ```json
 {
   "servers": {

@@ -238,14 +238,55 @@ Local file takes priority over environment variables.
 
 ## 9. Configuration
 
-`.mcp.json` in project root:
+### Claude Code (Two files required)
+
+**File 1:** `.mcp.json` in project root:
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp.json",
   "mcpServers": {
     "agents": {
       "command": "python",
-      "args": ["powerspawn/mcp_server.py"]
+      "args": ["powerspawn/mcp_server.py"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+**File 2:** `.claude/settings.local.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "ask": []
+  },
+  "enabledMcpjsonServers": [
+    "agents"
+  ],
+  "enableAllProjectMcpServers": true
+}
+```
+
+**Important:** After creating both files, restart Claude Code to load the MCP server.
+
+### GitHub Copilot
+
+`.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "powerspawn": {
+      "command": "python",
+      "args": ["powerspawn/mcp_server.py"],
+      "cwd": "${workspaceFolder}"
     }
   }
 }
