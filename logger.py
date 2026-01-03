@@ -14,6 +14,7 @@ v0.5.14.1: Added file locking for concurrent agent safety
 v0.5.25.1: Newest entries first, limit to 15 entries
 v0.5.26.1: Simplified - always write to script directory
 v1.6.0: Merged CONTEXT.md into IAC.md (Inter Agent Context pattern)
+v1.6.1: Added agent_type (CLI/API) to IAC.md logging
 """
 
 import re
@@ -103,6 +104,7 @@ class SpawnRecord:
     spawn_id: str
     agent: str
     model: str
+    agent_type: str  # "CLI" or "API"
     task_summary: str
     prompt: str
     tools: list[str]
@@ -132,13 +134,13 @@ class AgentLogger:
 
     def _build_active_agents_table(self) -> str:
         """Build markdown table of active agents."""
-        table = "| ID | Agent | Model | Task | Started |\n|-----|-------|-------|------|--------|\n"
+        table = "| ID | Agent | Type | Model | Task | Started |\n|-----|-------|------|-------|------|--------|\n"
         if self.active_spawns:
             for sid, rec in self.active_spawns.items():
                 task_clean = sanitize_for_table(rec.task_summary, 50)
-                table += f"| `{sid}` | {rec.agent} | {rec.model} | {task_clean} | {rec.started_at} |\n"
+                table += f"| `{sid}` | {rec.agent} | {rec.agent_type} | {rec.model} | {task_clean} | {rec.started_at} |\n"
         else:
-            table += "| - | - | - | *No active agents* | - |\n"
+            table += "| - | - | - | - | *No active agents* | - |\n"
         return table
 
     def _build_header(self) -> str:
@@ -260,6 +262,7 @@ class AgentLogger:
         prompt: str,
         tools: list[str],
         task_summary: Optional[str] = None,
+        agent_type: str = "CLI",
     ) -> str:
         """
         Log the start of an agent spawn.
@@ -278,6 +281,7 @@ class AgentLogger:
             spawn_id=spawn_id,
             agent=agent,
             model=model,
+            agent_type=agent_type,
             task_summary=task_summary,
             prompt=prompt,
             tools=tools,
@@ -293,7 +297,7 @@ class AgentLogger:
         fence = "````" if "```" in prompt else "```"
 
         iac_entry = f"""### 🤖 {task_summary}
-- [ ] ⏳ **Running** | `#{spawn_id}` | {agent} ({model}) | {now_time()} | Tools: {tools_str}
+- [ ] ⏳ **Running** | `#{spawn_id}` | {agent} ({model}) [{agent_type}] | {now_time()} | Tools: {tools_str}
 
 <details>
 <summary>📥 Input ({len(prompt)} chars)</summary>
@@ -381,9 +385,10 @@ def log_spawn_start(
     prompt: str,
     tools: list[str],
     task_summary: Optional[str] = None,
+    agent_type: str = "CLI",
 ) -> str:
     """Log the start of an agent spawn. Returns spawn_id."""
-    return get_logger().log_spawn_start(agent, model, prompt, tools, task_summary)
+    return get_logger().log_spawn_start(agent, model, prompt, tools, task_summary, agent_type)
 
 
 def log_spawn_complete(

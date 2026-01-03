@@ -271,8 +271,9 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="spawn_mistral",
             description=(
-                "Spawn a Mistral AI sub-agent via API. "
-                "Use for: code generation, European AI alternative, efficiency. "
+                "Spawn a Mistral AI sub-agent via API with web search. "
+                "Use for: research tasks, current information, code generation. "
+                "Has built-in web search for real-time data. "
                 "Requires MISTRAL_API_KEY environment variable."
             ),
             inputSchema={
@@ -286,8 +287,8 @@ async def list_tools() -> list[Tool]:
                     "model": {
                         "type": "string",
                         "enum": list(MISTRAL_MODELS.keys()),
-                        "default": "mistral-large",
-                        "description": "Model: mistral-large (default), codestral, devstral, mixtral"
+                        "default": "mistral-medium",
+                        "description": "Model: mistral-medium (default, has web search), mistral-large, codestral, devstral"
                     },
                     "system_prompt": {
                         "type": "string",

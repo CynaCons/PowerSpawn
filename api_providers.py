@@ -201,6 +201,7 @@ def spawn_grok(
         prompt=prompt,
         tools=["api"],
         task_summary=task_summary,
+        agent_type="API",
     )
 
     try:
@@ -368,6 +369,7 @@ def spawn_gemini(
         prompt=prompt,
         tools=["api"],
         task_summary=task_summary,
+        agent_type="API",
     )
 
     try:
@@ -463,6 +465,7 @@ MISTRAL_MODELS = {
     "mistral-large": "mistral-large-latest",  # Default - best reasoning
     "mistral-large-3": "mistral-large-3-25-12",  # Specific version
     "mistral-medium": "mistral-medium-latest",
+    "mistral-medium-agents": "mistral-medium-2505",  # Recommended for Agents API
     "mistral-small": "mistral-small-latest",
     # Coding models
     "devstral": "devstral-2-25-12",  # Best coding agent (123B)
@@ -481,8 +484,8 @@ MISTRAL_MODELS = {
     "mistral-nemo": "mistral-nemo-12b-24-07",
 }
 
-# Default model for Mistral (best general-purpose)
-MISTRAL_DEFAULT_MODEL = "mistral-large"
+# Default model for Mistral (mistral-medium supports Agents API with web search)
+MISTRAL_DEFAULT_MODEL = "mistral-medium"
 
 
 def _get_mistral_client():
@@ -504,18 +507,23 @@ def spawn_mistral(
     max_tokens: int = 4096,
     timeout: int = 300,
     task_summary: Optional[str] = None,
+    enable_search: bool = True,  # Enable web search by default
 ) -> AgentResult:
     """
-    Spawn a Mistral agent via Mistral AI API.
+    Spawn a Mistral agent via Mistral AI Agents API.
+
+    Uses the Agents API (beta) for web search capability. Creates a temporary
+    agent, runs a single-turn conversation, and returns the result.
 
     Args:
         prompt: The task/instruction for the agent
-        model: Model to use (mistral-large, mistral-medium, mistral-small, mixtral, devstral, codestral)
-        system_prompt: Optional system prompt
+        model: Model to use (mistral-large, mistral-medium, devstral, codestral, etc.)
+        system_prompt: Optional system prompt / instructions
         temperature: Sampling temperature (0.0-1.0)
         max_tokens: Maximum tokens in response
         timeout: Timeout in seconds (not directly supported in SDK)
         task_summary: Optional short description for logging
+        enable_search: Enable web search tool (default True)
 
     Returns:
         AgentResult with the agent's response
@@ -534,39 +542,79 @@ def spawn_mistral(
         agent="Mistral",
         model=resolved_model,
         prompt=prompt,
-        tools=["api"],
+        tools=["api", "web_search"] if enable_search else ["api"],
         task_summary=task_summary,
+        agent_type="API",
     )
 
     try:
         client = _get_mistral_client()
 
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+        # Build tools list
+        tools = []
+        if enable_search:
+            tools.append({"type": "web_search"})
 
-        response = client.chat.complete(
+        # Create agent with web search capability
+        agent = client.beta.agents.create(
             model=resolved_model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            name="PowerSpawn Agent",
+            description="Research agent with web search capabilities",
+            instructions=system_prompt or "You are a helpful assistant. Use web search when you need current information.",
+            tools=tools if tools else None,
+            completion_args={
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            },
+        )
+
+        # Start single-turn conversation
+        response = client.beta.conversations.start(
+            agent_id=agent.id,
+            inputs=prompt,
+            store=False,  # Don't persist conversation in cloud
         )
 
         duration = time.time() - start_time
 
-        # Extract response text
+        # Extract response text from outputs
+        # Response may contain multiple outputs: tool.execution, message.output, etc.
+        # We need to find the message.output entry
         output_text = ""
-        if response.choices and len(response.choices) > 0:
-            output_text = response.choices[0].message.content or ""
+        if response.outputs:
+            for output in response.outputs:
+                # Skip non-message outputs (tool.execution, etc.)
+                output_type = getattr(output, 'type', '')
+                if output_type != 'message.output':
+                    continue
+
+                content = getattr(output, 'content', None)
+                if content is None:
+                    continue
+
+                if isinstance(content, str):
+                    output_text = content
+                elif isinstance(content, list):
+                    # Handle list of content blocks (text + tool_reference)
+                    text_parts = []
+                    for block in content:
+                        if hasattr(block, 'text'):
+                            text_parts.append(block.text)
+                        elif hasattr(block, 'type') and getattr(block, 'type', '') == 'text':
+                            text_parts.append(getattr(block, 'text', ''))
+                    output_text = "".join(text_parts)
+                else:
+                    # Fallback: convert to string
+                    output_text = str(content) if content else ""
+                break  # Found the message, stop looking
 
         # Extract usage info
         usage = {}
-        if response.usage:
+        if hasattr(response, 'usage') and response.usage:
             usage = {
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens,
+                "prompt_tokens": getattr(response.usage, 'prompt_tokens', 0),
+                "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
+                "total_tokens": getattr(response.usage, 'total_tokens', 0),
             }
 
         # Log completion
