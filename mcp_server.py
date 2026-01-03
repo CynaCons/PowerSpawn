@@ -79,7 +79,7 @@ if sys.platform == "win32":
 IS_WINDOWS = sys.platform == "win32"
 
 # Version (single source of truth)
-SERVER_VERSION = "1.5.0"
+SERVER_VERSION = "1.6.2"
 
 # MCP SDK imports
 try:

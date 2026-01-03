@@ -600,15 +600,15 @@ def spawn_copilot(
 
     # Build CLI command
     # Note: --allow-all-tools doesn't include shell commands by default
-    # We need explicit --allow-tool shell and --allow-tool write for full access
+    # We need explicit --allow-tool with shell and write for full access
+    # IMPORTANT: --allow-tool takes variadic [tools...], so both must be args to ONE flag
     cmd = [
         "copilot",
         "-s",                   # Silent (output only response)
         "-p", prompt,           # Prompt text (required for non-interactive mode)
         "--allow-all-tools",    # Auto-approve all tools
         "--allow-all-paths",    # Allow access to any path
-        "--allow-tool", "shell",  # Allow all shell commands
-        "--allow-tool", "write",  # Allow file write operations
+        "--allow-tool", "shell", "write",  # Both tools as args to single --allow-tool
         "--model", resolved_model,
     ]
 

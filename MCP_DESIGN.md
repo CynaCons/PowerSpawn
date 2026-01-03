@@ -1,7 +1,7 @@
 # MCP Agent Spawner - Design Document
 
-**Version:** 1.5
-**Date:** 2025-12-05
+**Version:** 1.6.2
+**Date:** 2026-01-03
 **Status:** Implemented
 
 ---
@@ -55,9 +55,16 @@ Parameters:
 ```
 
 Settings:
-- Flags: `-s -p <prompt> --allow-all-tools --allow-all-paths --allow-tool shell --allow-tool write`
+- Flags: `-s -p <prompt> --allow-all-tools --allow-all-paths --allow-tool shell write`
 - Timeout: 600s
 - Context: Copilot CLI auto-loads AGENTS.md from project root
+
+**Important:** The `--allow-tool` flag takes a variadic argument list `[tools...]`.
+Multiple tools must be passed as args to ONE flag, not as separate flags:
+```bash
+# Correct:  --allow-tool shell write
+# Wrong:    --allow-tool shell --allow-tool write
+```
 
 **Supported models:**
 | Model | Provider |

@@ -1,6 +1,6 @@
 # PowerSpawn - Universal Multi-Agent MCP Server
 
-> **Version 1.5.0**
+> **Version 1.6.2**
 
 > **Spawn Claude, Codex, AND Copilot from one coordinator. Your agents leave a paper trail.**
 
@@ -488,6 +488,37 @@ Key highlights:
 - **Layered supervision model** - User → Coordinator → Python → Sub-agents (Section 2.3)
 - **The Determinism Principle** - Everything that CAN be done deterministically SHOULD be (Section 2.1)
 - **Agent capability matrix** - When to use Claude vs Codex (Section 11)
+
+## Troubleshooting
+
+### Copilot "Permission denied" for file writes
+
+**Symptom:** Copilot agent reports "Permission denied and could not request permission from user" when trying to create or edit files.
+
+**Cause:** The `--allow-tool` flag in Copilot CLI takes a **variadic argument list**, meaning multiple tools must be passed as arguments to a single flag.
+
+**Wrong:**
+```bash
+copilot --allow-tool shell --allow-tool write  # Each flag only gets one arg
+```
+
+**Correct:**
+```bash
+copilot --allow-tool shell write  # Both tools as args to one flag
+```
+
+**Fix in code:**
+```python
+# Wrong - separate flags
+cmd = ["--allow-tool", "shell", "--allow-tool", "write"]
+
+# Correct - single flag with multiple args
+cmd = ["--allow-tool", "shell", "write"]
+```
+
+This was fixed in PowerSpawn v1.6.2 (spawner.py:611).
+
+---
 
 ## Roadmap
 
