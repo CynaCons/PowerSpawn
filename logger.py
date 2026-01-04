@@ -15,6 +15,7 @@ v0.5.25.1: Newest entries first, limit to 15 entries
 v0.5.26.1: Simplified - always write to script directory
 v1.6.0: Merged CONTEXT.md into IAC.md (Inter Agent Context pattern)
 v1.6.1: Added agent_type (CLI/API) to IAC.md logging
+v1.6.2: Increased MAX_IAC_ENTRIES from 15 to 50
 """
 
 import re
@@ -29,7 +30,7 @@ from dataclasses import dataclass
 _file_lock = threading.Lock()
 
 # Maximum number of entries to keep in IAC.md
-MAX_IAC_ENTRIES = 15
+MAX_IAC_ENTRIES = 50
 
 # IAC.md header template (with active agents placeholder)
 IAC_HEADER_TEMPLATE = """# Inter Agent Context (IAC)
@@ -48,7 +49,7 @@ IAC_HEADER_TEMPLATE = """# Inter Agent Context (IAC)
 
 ## Interaction History
 
-> Newest entries first. Limited to last 15 entries.
+> Newest entries first. Limited to last 50 entries.
 
 """
 
