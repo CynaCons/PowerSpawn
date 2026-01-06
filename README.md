@@ -1,6 +1,6 @@
 # PowerSpawn - Universal Multi-Agent MCP Server
 
-> **Version 1.6.2**
+**Live:** [powerspawn.com](https://powerspawn.com) | **Version 1.6.2**
 
 > **Spawn Claude, Codex, AND Copilot from one coordinator. Your agents leave a paper trail.**
 
