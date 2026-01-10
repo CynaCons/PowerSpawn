@@ -1,0 +1,95 @@
+{
+  "claude": {
+    "default": "sonnet",
+    "aliases": {
+      "sonnet": "sonnet",
+      "haiku": "haiku",
+      "opus": "opus"
+    }
+  },
+  "codex": {
+    "default": "gpt-5.2-codex",
+    "aliases": {
+      "gpt-5.2-codex": "gpt-5.2-codex",
+      "gpt-5.1-codex-max": "gpt-5.1-codex-max",
+      "gpt-5.1-codex": "gpt-5.1-codex",
+      "o3": "o3",
+      "o4-mini": "o4-mini",
+      "codex": "gpt-5.2-codex",
+      "codex-max": "gpt-5.1-codex-max"
+    }
+  },
+  "copilot": {
+    "default": "gpt-5.2",
+    "aliases": {
+      "claude-sonnet-4.5": "claude-sonnet-4.5",
+      "claude-sonnet-4": "claude-sonnet-4",
+      "claude-haiku-4.5": "claude-haiku-4.5",
+      "claude-opus-4.5": "claude-opus-4.5",
+      "claude-sonnet": "claude-sonnet-4.5",
+      "claude-haiku": "claude-haiku-4.5",
+      "claude-opus": "claude-opus-4.5",
+      "gpt-5.2": "gpt-5.2",
+      "gpt-5.1-codex": "gpt-5.1-codex",
+      "gpt-5.1-codex-mini": "gpt-5.1-codex-mini",
+      "gpt-5.1": "gpt-5.1",
+      "gpt-5": "gpt-5",
+      "gpt-5-mini": "gpt-5-mini",
+      "gpt-4.1": "gpt-4.1",
+      "gemini-3-pro-preview": "gemini-3-pro-preview",
+      "gemini": "gemini-3-pro-preview"
+    }
+  },
+  "grok": {
+    "default": "grok-4.1-reasoning",
+    "aliases": {
+      "grok-4.1": "grok-4-1-fast-non-reasoning",
+      "grok-4.1-reasoning": "grok-4-1-fast-reasoning",
+      "grok-4": "grok-4-fast-non-reasoning",
+      "grok-4-reasoning": "grok-4-fast-reasoning",
+      "grok-3": "grok-3-beta",
+      "grok-3-fast": "grok-3-fast-beta",
+      "grok-3-mini": "grok-3-mini-beta",
+      "grok-code": "grok-code-fast-1"
+    }
+  },
+  "gemini": {
+    "default": "gemini-2.0-flash",
+    "aliases": {
+      "gemini-2.0-flash": "gemini-2.0-flash",
+      "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+      "gemini-pro": "gemini-2.0-flash",
+      "gemini-flash": "gemini-2.0-flash"
+    }
+  },
+  "gemini-cli": {
+    "default": "gemini-2.0-flash",
+    "aliases": {
+      "gemini-2.0-flash": "gemini-2.0-flash",
+      "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+      "gemini-pro": "gemini-2.0-flash",
+      "gemini-flash": "gemini-2.0-flash"
+    }
+  },
+  "mistral": {
+    "default": "mistral-medium",
+    "aliases": {
+      "mistral-large": "mistral-large-latest",
+      "mistral-large-3": "mistral-large-3-25-12",
+      "mistral-medium": "mistral-medium-latest",
+      "mistral-medium-agents": "mistral-medium-2505",
+      "mistral-small": "mistral-small-latest",
+      "devstral": "devstral-2-25-12",
+      "devstral-2": "devstral-2-25-12",
+      "devstral-small": "devstral-small-2-25-12",
+      "codestral": "codestral-latest",
+      "ministral-14b": "ministral-3-14b-25-12",
+      "ministral-8b": "ministral-3-8b-25-12",
+      "ministral-3b": "ministral-3-3b-25-12",
+      "magistral": "magistral-medium-1-2-25-09",
+      "magistral-small": "magistral-small-1-2-25-09",
+      "mixtral": "open-mixtral-8x22b",
+      "mistral-nemo": "mistral-nemo-12b-24-07"
+    }
+  }
+}

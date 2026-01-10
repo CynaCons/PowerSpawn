@@ -52,16 +52,17 @@ def test_call_tool_handler_exists():
 
 def test_spawn_functions_callable():
     """Test spawn functions are callable."""
-    from spawner import spawn_claude, spawn_codex, spawn_copilot
+    from providers import spawn_claude, spawn_codex, spawn_copilot, spawn_gemini_cli
 
     assert callable(spawn_claude)
     assert callable(spawn_codex)
     assert callable(spawn_copilot)
+    assert callable(spawn_gemini_cli)
 
 
 def test_agent_result_dataclass():
     """Test AgentResult dataclass structure."""
-    from spawner import AgentResult
+    from providers import AgentResult
 
     result = AgentResult(
         success=True,
@@ -84,7 +85,7 @@ def test_agent_result_dataclass():
 
 def test_codex_event_dataclass():
     """Test CodexEvent dataclass structure."""
-    from spawner import CodexEvent
+    from providers.codex import CodexEvent
 
     # Test basic event
     event = CodexEvent(type="test.event")
@@ -110,68 +111,21 @@ def test_codex_event_dataclass():
     assert cmd_event.is_message is False
 
 
-def test_mcp_server_globals():
-    """Test MCP server global state variables."""
+def test_agent_manager_exists():
+    """Test Agent Manager is accessible."""
     try:
-        from mcp_server import running_agents, completed_agents, background_threads
-
-        assert isinstance(running_agents, dict)
-        assert isinstance(completed_agents, dict)
-        assert isinstance(background_threads, dict)
+        from agent_manager import agent_manager
+        assert agent_manager is not None
     except ImportError:
-        pytest.skip("MCP server not accessible")
+        pytest.skip("Agent manager not accessible")
 
 
-def test_helper_functions_exist():
-    """Test helper functions are defined."""
+def test_config_models_exist():
+    """Test Config settings are accessible."""
     try:
-        from mcp_server import (
-            sanitize_for_json,
-            utc_now_iso,
-            get_workspace_dir
-        )
-
-        assert callable(sanitize_for_json)
-        assert callable(utc_now_iso)
-        assert callable(get_workspace_dir)
-
-        # Test sanitize_for_json
-        assert sanitize_for_json("") == ""
-        assert sanitize_for_json("hello") == "hello"
-
-        # Test utc_now_iso returns string in expected format
-        timestamp = utc_now_iso()
-        assert isinstance(timestamp, str)
-        assert 'T' in timestamp  # ISO format has 'T' separator
-
-        # Test get_workspace_dir returns Path
-        from pathlib import Path
-        workspace = get_workspace_dir()
-        assert isinstance(workspace, Path)
-
+        from config import settings
+        copilot_models = settings.get_model_list("copilot")
+        assert isinstance(copilot_models, list)
+        assert len(copilot_models) > 0
     except ImportError:
-        pytest.skip("MCP server not accessible")
-
-
-def test_copilot_models_constant():
-    """Test COPILOT_MODELS mapping exists."""
-    try:
-        from spawner import COPILOT_MODELS
-
-        assert isinstance(COPILOT_MODELS, dict)
-        # Should have expected model aliases
-        assert "gpt-5.1" in COPILOT_MODELS
-        assert "claude-sonnet" in COPILOT_MODELS
-        assert "gemini" in COPILOT_MODELS
-
-    except ImportError:
-        pytest.skip("Spawner module not accessible")
-
-
-def test_is_windows_constant():
-    """Test IS_WINDOWS constant is defined correctly."""
-    import sys
-    from spawner import IS_WINDOWS
-
-    assert isinstance(IS_WINDOWS, bool)
-    assert IS_WINDOWS == (sys.platform == "win32")
+        pytest.skip("Config not accessible")

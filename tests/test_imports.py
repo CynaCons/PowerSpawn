@@ -2,12 +2,25 @@
 import pytest
 
 
-def test_spawner_imports():
-    """Test spawner module imports."""
-    from spawner import spawn_claude, spawn_codex, spawn_copilot, AgentResult
+def test_provider_imports():
+    """Test provider module imports."""
+    from providers import (
+        spawn_claude, 
+        spawn_codex, 
+        spawn_copilot, 
+        spawn_grok,
+        spawn_gemini,
+        spawn_gemini_cli,
+        spawn_mistral,
+        AgentResult
+    )
     assert callable(spawn_claude)
     assert callable(spawn_codex)
     assert callable(spawn_copilot)
+    assert callable(spawn_grok)
+    assert callable(spawn_gemini)
+    assert callable(spawn_gemini_cli)
+    assert callable(spawn_mistral)
 
 
 def test_logger_imports():
@@ -18,8 +31,7 @@ def test_logger_imports():
     assert callable(generate_spawn_id)
 
 
-def test_parser_imports():
-    """Test parser module imports."""
-    from parser import parse_claude_response, parse_codex_event
-    assert callable(parse_claude_response)
-    assert callable(parse_codex_event)
+def test_config_imports():
+    """Test config module imports."""
+    from config import settings
+    assert settings is not None

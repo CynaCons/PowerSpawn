@@ -6,7 +6,7 @@ const features = [
   {
     icon: '🔀',
     title: 'Dual-Mode Architecture',
-    description: 'CLI Agents (Claude, Codex, Copilot) have full file access. API Agents (Grok, Gemini, Mistral) return text responses that the coordinator applies.',
+    description: 'CLI Agents (Claude, Codex, Copilot, Gemini) have full file access. API Agents (Grok, Gemini, Mistral) return text responses that the coordinator applies.',
   },
   {
     icon: '🔌',
@@ -105,7 +105,7 @@ export function Features() {
               "Everything that CAN be done deterministically SHALL be done deterministically."
             </blockquote>
             <p className="mt-4 text-gray-400 text-sm">
-              The Python MCP wraps CLIs and APIs, capturing every input and output deterministically.
+              The Python MCP wraps CLIs (Claude, Codex, Copilot, Gemini) and APIs (Grok, Gemini, Mistral), capturing every input and output deterministically.
               <br />
               <span className="text-gray-500">Complete transparency. Easy reuse. Full audit trail for review.</span>
             </p>

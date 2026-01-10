@@ -19,6 +19,7 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 | **Claude** | `spawn_claude` | ✓ Yes | ✓ Yes | Complex reasoning, code review |
 | **Codex** | `spawn_codex` | ✓ Yes | ✓ Yes | Code generation, testing |
 | **Copilot** | `spawn_copilot` | ✓ Yes | ✓ Yes | Multi-model via CLI |
+| **Gemini** | `spawn_gemini_cli` | ✓ Yes | ✓ Yes | Multimodal via CLI |
 
 **Use CLI agents for:**
 - Code refactoring across multiple files

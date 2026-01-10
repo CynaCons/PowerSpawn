@@ -1,5 +1,5 @@
 """
-PowerSpawn - Multi-Agent Orchestration System v1.6
+PowerSpawn - Multi-Agent Orchestration System v1.7.0
 
 Two modes of agent spawning:
 
@@ -20,96 +20,40 @@ Key features:
 - API agents return text; coordinator applies changes
 
 See DESIGN.md for architecture rationale.
-
-Usage:
-    from PowerSpawn import spawn_claude, spawn_grok, AgentResult
-
-    # CLI Agent - can modify files directly
-    result = spawn_claude("Refactor the auth module", model="sonnet")
-    print(result.text)
-
-    # API Agent - returns text response
-    result = spawn_grok("Analyze this code for security issues")
-    print(result.text)  # Coordinator applies suggestions
 """
 
-from spawner import (
+from providers import (
     spawn_claude,
     spawn_codex,
-    spawn_codex_stream,
     spawn_copilot,
-    AgentResult,
-    CodexEvent,
-    CODEX_MODELS,
-    CODEX_DEFAULT_MODEL,
-    COPILOT_MODELS,
-    COPILOT_DEFAULT_MODEL,
-)
-from api_providers import (
     spawn_grok,
     spawn_gemini,
     spawn_mistral,
-    get_available_api_providers,
-    GROK_MODELS,
-    GROK_DEFAULT_MODEL,
-    GEMINI_MODELS,
-    GEMINI_DEFAULT_MODEL,
-    MISTRAL_MODELS,
-    MISTRAL_DEFAULT_MODEL,
-)
-from parser import (
-    parse_claude_response,
-    parse_codex_jsonl,
-)
-from context_loader import (
-    load_project_context,
-    load_minimal_context,
-    load_full_context,
-    format_prompt_with_context,
+    AgentResult
 )
 from logger import (
     log_spawn_start,
     log_spawn_complete,
     get_logger,
 )
+from config import settings
 
-__version__ = "1.6.2"
+__version__ = "1.7.0"
 __all__ = [
-    # CLI Agents (full file/command access)
+    # CLI Agents
     "spawn_claude",
     "spawn_codex",
-    "spawn_codex_stream",
     "spawn_copilot",
-    # CLI Agent model configs
-    "CODEX_MODELS",
-    "CODEX_DEFAULT_MODEL",
-    "COPILOT_MODELS",
-    "COPILOT_DEFAULT_MODEL",
-    # API Agents (text response only)
+    # API Agents
     "spawn_grok",
     "spawn_gemini",
     "spawn_mistral",
-    "get_available_api_providers",
-    # API Agent model configs
-    "GROK_MODELS",
-    "GROK_DEFAULT_MODEL",
-    "GEMINI_MODELS",
-    "GEMINI_DEFAULT_MODEL",
-    "MISTRAL_MODELS",
-    "MISTRAL_DEFAULT_MODEL",
-    # Results
+    # Types
     "AgentResult",
-    "CodexEvent",
-    # Parsing
-    "parse_claude_response",
-    "parse_codex_jsonl",
-    # Context loading
-    "load_project_context",
-    "load_minimal_context",
-    "load_full_context",
-    "format_prompt_with_context",
     # Logging
     "log_spawn_start",
     "log_spawn_complete",
     "get_logger",
+    # Configuration
+    "settings",
 ]

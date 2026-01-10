@@ -194,9 +194,10 @@ def test_max_entries_limit(tmp_path):
     with patch('logger.get_output_dir', return_value=tmp_path):
         logger = AgentLogger()
 
-        # Create more than MAX_IAC_ENTRIES spawns (15)
+        # Create more than MAX_IAC_ENTRIES spawns (50)
+        # We spawn 60 agents to ensure at least 10 are trimmed
         spawn_ids = []
-        for i in range(20):
+        for i in range(60):
             spawn_id = logger.log_spawn_start(
                 agent="Claude",
                 model="haiku",
@@ -209,11 +210,11 @@ def test_max_entries_limit(tmp_path):
         iac_file = tmp_path / "IAC.md"
         content = iac_file.read_text(encoding='utf-8')
 
-        # Should only have last 15 task ENTRIES (not in Active Agents table)
+        # Should only have last 50 task ENTRIES (not in Active Agents table)
         # Check for entry headers (### 🤖 Task X) to verify entry limits
-        assert "### 🤖 Task 19" in content  # Most recent entry
-        assert "### 🤖 Task 5" in content   # 15th from end
-        assert "### 🤖 Task 4" not in content  # Entry should be trimmed
+        assert "### 🤖 Task 59" in content  # Most recent entry (60th)
+        assert "### 🤖 Task 10" in content   # 50th from end (index 10-59 = 50 items)
+        assert "### 🤖 Task 9" not in content  # Entry should be trimmed
 
 
 def test_global_logger_functions(tmp_path):
