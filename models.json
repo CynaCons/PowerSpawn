@@ -13,8 +13,6 @@
       "gpt-5.2-codex": "gpt-5.2-codex",
       "gpt-5.1-codex-max": "gpt-5.1-codex-max",
       "gpt-5.1-codex": "gpt-5.1-codex",
-      "o3": "o3",
-      "o4-mini": "o4-mini",
       "codex": "gpt-5.2-codex",
       "codex-max": "gpt-5.1-codex-max"
     }
@@ -54,21 +52,21 @@
     }
   },
   "gemini": {
-    "default": "gemini-2.0-flash",
+    "default": "gemini-3-pro",
     "aliases": {
-      "gemini-2.0-flash": "gemini-2.0-flash",
-      "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
-      "gemini-pro": "gemini-2.0-flash",
-      "gemini-flash": "gemini-2.0-flash"
+      "gemini-3-pro": "gemini-3-pro",
+      "gemini-3-flash": "gemini-3-flash",
+      "gemini-pro": "gemini-3-pro",
+      "gemini-flash": "gemini-3-flash"
     }
   },
   "gemini-cli": {
-    "default": "gemini-2.0-flash",
+    "default": "gemini-3-pro",
     "aliases": {
-      "gemini-2.0-flash": "gemini-2.0-flash",
-      "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
-      "gemini-pro": "gemini-2.0-flash",
-      "gemini-flash": "gemini-2.0-flash"
+      "gemini-3-pro": "gemini-3-pro",
+      "gemini-3-flash": "gemini-3-flash",
+      "gemini-pro": "gemini-3-pro",
+      "gemini-flash": "gemini-3-flash"
     }
   },
   "mistral": {
