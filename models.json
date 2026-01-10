@@ -52,21 +52,21 @@
     }
   },
   "gemini": {
-    "default": "gemini-3-pro",
+    "default": "gemini-3-pro-preview",
     "aliases": {
-      "gemini-3-pro": "gemini-3-pro",
-      "gemini-3-flash": "gemini-3-flash",
-      "gemini-pro": "gemini-3-pro",
-      "gemini-flash": "gemini-3-flash"
+      "gemini-3-pro": "gemini-3-pro-preview",
+      "gemini-3-flash": "gemini-3-flash-preview",
+      "gemini-pro": "gemini-3-pro-preview",
+      "gemini-flash": "gemini-3-flash-preview"
     }
   },
   "gemini-cli": {
-    "default": "gemini-3-pro",
+    "default": "gemini-3-pro-preview",
     "aliases": {
-      "gemini-3-pro": "gemini-3-pro",
-      "gemini-3-flash": "gemini-3-flash",
-      "gemini-pro": "gemini-3-pro",
-      "gemini-flash": "gemini-3-flash"
+      "gemini-3-pro": "gemini-3-pro-preview",
+      "gemini-3-flash": "gemini-3-flash-preview",
+      "gemini-pro": "gemini-3-pro-preview",
+      "gemini-flash": "gemini-3-flash-preview"
     }
   },
   "mistral": {
