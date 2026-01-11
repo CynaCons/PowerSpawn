@@ -22,7 +22,7 @@ Key features:
 See DESIGN.md for architecture rationale.
 """
 
-from providers import (
+from .providers import (
     spawn_claude,
     spawn_codex,
     spawn_copilot,
@@ -31,12 +31,12 @@ from providers import (
     spawn_mistral,
     AgentResult
 )
-from logger import (
+from .logger import (
     log_spawn_start,
     log_spawn_complete,
     get_logger,
 )
-from config import settings
+from .config import settings
 
 __version__ = "1.7.0"
 __all__ = [

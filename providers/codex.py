@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Iterator
 
-from logger import log_spawn_start, log_spawn_complete
-from config import settings
+from ..logger import log_spawn_start, log_spawn_complete
+from ..config import settings
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"

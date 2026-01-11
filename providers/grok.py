@@ -5,8 +5,8 @@ Grok API Provider (X.AI)
 import time
 from typing import Optional
 
-from logger import log_spawn_start, log_spawn_complete
-from config import settings
+from ..logger import log_spawn_start, log_spawn_complete
+from ..config import settings
 from .types import AgentResult
 
 _openai_client = None

@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from logger import log_spawn_start, log_spawn_complete
-from config import settings
+from ..logger import log_spawn_start, log_spawn_complete
+from ..config import settings
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
@@ -44,22 +44,24 @@ def spawn_copilot(
     )
     
     # Copilot CLI argument construction
+    # NOTE: We pass prompt via stdin instead of -p flag to avoid Windows command line length limits
     cmd = [
         "copilot",
         "-s",                   # Silent (output only response)
-        "-p", prompt,           # Prompt text
         "--allow-all-tools",    # Auto-approve all tools
         "--allow-all-paths",    # Allow access to any path
         # Variadic arg requirement: both tools passed to one flag
         "--allow-tool", "shell", "write",
         "--model", resolved_model,
     ]
-    
+
     cwd = working_dir or str(get_workspace_dir())
-    
+
     try:
+        # Use stdin to pass prompt (avoids Windows command line length limits)
         result = subprocess.run(
             cmd,
+            input=prompt,
             capture_output=True,
             text=True,
             timeout=timeout,
