@@ -10,15 +10,20 @@ from ..config import settings
 from .types import AgentResult
 
 _mistral_client = None
+_client_timeout = None
 
-def _get_client():
-    global _mistral_client
-    if _mistral_client is None:
+def _get_client(timeout: Optional[int] = None):
+    global _mistral_client, _client_timeout
+    if _mistral_client is None or _client_timeout != timeout:
         from mistralai import Mistral
         api_key = settings.get_api_key("mistral")
         if not api_key:
             raise ValueError("Mistral API key not found.")
-        _mistral_client = Mistral(api_key=api_key)
+        
+        # Convert timeout from seconds to milliseconds for Mistral
+        timeout_ms = timeout * 1000 if timeout else None
+        _mistral_client = Mistral(api_key=api_key, timeout_ms=timeout_ms)
+        _client_timeout = timeout
     return _mistral_client
 
 def extract_mistral_text(response: Any) -> str:
@@ -65,6 +70,7 @@ def spawn_mistral(
     model: str = None,
     system_prompt: Optional[str] = None,
     temperature: float = 0.7,
+    timeout: int = 300,
     task_summary: Optional[str] = None,
     enable_search: bool = True,
 ) -> AgentResult:
@@ -84,7 +90,7 @@ def spawn_mistral(
     )
     
     try:
-        client = _get_client()
+        client = _get_client(timeout=timeout)
         
         tools = []
         if enable_search:

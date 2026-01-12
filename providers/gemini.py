@@ -10,15 +10,23 @@ from ..config import settings
 from .types import AgentResult
 
 _genai_client = None
+_client_timeout = None
 
-def _get_client():
-    global _genai_client
-    if _genai_client is None:
+def _get_client(timeout: Optional[int] = None):
+    global _genai_client, _client_timeout
+    if _genai_client is None or _client_timeout != timeout:
         from google import genai
         api_key = settings.get_api_key("gemini")
         if not api_key:
             raise ValueError("Gemini API key not found.")
-        _genai_client = genai.Client(api_key=api_key)
+        
+        http_options = None
+        if timeout:
+            from google.genai import types
+            http_options = types.HttpOptions(timeout=timeout)
+        
+        _genai_client = genai.Client(api_key=api_key, http_options=http_options)
+        _client_timeout = timeout
     return _genai_client
 
 def spawn_gemini(
@@ -27,6 +35,7 @@ def spawn_gemini(
     model: str = None,
     system_prompt: Optional[str] = None,
     temperature: float = 0.7,
+    timeout: int = 300,
     task_summary: Optional[str] = None,
     enable_search: bool = True,
 ) -> AgentResult:
@@ -46,7 +55,7 @@ def spawn_gemini(
     )
     
     try:
-        client = _get_client()
+        client = _get_client(timeout=timeout)
         
         full_prompt = prompt
         if system_prompt:
