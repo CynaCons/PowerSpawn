@@ -3,7 +3,7 @@ import os
 import json
 import pytest
 from pathlib import Path
-from powerspawn.config import Settings
+from PowerSpawn.config import Settings
 
 @pytest.fixture
 def mock_keys_file(tmp_path, monkeypatch):
@@ -18,7 +18,7 @@ def mock_keys_file(tmp_path, monkeypatch):
 def test_settings_load_priority(mock_keys_file, monkeypatch):
     """Test that file keys take priority over env vars."""
     # Mock __file__ in config module so Path(__file__).parent points to tmp_path
-    monkeypatch.setattr("powerspawn.config.__file__", str(mock_keys_file.parent / "config.py"))
+    monkeypatch.setattr("PowerSpawn.config.__file__", str(mock_keys_file.parent / "config.py"))
     
     monkeypatch.setenv("XAI_API_KEY", "test_env_key")
     
@@ -30,7 +30,7 @@ def test_settings_env_fallback(monkeypatch):
     monkeypatch.setenv("MISTRAL_API_KEY", "env_mistral_key")
     
     # Point __file__ to a non-existent dir so no api_keys.json found
-    monkeypatch.setattr("powerspawn.config.__file__", "/non/existent/config.py")
+    monkeypatch.setattr("PowerSpawn.config.__file__", "/non/existent/config.py")
     
     settings = Settings()
     assert settings.get_api_key("mistral") == "env_mistral_key"
@@ -48,7 +48,7 @@ def test_model_alias_resolution(monkeypatch):
         }
     }
     
-    monkeypatch.setattr("powerspawn.config.Settings._load_models", lambda self: setattr(self, "_models", models))
+    monkeypatch.setattr("PowerSpawn.config.Settings._load_models", lambda self: setattr(self, "_models", models))
     
     settings = Settings()
     assert settings.get_model_alias("test_provider", "latest") == "model-v2-beta"

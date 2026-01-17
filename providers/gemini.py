@@ -23,7 +23,9 @@ def _get_client(timeout: Optional[int] = None):
         http_options = None
         if timeout:
             from google.genai import types
-            http_options = types.HttpOptions(timeout=timeout)
+            # Google GenAI SDK expects timeout in milliseconds, not seconds
+            timeout_ms = timeout * 1000
+            http_options = types.HttpOptions(timeout=timeout_ms)
         
         _genai_client = genai.Client(api_key=api_key, http_options=http_options)
         _client_timeout = timeout

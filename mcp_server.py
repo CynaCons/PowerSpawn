@@ -24,9 +24,9 @@ import sys
 import threading
 from typing import Any
 
-from agent_manager import agent_manager
-from config import settings
-from providers import (
+from .agent_manager import agent_manager
+from .config import settings
+from .providers import (
     spawn_claude,
     spawn_codex,
     spawn_copilot,

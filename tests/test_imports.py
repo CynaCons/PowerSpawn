@@ -4,10 +4,10 @@ import pytest
 
 def test_provider_imports():
     """Test provider module imports."""
-    from providers import (
-        spawn_claude, 
-        spawn_codex, 
-        spawn_copilot, 
+    from PowerSpawn.providers import (
+        spawn_claude,
+        spawn_codex,
+        spawn_copilot,
         spawn_grok,
         spawn_gemini,
         spawn_gemini_cli,
@@ -25,7 +25,7 @@ def test_provider_imports():
 
 def test_logger_imports():
     """Test logger module imports."""
-    from logger import log_spawn_start, log_spawn_complete, generate_spawn_id
+    from PowerSpawn.logger import log_spawn_start, log_spawn_complete, generate_spawn_id
     assert callable(log_spawn_start)
     assert callable(log_spawn_complete)
     assert callable(generate_spawn_id)
@@ -33,5 +33,5 @@ def test_logger_imports():
 
 def test_config_imports():
     """Test config module imports."""
-    from config import settings
+    from PowerSpawn.config import settings
     assert settings is not None

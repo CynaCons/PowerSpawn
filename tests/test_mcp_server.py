@@ -1,16 +1,11 @@
 """Integration tests for MCP server."""
 import pytest
-import sys
-from pathlib import Path
-
-# Add parent to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def test_server_module_imports():
     """Test MCP server module imports without error."""
     try:
-        import mcp_server
+        from PowerSpawn import mcp_server
         assert hasattr(mcp_server, 'main')
         assert hasattr(mcp_server, 'server')
     except ImportError as e:
@@ -20,7 +15,7 @@ def test_server_module_imports():
 def test_server_version_constant():
     """Test that SERVER_VERSION constant exists."""
     try:
-        from mcp_server import SERVER_VERSION
+        from PowerSpawn.mcp_server import SERVER_VERSION
         assert isinstance(SERVER_VERSION, str)
         assert len(SERVER_VERSION) > 0
         # Should follow semver pattern (e.g., "1.4.0")
@@ -33,7 +28,7 @@ def test_server_version_constant():
 def test_list_tools_handler_exists():
     """Test that list_tools handler is defined."""
     try:
-        from mcp_server import list_tools, server
+        from PowerSpawn.mcp_server import list_tools, server
         assert callable(list_tools)
         # Server should be an MCP Server instance
         assert hasattr(server, 'list_tools')
@@ -44,7 +39,7 @@ def test_list_tools_handler_exists():
 def test_call_tool_handler_exists():
     """Test that call_tool handler is defined."""
     try:
-        from mcp_server import call_tool
+        from PowerSpawn.mcp_server import call_tool
         assert callable(call_tool)
     except ImportError:
         pytest.skip("MCP server not accessible")
@@ -52,7 +47,7 @@ def test_call_tool_handler_exists():
 
 def test_spawn_functions_callable():
     """Test spawn functions are callable."""
-    from providers import spawn_claude, spawn_codex, spawn_copilot, spawn_gemini_cli
+    from PowerSpawn.providers import spawn_claude, spawn_codex, spawn_copilot, spawn_gemini_cli
 
     assert callable(spawn_claude)
     assert callable(spawn_codex)
@@ -62,7 +57,7 @@ def test_spawn_functions_callable():
 
 def test_agent_result_dataclass():
     """Test AgentResult dataclass structure."""
-    from providers import AgentResult
+    from PowerSpawn.providers import AgentResult
 
     result = AgentResult(
         success=True,
@@ -85,7 +80,7 @@ def test_agent_result_dataclass():
 
 def test_codex_event_dataclass():
     """Test CodexEvent dataclass structure."""
-    from providers.codex import CodexEvent
+    from PowerSpawn.providers.codex import CodexEvent
 
     # Test basic event
     event = CodexEvent(type="test.event")
@@ -114,7 +109,7 @@ def test_codex_event_dataclass():
 def test_agent_manager_exists():
     """Test Agent Manager is accessible."""
     try:
-        from agent_manager import agent_manager
+        from PowerSpawn.agent_manager import agent_manager
         assert agent_manager is not None
     except ImportError:
         pytest.skip("Agent manager not accessible")
@@ -123,7 +118,7 @@ def test_agent_manager_exists():
 def test_config_models_exist():
     """Test Config settings are accessible."""
     try:
-        from config import settings
+        from PowerSpawn.config import settings
         copilot_models = settings.get_model_list("copilot")
         assert isinstance(copilot_models, list)
         assert len(copilot_models) > 0

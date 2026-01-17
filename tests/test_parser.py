@@ -1,7 +1,7 @@
 """Test response parsing functions."""
 import pytest
-from providers.claude import _parse_claude_response
-from providers.codex import _parse_codex_event
+from PowerSpawn.providers.claude import _parse_claude_response
+from PowerSpawn.providers.codex import _parse_codex_event
 
 
 def test_parse_valid_claude_json():

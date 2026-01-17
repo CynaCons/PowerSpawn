@@ -1,7 +1,7 @@
 """Test Agent Manager."""
 import threading
 import time
-from powerspawn.agent_manager import AgentManager
+from PowerSpawn.agent_manager import AgentManager
 
 def test_manager_lifecycle():
     mgr = AgentManager()

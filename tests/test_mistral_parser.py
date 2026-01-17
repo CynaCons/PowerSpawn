@@ -1,5 +1,5 @@
 """Test Mistral parsing logic."""
-from powerspawn.providers.mistral import extract_mistral_text
+from PowerSpawn.providers.mistral import extract_mistral_text
 
 class MockOutput:
     def __init__(self, type, content):
