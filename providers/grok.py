@@ -63,15 +63,11 @@ def spawn_grok(
             "temperature": temperature,
             "timeout": timeout,
         }
-        
-        if enable_search:
-            request_kwargs["extra_body"] = {
-                "search_parameters": {
-                    "mode": "auto",
-                    "return_citations": True
-                }
-            }
-            
+
+        # X.AI deprecated search_parameters and tools-based search
+        # Web search is now automatic when Grok detects it's needed
+        # No special configuration required
+
         response = client.chat.completions.create(**request_kwargs)
         duration = time.time() - start_time
         

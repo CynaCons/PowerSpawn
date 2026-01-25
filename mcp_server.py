@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.7.0
+MCP Agent Spawner Server v1.7.1
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -8,7 +8,7 @@ Uses modular provider architecture and singleton state management.
 Tools:
   spawn_claude, spawn_codex, spawn_copilot (CLI)
   spawn_grok, spawn_gemini, spawn_mistral (API)
-  
+
 Management:
   list, result, wait_for_agents
 
@@ -16,6 +16,11 @@ Configuration:
   - api_keys.json (local file)
   - Environment variables
   - models.json (model aliases)
+
+Changelog v1.7.1:
+  - spawn_claude now defaults dangerously_skip_permissions=True
+  - Allows spawned agents to write files, search web, fetch URLs
+  - Fixes permission issues from v1.7.0
 """
 
 import asyncio
@@ -41,7 +46,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.7.0"
+SERVER_VERSION = "1.7.1"
 
 try:
     from mcp.server import Server
@@ -71,7 +76,12 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("claude")},
-                    "timeout": {"type": "integer", "default": 600}
+                    "timeout": {"type": "integer", "default": 600},
+                    "dangerously_skip_permissions": {
+                        "type": "boolean",
+                        "default": True,
+                        "description": "Bypass permission checks (allows spawned agents to write files, search web, etc.)"
+                    }
                 }
             }
         ),

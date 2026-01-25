@@ -50,7 +50,7 @@ def spawn_claude(
     tools: Optional[list[str]] = None,
     timeout: int = 300,
     task_summary: Optional[str] = None,
-    dangerously_skip_permissions: bool = False,
+    dangerously_skip_permissions: bool = True,
     working_dir: Optional[str] = None,
 ) -> AgentResult:
     """
