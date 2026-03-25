@@ -172,7 +172,7 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="spawn_codex",
             description=(
-                "Spawn a Codex (GPT-5.2) sub-agent to perform a task. "
+                "Spawn a Codex (GPT-5.4) sub-agent to perform a task. "
                 "Use for: any task, especially when Claude rate limit is reached. "
                 "Context from AGENTS.md is auto-loaded by Codex CLI."
             ),
@@ -204,10 +204,10 @@ async def list_tools() -> list[Tool]:
                     },
                     "model": {
                         "type": "string",
-                        "enum": ["gpt-5.2", "gpt-5.1", "gpt-5.1-codex", "gpt-5",
+                        "enum": ["gpt-5.3-codex", "gpt-5.2", "gpt-5-mini",
                                  "claude-sonnet", "claude-haiku", "claude-opus", "gemini"],
-                        "default": "gpt-5.2",
-                        "description": "Model: gpt-5.2 (default), gpt-5.1, claude-sonnet/haiku/opus, gemini"
+                        "default": "gpt-5.3-codex",
+                        "description": "Model: gpt-5.3-codex (default), claude-sonnet/opus, gemini"
                     }
                 }
             }
@@ -258,8 +258,8 @@ async def list_tools() -> list[Tool]:
                     "model": {
                         "type": "string",
                         "enum": list(GEMINI_MODELS.keys()),
-                        "default": "gemini-3-pro",
-                        "description": "Model: gemini-3-pro (default), gemini-2.5-pro, gemini-2.0-flash"
+                        "default": "gemini-3.1-pro",
+                        "description": "Model: gemini-3.1-pro (default), gemini-3-flash, gemini-2.0-flash"
                     },
                     "system_prompt": {
                         "type": "string",
@@ -579,7 +579,7 @@ def _run_copilot_background(agent_id: str, prompt: str, model: str):
 async def handle_spawn_copilot(args: dict) -> list[TextContent]:
     """Handle spawn_copilot tool call."""
     prompt = args["prompt"]
-    model = args.get("model", "gpt-5.2")
+    model = args.get("model", "gpt-5.3-codex")
 
     agent_id = uuid.uuid4().hex[:8]
     started_at = utc_now_iso()
@@ -740,7 +740,7 @@ def _run_gemini_background(agent_id: str, prompt: str, model: str, system_prompt
 async def handle_spawn_gemini(args: dict) -> list[TextContent]:
     """Handle spawn_gemini tool call."""
     prompt = args["prompt"]
-    model = args.get("model", "gemini-3-pro")
+    model = args.get("model", "gemini-3.1-pro")
     system_prompt = args.get("system_prompt")
 
     agent_id = uuid.uuid4().hex[:8]

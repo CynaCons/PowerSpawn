@@ -254,23 +254,28 @@ def spawn_claude(
 # CODEX CLI MODELS
 # =============================================================================
 
-# Available models in Codex CLI (as of Jan 2026)
+# Available models in Codex CLI (as of Mar 2026)
 # Run `codex --help` to see current list
 CODEX_MODELS = {
-    # GPT Codex models (optimized for coding)
-    "gpt-5.2-codex": "gpt-5.2-codex",        # Latest and best
+    # GPT 5.4 family (latest - Mar 2026)
+    "gpt-5.4": "gpt-5.4",                    # Latest flagship
+    "gpt-5.4-mini": "gpt-5.4-mini",          # Faster/cheaper variant
+    "gpt-5.4-pro": "gpt-5.4-pro",            # Maximum performance
+    # GPT Codex models
+    "gpt-5.3-codex": "gpt-5.3-codex",        # Previous best coding model
+    "gpt-5.2-codex": "gpt-5.2-codex",        # Legacy
     "gpt-5.1-codex-max": "gpt-5.1-codex-max",
     "gpt-5.1-codex": "gpt-5.1-codex",
     # Reasoning models
     "o3": "o3",                               # Advanced reasoning
     "o4-mini": "o4-mini",                     # Fast reasoning
     # Aliases
-    "codex": "gpt-5.2-codex",
-    "codex-max": "gpt-5.1-codex-max",
+    "codex": "gpt-5.4",
+    "codex-max": "gpt-5.4-pro",
 }
 
-# Default model for Codex CLI (latest and best)
-CODEX_DEFAULT_MODEL = "gpt-5.2-codex"
+# Default model for Codex CLI (latest flagship)
+CODEX_DEFAULT_MODEL = "gpt-5.4"
 
 
 def spawn_codex(
@@ -520,36 +525,30 @@ def _spawn_codex_stream_internal(
 # COPILOT CLI SPAWNING
 # =============================================================================
 
-# Available models in Copilot CLI (as of Jan 2026)
+# Available models in Copilot CLI (as of Mar 2026)
 # Run `copilot --help` to see current list
 COPILOT_MODELS = {
     # Claude models (Anthropic)
-    "claude-sonnet-4.5": "claude-sonnet-4.5",
-    "claude-sonnet-4": "claude-sonnet-4",
-    "claude-haiku-4.5": "claude-haiku-4.5",
-    "claude-opus-4.5": "claude-opus-4.5",
-    # Claude 4.6 family (latest)
-    "claude-sonnet-4.6": "claude-sonnet-4.6",
     "claude-opus-4.6": "claude-opus-4.6",
-    # Claude aliases (point to latest)
-    "claude-sonnet": "claude-sonnet-4.6",
+    "claude-sonnet-4.5": "claude-sonnet-4.5",
+    "claude-haiku-4.5": "claude-haiku-4.5",
+    # Claude aliases
+    "claude-sonnet": "claude-sonnet-4.5",
     "claude-haiku": "claude-haiku-4.5",
     "claude-opus": "claude-opus-4.6",
     # GPT models (OpenAI)
-    "gpt-5.2": "gpt-5.2",                # Latest GPT - default
-    "gpt-5.1-codex": "gpt-5.1-codex",    # Best for coding
-    "gpt-5.1-codex-mini": "gpt-5.1-codex-mini",
-    "gpt-5.1": "gpt-5.1",
-    "gpt-5": "gpt-5",
-    "gpt-5-mini": "gpt-5-mini",
-    "gpt-4.1": "gpt-4.1",
+    "gpt-5.3-codex": "gpt-5.3-codex",    # Best for coding in Copilot
+    "gpt-5.2": "gpt-5.2",
+    "gpt-5-mini": "gpt-5-mini",          # Free tier
+    "gpt-4.1": "gpt-4.1",                # Free tier
     # Gemini models (Google)
-    "gemini-3-pro-preview": "gemini-3-pro-preview",
-    "gemini": "gemini-3-pro-preview",    # Alias
+    "gemini-3.1-pro": "gemini-3.1-pro",   # Latest Gemini
+    "gemini-3-flash": "gemini-3-flash",
+    "gemini": "gemini-3.1-pro",           # Alias
 }
 
 # Default model for Copilot CLI (latest strongest model)
-COPILOT_DEFAULT_MODEL = "gpt-5.2"
+COPILOT_DEFAULT_MODEL = "gpt-5.3-codex"
 
 
 def spawn_copilot(

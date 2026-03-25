@@ -290,23 +290,25 @@ def spawn_grok(
 # GOOGLE GEMINI
 # =============================================================================
 
-# Available Gemini models (as of Jan 2026)
+# Available Gemini models (as of Mar 2026)
 # See: https://ai.google.dev/gemini-api/docs/models
+# NOTE: gemini-3-pro-preview was shut down March 9, 2026
 GEMINI_MODELS = {
-    # Gemini 3 family (latest - Dec 2025)
-    "gemini-3-pro": "gemini-3-pro-preview",  # Default - best reasoning
-    "gemini-3-flash": "gemini-3-flash-preview",  # Fast & efficient
-    # Gemini 2.x family
+    # Gemini 3.1 family (latest - Mar 2026)
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",  # Default - best reasoning
+    "gemini-3.1-flash-lite": "gemini-3.1-flash-lite-preview",  # Fast & efficient
+    # Gemini 3 family
+    "gemini-3-flash": "gemini-3-flash-preview",
+    # Gemini 2.x family (stable)
+    "gemini-2.5-flash": "gemini-2.5-flash",
     "gemini-2.0-flash": "gemini-2.0-flash",
-    "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
-    "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
     # Aliases
-    "gemini-pro": "gemini-3-pro-preview",  # Alias for latest pro
+    "gemini-pro": "gemini-3.1-pro-preview",  # Alias for latest pro
     "gemini-flash": "gemini-3-flash-preview",  # Alias for latest flash
 }
 
 # Default model for Gemini (best reasoning)
-GEMINI_DEFAULT_MODEL = "gemini-3-pro"
+GEMINI_DEFAULT_MODEL = "gemini-3.1-pro"
 
 
 def _get_gemini_client():
