@@ -172,7 +172,7 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="spawn_codex",
             description=(
-                "Spawn a Codex (GPT-5.1) sub-agent to perform a task. "
+                "Spawn a Codex (GPT-5.2) sub-agent to perform a task. "
                 "Use for: any task, especially when Claude rate limit is reached. "
                 "Context from AGENTS.md is auto-loaded by Codex CLI."
             ),
@@ -204,10 +204,10 @@ async def list_tools() -> list[Tool]:
                     },
                     "model": {
                         "type": "string",
-                        "enum": ["gpt-5.1", "gpt-5", "gpt-5.1-codex", "gpt-5-mini",
+                        "enum": ["gpt-5.2", "gpt-5.1", "gpt-5.1-codex", "gpt-5",
                                  "claude-sonnet", "claude-haiku", "claude-opus", "gemini"],
-                        "default": "gpt-5.1",
-                        "description": "Model: gpt-5.1 (default), gpt-5, claude-sonnet/haiku/opus, gemini"
+                        "default": "gpt-5.2",
+                        "description": "Model: gpt-5.2 (default), gpt-5.1, claude-sonnet/haiku/opus, gemini"
                     }
                 }
             }
@@ -230,8 +230,8 @@ async def list_tools() -> list[Tool]:
                     "model": {
                         "type": "string",
                         "enum": list(GROK_MODELS.keys()),
-                        "default": "grok-4",
-                        "description": "Model: grok-4 (default), grok-4.1, grok-code-fast"
+                        "default": "grok-4.1",
+                        "description": "Model: grok-4.1 (default), grok-4.1-reasoning, grok-code"
                     },
                     "system_prompt": {
                         "type": "string",
@@ -579,7 +579,7 @@ def _run_copilot_background(agent_id: str, prompt: str, model: str):
 async def handle_spawn_copilot(args: dict) -> list[TextContent]:
     """Handle spawn_copilot tool call."""
     prompt = args["prompt"]
-    model = args.get("model", "gpt-5.1")
+    model = args.get("model", "gpt-5.2")
 
     agent_id = uuid.uuid4().hex[:8]
     started_at = utc_now_iso()
@@ -662,7 +662,7 @@ def _run_grok_background(agent_id: str, prompt: str, model: str, system_prompt: 
 async def handle_spawn_grok(args: dict) -> list[TextContent]:
     """Handle spawn_grok tool call."""
     prompt = args["prompt"]
-    model = args.get("model", "grok-4")
+    model = args.get("model", "grok-4.1")
     system_prompt = args.get("system_prompt")
 
     agent_id = uuid.uuid4().hex[:8]
@@ -818,7 +818,7 @@ def _run_mistral_background(agent_id: str, prompt: str, model: str, system_promp
 async def handle_spawn_mistral(args: dict) -> list[TextContent]:
     """Handle spawn_mistral tool call."""
     prompt = args["prompt"]
-    model = args.get("model", "mistral-large")
+    model = args.get("model", "mistral-medium")
     system_prompt = args.get("system_prompt")
 
     agent_id = uuid.uuid4().hex[:8]

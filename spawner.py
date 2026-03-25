@@ -528,10 +528,13 @@ COPILOT_MODELS = {
     "claude-sonnet-4": "claude-sonnet-4",
     "claude-haiku-4.5": "claude-haiku-4.5",
     "claude-opus-4.5": "claude-opus-4.5",
-    # Claude aliases
-    "claude-sonnet": "claude-sonnet-4.5",
+    # Claude 4.6 family (latest)
+    "claude-sonnet-4.6": "claude-sonnet-4.6",
+    "claude-opus-4.6": "claude-opus-4.6",
+    # Claude aliases (point to latest)
+    "claude-sonnet": "claude-sonnet-4.6",
     "claude-haiku": "claude-haiku-4.5",
-    "claude-opus": "claude-opus-4.5",
+    "claude-opus": "claude-opus-4.6",
     # GPT models (OpenAI)
     "gpt-5.2": "gpt-5.2",                # Latest GPT - default
     "gpt-5.1-codex": "gpt-5.1-codex",    # Best for coding
