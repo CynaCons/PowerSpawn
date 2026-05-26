@@ -372,9 +372,9 @@ Auto-loaded by Codex CLI. Defines:
 | `gpt-5` | OpenAI | GPT-5 |
 | `gpt-5.1-codex` | OpenAI | Optimized for code |
 | `gpt-5-mini` | OpenAI | Fast, lightweight |
-| `claude-sonnet` | Anthropic | Claude Sonnet 4.5 |
+| `claude-sonnet` | Anthropic | Claude Sonnet 4.6 |
 | `claude-haiku` | Anthropic | Claude Haiku 4.5 |
-| `claude-opus` | Anthropic | Claude Opus 4.5 |
+| `claude-opus` | Anthropic | Claude Opus 4.7 |
 | `gemini` | Google | Gemini 3 Pro Preview |
 
 ### spawn_grok
