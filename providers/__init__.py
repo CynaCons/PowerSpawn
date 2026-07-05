@@ -9,6 +9,7 @@ from .grok import spawn_grok
 from .gemini import spawn_gemini
 from .gemini_cli import spawn_gemini_cli
 from .mistral import spawn_mistral
+from .cursor import spawn_cursor
 
 __all__ = [
     "AgentResult",
@@ -19,4 +20,5 @@ __all__ = [
     "spawn_gemini",
     "spawn_gemini_cli",
     "spawn_mistral",
+    "spawn_cursor",
 ]

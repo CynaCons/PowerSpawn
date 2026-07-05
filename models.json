@@ -2,104 +2,155 @@
   "claude": {
     "default": "sonnet",
     "aliases": {
+      "fable": "claude-fable-5",
+      "fable-5": "claude-fable-5",
+      "opus": "opus",
+      "opus-4.8": "claude-opus-4-8",
+      "opus-4.7": "claude-opus-4-7",
+      "opus-4.6": "claude-opus-4-6",
       "sonnet": "sonnet",
+      "sonnet-5": "claude-sonnet-5",
+      "sonnet-4.6": "claude-sonnet-4-6",
       "haiku": "haiku",
-      "opus": "opus"
+      "haiku-4.5": "claude-haiku-4-5"
     }
   },
   "codex": {
-    "default": "gpt-5.4",
+    "default": "gpt-5.5",
     "aliases": {
+      "gpt-5.5": "gpt-5.5",
       "gpt-5.4": "gpt-5.4",
       "gpt-5.4-mini": "gpt-5.4-mini",
-      "gpt-5.3-codex": "gpt-5.3-codex",
       "gpt-5.3-codex-spark": "gpt-5.3-codex-spark",
+      "gpt-5.3-codex": "gpt-5.3-codex",
       "gpt-5.2-codex": "gpt-5.2-codex",
       "gpt-5.1-codex-max": "gpt-5.1-codex-max",
       "gpt-5.1-codex": "gpt-5.1-codex",
-      "codex": "gpt-5.4",
-      "codex-max": "gpt-5.3-codex"
+      "codex": "gpt-5.5",
+      "codex-mini": "gpt-5.4-mini"
     }
   },
   "copilot": {
-    "default": "gpt-5.4",
+    "default": "gpt-5.5",
     "aliases": {
+      "claude-fable-5": "claude-fable-5",
+      "claude-opus-4.8": "claude-opus-4.8",
       "claude-opus-4.7": "claude-opus-4.7",
-      "claude-sonnet-4.6": "claude-sonnet-4.6",
       "claude-opus-4.6": "claude-opus-4.6",
+      "claude-opus-4.5": "claude-opus-4.5",
+      "claude-sonnet-5": "claude-sonnet-5",
+      "claude-sonnet-4.6": "claude-sonnet-4.6",
       "claude-sonnet-4.5": "claude-sonnet-4.5",
       "claude-haiku-4.5": "claude-haiku-4.5",
-      "claude-opus-4.5": "claude-opus-4.5",
-      "claude-sonnet": "claude-sonnet-4.6",
+      "claude-fable": "claude-fable-5",
+      "claude-opus": "claude-opus-4.8",
+      "claude-sonnet": "claude-sonnet-5",
       "claude-haiku": "claude-haiku-4.5",
-      "claude-opus": "claude-opus-4.7",
+      "gpt-5.5": "gpt-5.5",
       "gpt-5.4": "gpt-5.4",
       "gpt-5.4-mini": "gpt-5.4-mini",
+      "gpt-5.4-nano": "gpt-5.4-nano",
       "gpt-5.3-codex": "gpt-5.3-codex",
-      "gpt-5.2": "gpt-5.2",
-      "gpt-5.1-codex": "gpt-5.1-codex",
-      "gpt-5.1": "gpt-5.1",
-      "gpt-5": "gpt-5",
       "gpt-5-mini": "gpt-5-mini",
-      "gpt-4.1": "gpt-4.1",
-      "gemini-3.1-pro": "gemini-3.1-pro-preview",
-      "gemini-3-pro-preview": "gemini-3-pro-preview",
-      "gemini": "gemini-3.1-pro-preview"
+      "gemini-3.5-flash": "gemini-3.5-flash",
+      "gemini-3.1-pro": "gemini-3.1-pro",
+      "gemini-3-flash": "gemini-3-flash",
+      "gemini-2.5-pro": "gemini-2.5-pro",
+      "gemini": "gemini-3.1-pro",
+      "kimi-k2.7-code": "kimi-k2.7-code",
+      "mai-code-1-flash": "mai-code-1-flash"
     }
   },
   "grok": {
-    "default": "grok-4.1-reasoning",
+    "default": "grok-4.3",
     "aliases": {
+      "grok-4.3": "grok-4.3",
+      "grok-4.20": "grok-4.20-0309-non-reasoning",
+      "grok-4.20-reasoning": "grok-4.20-0309-reasoning",
+      "grok-4.20-multi-agent": "grok-4.20-multi-agent-0309",
+      "grok-build": "grok-build-0.1",
+      "grok-code": "grok-build-0.1",
       "grok-4.1": "grok-4-1-fast-non-reasoning",
       "grok-4.1-reasoning": "grok-4-1-fast-reasoning",
       "grok-4": "grok-4-fast-non-reasoning",
-      "grok-4-reasoning": "grok-4-fast-reasoning",
-      "grok-3": "grok-3-beta",
-      "grok-3-fast": "grok-3-fast-beta",
-      "grok-3-mini": "grok-3-mini-beta",
-      "grok-code": "grok-code-fast-1"
+      "grok-4-reasoning": "grok-4-fast-reasoning"
     }
   },
   "gemini": {
     "default": "gemini-3.1-pro-preview",
     "aliases": {
       "gemini-3.1-pro": "gemini-3.1-pro-preview",
-      "gemini-3.1-flash-lite": "gemini-3.1-flash-lite-preview",
+      "gemini-3.5-flash": "gemini-3.5-flash",
+      "gemini-3.1-flash-lite": "gemini-3.1-flash-lite",
       "gemini-3-flash": "gemini-3-flash-preview",
       "gemini-pro": "gemini-3.1-pro-preview",
-      "gemini-flash": "gemini-3-flash-preview"
+      "gemini-flash": "gemini-3.5-flash",
+      "gemini-flash-latest": "gemini-flash-latest"
     }
   },
   "gemini-cli": {
     "default": "gemini-3.1-pro-preview",
     "aliases": {
       "gemini-3.1-pro": "gemini-3.1-pro-preview",
-      "gemini-3.1-flash-lite": "gemini-3.1-flash-lite-preview",
+      "gemini-3.5-flash": "gemini-3.5-flash",
+      "gemini-3.1-flash-lite": "gemini-3.1-flash-lite",
       "gemini-3-flash": "gemini-3-flash-preview",
       "gemini-pro": "gemini-3.1-pro-preview",
-      "gemini-flash": "gemini-3-flash-preview"
+      "gemini-flash": "gemini-3.5-flash",
+      "gemini-flash-latest": "gemini-flash-latest"
     }
   },
   "mistral": {
-    "default": "mistral-small",
+    "default": "mistral-small-latest",
     "aliases": {
       "mistral-large": "mistral-large-latest",
-      "mistral-large-3": "mistral-large-3-25-12",
+      "mistral-large-3": "mistral-large-latest",
       "mistral-medium": "mistral-medium-latest",
-      "mistral-medium-agents": "mistral-medium-2505",
+      "mistral-medium-3.5": "mistral-medium-latest",
       "mistral-small": "mistral-small-latest",
       "mistral-small-4": "mistral-small-latest",
-      "devstral": "devstral-2-25-12",
-      "devstral-2": "devstral-2-25-12",
-      "devstral-small": "devstral-small-2-25-12",
+      "ministral-14b": "ministral-3-14b",
+      "ministral-8b": "ministral-3-8b",
+      "ministral-3b": "ministral-3-3b",
+      "devstral": "devstral-2512",
+      "devstral-small": "labs-devstral-small-2512",
       "codestral": "codestral-latest",
-      "ministral-14b": "ministral-3-14b-25-12",
-      "ministral-8b": "ministral-3-8b-25-12",
-      "ministral-3b": "ministral-3-3b-25-12",
-      "magistral": "magistral-medium-1-2-25-09",
-      "magistral-small": "magistral-small-1-2-25-09",
-      "mixtral": "open-mixtral-8x22b",
-      "mistral-nemo": "mistral-nemo-12b-24-07"
+      "mixtral": "open-mixtral-8x22b"
+    }
+  },
+  "cursor": {
+    "default": "composer-2.5",
+    "aliases": {
+      "composer": "composer-2.5",
+      "composer-2.5": "composer-2.5",
+      "composer-2": "composer-2",
+      "composer-1.5": "composer-1.5",
+      "composer-1": "composer-1",
+      "fable": "claude-fable-5",
+      "claude-fable-5": "claude-fable-5",
+      "opus": "claude-opus-4.8",
+      "claude-opus-4.8": "claude-opus-4.8",
+      "claude-opus-4.7": "claude-4.7-opus",
+      "claude-opus-4.7-fast": "claude-opus-4.7-fast",
+      "claude-opus-4.6": "claude-4.6-opus",
+      "claude-opus-4.5": "claude-4.5-opus",
+      "sonnet": "claude-sonnet-5",
+      "claude-sonnet-5": "claude-sonnet-5",
+      "claude-sonnet-4.6": "claude-4.6-sonnet",
+      "claude-sonnet-4.5": "claude-4.5-sonnet",
+      "haiku": "claude-4.5-haiku",
+      "gpt-5.5": "gpt-5.5",
+      "gpt-5.4": "gpt-5.4",
+      "gpt-5.4-mini": "gpt-5.4-mini",
+      "gpt-5-codex": "gpt-5-codex",
+      "gpt-5.3-codex": "gpt-5.3-codex",
+      "gemini-3-pro": "gemini-3-pro",
+      "gemini-3.1-pro": "gemini-3.1-pro",
+      "gemini-3.5-flash": "gemini-3.5-flash",
+      "grok-4.3": "grok-4.3",
+      "grok-build": "grok-build-0.1",
+      "glm-5.2": "glm-5.2",
+      "kimi-k2.7-code": "kimi-k2.7-code"
     }
   }
 }

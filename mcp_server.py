@@ -38,7 +38,8 @@ from .providers import (
     spawn_grok,
     spawn_gemini,
     spawn_gemini_cli,
-    spawn_mistral
+    spawn_mistral,
+    spawn_cursor
 )
 
 # Ensure UTF-8 encoding on Windows
@@ -123,6 +124,19 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
+            name="spawn_cursor",
+            description="Spawn Cursor CLI agent (requires 'cursor-agent' in PATH + CURSOR_API_KEY).",
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {"type": "string"},
+                    "model": {"type": "string", "enum": settings.get_model_list("cursor")},
+                    "force": {"type": "boolean", "default": False, "description": "Apply file changes directly (--force)."}
+                }
+            }
+        ),
+        Tool(
             name="spawn_grok",
             description="Spawn Grok agent via API. Needs XAI_API_KEY.",
             inputSchema={
@@ -202,6 +216,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_spawn(arguments, "copilot", spawn_copilot)
         elif name == "spawn_gemini_cli":
             return await handle_spawn(arguments, "gemini_cli", spawn_gemini_cli)
+        elif name == "spawn_cursor":
+            return await handle_spawn(arguments, "cursor", spawn_cursor)
         elif name == "spawn_grok":
             return await handle_spawn(arguments, "grok", spawn_grok)
         elif name == "spawn_gemini":
