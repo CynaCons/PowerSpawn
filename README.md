@@ -20,6 +20,7 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 | **Codex** | `spawn_codex` | ✓ Yes | ✓ Yes | Code generation, testing |
 | **Copilot** | `spawn_copilot` | ✓ Yes | ✓ Yes | Multi-model via CLI |
 | **Gemini** | `spawn_gemini_cli` | ✓ Yes | ✓ Yes | Multimodal via CLI |
+| **Grok** | `spawn_grok` | ✓ Yes (`force`) | ✓ Yes | Grok Build agent + composer-2.5 |
 
 **Use CLI agents for:**
 - Code refactoring across multiple files
@@ -32,7 +33,7 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 
 | Provider | Function | Can Edit Files | Can Run Commands | Best For |
 |----------|----------|----------------|------------------|----------|
-| **Grok** | `spawn_grok` | ✗ No | ✗ No | Fast responses, real-time info |
+| **Grok** | `spawn_grok_api` | ✗ No | ✗ No | Legacy text-only fallback |
 | **Gemini** | `spawn_gemini` | ✗ No | ✗ No | Long context, multimodal |
 | **Mistral** | `spawn_mistral` | ✗ No | ✗ No | European AI, code tasks |
 
@@ -378,11 +379,27 @@ Auto-loaded by Codex CLI. Defines:
 | `gemini` | Google | Gemini 3 Pro Preview |
 
 ### spawn_grok
-Spawn a Grok sub-agent via X.ai API (text response only).
+Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
+`grok` on PATH and a `grok login` session (grok.com account) — no API key.
 ```json
 {
   "prompt": "Your task description",
-  "model": "grok-3",           // grok-3 | grok-3-fast
+  "model": "grok-build",        // grok-build (default) | composer | composer-2.5
+  "force": false,               // true = auto-approve tools, edits applied; false = plan mode
+  "timeout": 600,
+  "system_prompt": "Optional extra rules (appended via --rules)"
+}
+```
+**Notes:** The prompt is passed via `--prompt-file`, so long spec prompts do
+not hit the Windows ~8 KB command-line limit. `composer` resolves to
+`grok-composer-2.5-fast` (the Cursor composer model exposed by the Grok CLI).
+
+### spawn_grok_api
+Legacy Grok via X.ai API (text response only). Needs `XAI_API_KEY`.
+```json
+{
+  "prompt": "Your task description",
+  "model": "grok-4.3",
   "system_prompt": "Optional role context"
 }
 ```

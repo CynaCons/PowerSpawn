@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.7.1
+MCP Agent Spawner Server v1.8.0
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
 
 Tools:
-  spawn_claude, spawn_codex, spawn_copilot (CLI)
-  spawn_grok, spawn_gemini, spawn_mistral (API)
+  spawn_claude, spawn_codex, spawn_copilot, spawn_grok, spawn_gemini_cli, spawn_cursor (CLI)
+  spawn_grok_api, spawn_gemini, spawn_mistral (API)
 
 Management:
   list, result, wait_for_agents
@@ -16,6 +16,13 @@ Configuration:
   - api_keys.json (local file)
   - Environment variables
   - models.json (model aliases)
+
+Changelog v1.8.0:
+  - spawn_grok now drives the Grok CLI (Grok Build) headless — the primary
+    Grok path. Models: grok-build (default), grok-composer-2.5-fast.
+    Prompt goes via --prompt-file (no Windows 8KB CLI limit); force=true
+    auto-approves tool executions (edits applied), otherwise plan mode.
+  - Legacy x.ai chat-completions path preserved as spawn_grok_api.
 
 Changelog v1.7.1:
   - spawn_claude now defaults dangerously_skip_permissions=True
@@ -36,6 +43,7 @@ from .providers import (
     spawn_codex,
     spawn_copilot,
     spawn_grok,
+    spawn_grok_api,
     spawn_gemini,
     spawn_gemini_cli,
     spawn_mistral,
@@ -47,7 +55,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.7.1"
+SERVER_VERSION = "1.8.0"
 
 try:
     from mcp.server import Server
@@ -138,13 +146,28 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="spawn_grok",
-            description="Spawn Grok agent via API. Needs XAI_API_KEY.",
+            description="Spawn Grok CLI agent (Grok Build, requires 'grok' on PATH + grok login). Headless single-turn; without force it runs in plan mode (proposes, no writes).",
             inputSchema={
                 "type": "object",
                 "required": ["prompt"],
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("grok")},
+                    "force": {"type": "boolean", "default": False, "description": "Auto-approve all tool executions (edits applied to disk)."},
+                    "timeout": {"type": "integer", "default": 600},
+                    "system_prompt": {"type": "string", "description": "Extra rules appended to the agent's system prompt (--rules)."}
+                }
+            }
+        ),
+        Tool(
+            name="spawn_grok_api",
+            description="Spawn Grok agent via x.ai API (legacy text-only fallback). Needs XAI_API_KEY.",
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {"type": "string"},
+                    "model": {"type": "string", "enum": settings.get_model_list("grok-api")},
                     "system_prompt": {"type": "string"}
                 }
             }
@@ -220,6 +243,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_spawn(arguments, "cursor", spawn_cursor)
         elif name == "spawn_grok":
             return await handle_spawn(arguments, "grok", spawn_grok)
+        elif name == "spawn_grok_api":
+            return await handle_spawn(arguments, "grok_api", spawn_grok_api)
         elif name == "spawn_gemini":
             return await handle_spawn(arguments, "gemini", spawn_gemini)
         elif name == "spawn_mistral":
