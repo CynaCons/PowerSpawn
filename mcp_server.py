@@ -6,9 +6,9 @@ Exposes agent spawning as MCP tools for Claude Code.
 Simplified design with minimal parameters.
 
 Tools (CLI-based):
-  spawn_claude(prompt, model?)  - Spawn Claude sub-agent (auto-loads CLAUDE.md)
+  spawn_claude(prompt, model?)  - Spawn Claude sub-agent (receives AGENTS.md + auto-loads CLAUDE.md)
   spawn_codex(prompt)           - Spawn Codex sub-agent (auto-loads AGENTS.md)
-  spawn_copilot(prompt, model?) - Spawn Copilot sub-agent (GPT/Claude/Gemini)
+  spawn_copilot(prompt, model?) - Spawn Copilot sub-agent (auto-loads AGENTS.md)
 
 Tools (API-based):
   spawn_grok(prompt, model?)    - Spawn Grok via X.ai API (requires XAI_API_KEY)
@@ -20,9 +20,11 @@ Management:
   result(agent_id)              - Get agent result
   wait_for_agents(timeout?)     - Block until all agents complete, return results
 
-Context is auto-loaded by the respective CLIs:
-  - Claude CLI: auto-loads CLAUDE.md
-  - Codex CLI: auto-loads AGENTS.md
+Context strategy for sub-agents (workers):
+  - AGENTS.md is the universal briefing for ALL sub-agents.
+  - Codex and Copilot auto-load AGENTS.md from project root.
+  - Claude sub-agents receive AGENTS.md content via explicit prompt injection (in addition to whatever CLAUDE.md the CLI auto-loads).
+  - CLAUDE.md is intended primarily for interactive coordinator / direct `claude` sessions.
 
 All logging to IAC.md is automatic via spawner.py/api_providers.py.
 
@@ -45,6 +47,7 @@ try:
         spawn_codex as _spawn_codex,
         spawn_copilot as _spawn_copilot,
     )
+    from .context_loader import load_agents_context
     from .api_providers import (
         spawn_grok as _spawn_grok,
         spawn_gemini as _spawn_gemini,
@@ -61,6 +64,7 @@ except ImportError:
         spawn_codex as _spawn_codex,
         spawn_copilot as _spawn_copilot,
     )
+    from context_loader import load_agents_context
     from api_providers import (
         spawn_grok as _spawn_grok,
         spawn_gemini as _spawn_gemini,
@@ -145,7 +149,7 @@ async def list_tools() -> list[Tool]:
             description=(
                 "Spawn a Claude sub-agent to perform a task. "
                 "Use for: analysis, reasoning, code review, complex tasks. "
-                "Context from CLAUDE.md is auto-loaded by Claude CLI."
+                "All sub-agents receive AGENTS.md (injected for Claude workers) as the common worker context."
             ),
             inputSchema={
                 "type": "object",
@@ -378,14 +382,29 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 def _run_claude_background(agent_id: str, prompt: str, model: str, timeout: int = 600):
     """Run Claude spawn in background thread."""
     try:
-        # Pass task directly - Claude CLI auto-loads CLAUDE.md
-        # No extra context injection needed
+        # Ensure ALL sub-agents (including Claude) receive the common AGENTS.md briefing.
+        # Claude CLI will still auto-load CLAUDE.md from project root; we inject AGENTS.md
+        # explicitly so workers have a consistent, task-focused briefing "in addition".
+        agents_ctx = load_agents_context() or ""
+        if agents_ctx:
+            augmented = (
+                "You are a sub-agent WORKER. The following is your primary briefing (AGENTS.md). "
+                "CLAUDE.md (if present) contains extra coordinator-oriented instructions that you should ignore.\n\n"
+                "=== AGENTS.md (universal sub-agent context) ===\n\n"
+                f"{agents_ctx}\n\n"
+                "=== END AGENTS.md ===\n\n"
+                "Your assigned task follows. Focus only on it. Be concise and use file:line references.\n\n"
+                f"Task:\n{prompt}"
+            )
+        else:
+            augmented = prompt
+
         result: AgentResult = _spawn_claude(
-            prompt=prompt,
+            prompt=augmented,
             model=model,
             tools=["Bash", "Read", "Write", "Edit", "Glob", "Grep"],
             timeout=timeout,
-            context_level="none",  # Claude CLI auto-loads CLAUDE.md
+            context_level="none",  # We handled context explicitly above; avoid double injection
             task_summary=prompt[:50] + "..." if len(prompt) > 50 else prompt,
             dangerously_skip_permissions=True,  # Enable write access (like Codex bypass_sandbox)
         )

@@ -5,12 +5,15 @@ Provides functions for spawning Claude and Codex CLI agents programmatically.
 All interactions are logged to IAC.md automatically.
 
 CONTEXT HANDLING:
-    PowerSpawn relies on the CLI tools' built-in context loading:
-    - Claude CLI: auto-loads CLAUDE.md from project root
-    - Codex CLI: auto-loads AGENTS.md from project root
+    PowerSpawn ensures a common sub-agent briefing:
+    - AGENTS.md is the universal context for ALL worker / sub-agents.
+    - Codex and Copilot auto-load AGENTS.md.
+    - For Claude CLI spawns, AGENTS.md is injected into the prompt by the MCP server
+      (in addition to CLAUDE.md which the `claude` binary auto-loads).
+    - context_level="none" is still used to avoid the old generic injection paths.
 
-    The MCP server uses context_level="none" (no additional injection).
-    The context_loader.py module is kept for future "role-based" agents.
+    context_loader.load_agents_context() is the source for the injected briefing.
+    The rest of context_loader.py is kept for future role-based / curated context.
 
 See DESIGN.md for architecture rationale.
 """
@@ -112,9 +115,11 @@ def spawn_claude(
     - Logs completion to IAC.md
 
     Context Handling:
-        Claude CLI automatically loads CLAUDE.md from the project root.
-        The default context_level="none" means no additional injection.
-        Use other context_level values for future role-based agents.
+        The MCP caller (mcp_server) injects AGENTS.md content for Claude workers so that
+        every sub-agent type receives the same core briefing.
+        Claude CLI will additionally auto-load CLAUDE.md (coordinator-oriented material).
+        context_level is kept at "none" here because injection happens at the call site.
+        Use other context_level values only for experimental/future role-based agents.
 
     Args:
         prompt: The task/instruction for the agent
@@ -294,8 +299,8 @@ def spawn_codex(
     This collects all JSONL events and returns the final result.
     For streaming, use spawn_codex_stream() instead.
 
-    Note: Codex automatically loads AGENTS.md from the project root,
-    so context_level defaults to "none" to avoid duplicate/conflicting context.
+    Note: Codex automatically loads AGENTS.md from the project root (the universal sub-agent briefing).
+    context_level defaults to "none" here; the MCP server does not add further generic context.
 
     Args:
         prompt: The task/instruction for the agent
@@ -411,8 +416,8 @@ def spawn_codex_stream(
     Note: This function does NOT log to IAC.md (use spawn_codex for logged execution).
 
     Context Handling:
-        Codex CLI automatically loads AGENTS.md from the project root.
-        The default context_level="none" means no additional injection.
+        Codex CLI automatically loads AGENTS.md (universal sub-agent briefing).
+        The default context_level="none" means no additional generic injection at this layer.
 
     Args:
         prompt: The task/instruction for the agent
@@ -563,7 +568,7 @@ def spawn_copilot(
     Spawn a GitHub Copilot CLI agent and wait for completion.
 
     Copilot CLI is a universal multi-model CLI that supports Claude, GPT, and Gemini.
-    It automatically loads AGENTS.md from the project root.
+    It automatically loads AGENTS.md from the project root (the universal sub-agent briefing for all workers).
 
     Automatically:
     - Logs spawn start to IAC.md

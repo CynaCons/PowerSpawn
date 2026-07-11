@@ -111,7 +111,7 @@ PowerSpawn v1.5 introduces a dual-mode architecture:
 **CLI Agents (Full Autonomy)**
 - spawn_claude, spawn_codex, spawn_copilot
 - Can read/write files, execute commands, run git operations
-- Auto-load context from CLAUDE.md / AGENTS.md
+- Workers receive AGENTS.md (universal); Claude workers get it injected + may see CLAUDE.md
 - Suitable for: code generation, refactoring, testing, automation
 
 **API Agents (Text Response Only)**
@@ -195,8 +195,9 @@ spawn_claude("Analyze authentication")
 
 | Agent | CLI | Auto-loads |
 |-------|-----|------------|
-| Claude | `claude` | CLAUDE.md from project root |
+| Claude (worker) | `claude` | AGENTS.md injected by MCP + CLAUDE.md auto-loaded (prefer AGENTS.md) |
 | Codex | `codex` | AGENTS.md from project root |
+| Copilot | `copilot` | AGENTS.md from project root |
 
 **No additional context injection** - the MCP server passes `context_level="none"`.
 
@@ -295,8 +296,9 @@ PowerSpawn relies on the CLI tools' **built-in context loading**:
 
 | CLI Tool | Auto-loads | From |
 |----------|------------|------|
-| Claude CLI | `CLAUDE.md` | Project root |
-| Codex CLI | `AGENTS.md` | Project root |
+| Claude CLI (spawned worker) | AGENTS.md (injected) + CLAUDE.md (auto) | Prefer AGENTS.md for worker role |
+| Codex CLI | `AGENTS.md` | Project root (auto) |
+| Copilot CLI | `AGENTS.md` | Project root (auto) |
 
 **Current approach:** The MCP server passes `context_level="none"` to spawner.py,
 meaning **no additional context injection**. The CLIs handle it natively.

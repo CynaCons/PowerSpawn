@@ -298,21 +298,27 @@ powerspawn/
 
 ## Key Files
 
-### Context Files (Auto-loaded by CLIs)
+### Context Files for Sub-Agents (Workers)
 
-PowerSpawn relies on the CLI tools' built-in context loading:
+**AGENTS.md is the universal briefing for ALL sub-agents.**
 
-| Agent | CLI | Auto-loads |
-|-------|-----|------------|
-| Claude | `claude` | `CLAUDE.md` from project root |
-| Codex | `codex` | `AGENTS.md` from project root |
-| Copilot | `copilot` | `AGENTS.md` from project root |
+| Agent Type       | How it receives AGENTS.md                          | Notes |
+|------------------|----------------------------------------------------|-------|
+| Codex            | Auto-loaded by `codex` CLI from project root       | Primary context |
+| Copilot          | Auto-loaded by `copilot` CLI from project root     | Primary context |
+| Claude (spawned) | Explicitly injected by MCP server into the prompt  | **In addition to** CLAUDE.md (which the `claude` CLI auto-loads). Claude workers are instructed to treat AGENTS.md as their main briefing and to ignore coordinator sections of CLAUDE.md. |
 
-These files should contain:
+CLAUDE.md is primarily intended for:
+- Direct interactive use of the `claude` CLI by a human or coordinator
+- Full orchestration instructions (Part 2 of CLAUDE.md)
+
+Sub-agent workers should rely on AGENTS.md (now provided to every type).
+
+These context files should contain:
 - Project structure overview
 - Key file locations
-- Current sprint/iteration goals
-- Role guidelines (do's and don'ts)
+- Role guidelines (do's and don'ts for workers)
+- Commands and testing notes
 
 ### IAC.md - Inter Agent Context
 Contains active agents status at the top, followed by interaction history. The coordinator writes task assignments here. Agents read instructions and append results. Format:
@@ -330,12 +336,8 @@ Run `npm run test:production` and report any failures...
 [Agent appends result here when complete]
 ```
 
-### AGENTS.md - Codex Agent Instructions
-Auto-loaded by Codex CLI. Defines:
-- Available tools and restrictions
-- Output format expectations
-- Project conventions
-- Do's and don'ts
+### AGENTS.md - Universal Sub-Agent Instructions
+Used by every sub-agent (Codex/Copilot auto-load; Claude via injection). Defines project layout, commands, role boundaries, testing approach, and engineering rules. This is the single source of truth for worker context.
 
 ## MCP Tools Reference
 

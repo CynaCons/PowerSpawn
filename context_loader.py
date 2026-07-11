@@ -4,13 +4,16 @@ Context Loader Module (EXAMPLE / FUTURE USE)
 This module provides utilities for custom context injection into agent prompts.
 
 CURRENT STATUS:
-    NOT ACTIVELY USED. PowerSpawn currently relies on the CLI tools' built-in
-    context loading:
-    - Claude CLI auto-loads CLAUDE.md from project root
-    - Codex CLI auto-loads AGENTS.md from project root
+    load_agents_context() IS USED to provide a common briefing to Claude sub-agents
+    (via prompt injection in mcp_server.py). 
 
-    The MCP server passes context_level="none" to spawner.py, bypassing
-    all context injection in favor of the CLIs' native behavior.
+    Codex and Copilot still rely on the CLI auto-loading AGENTS.md from the project root.
+
+    context_level="none" remains the default in spawners to prevent the older
+    generic load_project_context() paths from firing for normal worker spawns.
+
+    load_agents_context() is now the mechanism that ensures *all* agents
+    (Claude + Codex + Copilot) share the same sub-agent instructions.
 
 FUTURE USE - ROLE-BASED AGENTS:
     This module could enable "role-based" agent configurations:
@@ -114,7 +117,10 @@ def extract_section(content: str, section_name: str, max_lines: int = 50) -> str
 def load_agents_context() -> str:
     """
     Load AGENTS.md as the universal context for all sub-agents.
-    This is the single source of truth for spawned agents.
+
+    This is the single source of truth for worker / sub-agent context:
+    - Injected into Claude spawns by the MCP server.
+    - Auto-loaded by Codex and Copilot CLIs.
     """
     workspace = get_workspace_dir()
     agents_md = read_file_safe(workspace / "AGENTS.md")
@@ -133,8 +139,9 @@ def load_project_context(
     """
     Load and format project context for injection into agent prompts.
 
-    NOTE: For sub-agents, prefer load_agents_context() which uses AGENTS.md.
-    This function is kept for backward compatibility.
+    NOTE: Sub-agents (workers) should use load_agents_context() which loads AGENTS.md.
+    This function (load_project_context) is kept mainly for backward compatibility and
+    experimental full-context scenarios. Normal MCP worker spawns use AGENTS.md only.
 
     Args:
         include_prd: Include product requirements
