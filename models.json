@@ -16,8 +16,11 @@
     }
   },
   "codex": {
-    "default": "gpt-5.5",
+    "default": "gpt-5.6-terra",
     "aliases": {
+      "gpt-5.6-terra": "gpt-5.6-terra",
+      "terra": "gpt-5.6-terra",
+      "gpt-5.6": "gpt-5.6",
       "gpt-5.5": "gpt-5.5",
       "gpt-5.4": "gpt-5.4",
       "gpt-5.4-mini": "gpt-5.4-mini",
@@ -26,12 +29,12 @@
       "gpt-5.2-codex": "gpt-5.2-codex",
       "gpt-5.1-codex-max": "gpt-5.1-codex-max",
       "gpt-5.1-codex": "gpt-5.1-codex",
-      "codex": "gpt-5.5",
+      "codex": "gpt-5.6-terra",
       "codex-mini": "gpt-5.4-mini"
     }
   },
   "copilot": {
-    "default": "gpt-5.5",
+    "default": "claude-opus-4.8",
     "aliases": {
       "claude-fable-5": "claude-fable-5",
       "claude-opus-4.8": "claude-opus-4.8",
