@@ -11,6 +11,8 @@ from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
+from ..proc import run_captured
+from ..context import inject_agents_context
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
@@ -83,26 +85,24 @@ def spawn_claude(
         
     if dangerously_skip_permissions:
         cmd.append("--dangerously-skip-permissions")
-        
+
     cwd = working_dir or str(get_workspace_dir())
-    
+    # AGENTS.md is the shared worker briefing; Claude's CLI only auto-loads
+    # CLAUDE.md (coordinator instruction), so inject AGENTS.md explicitly.
+    prompt = inject_agents_context(prompt, working_dir, provider="claude")
+
     try:
-        result = subprocess.run(
-            cmd,
-            input=prompt,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=cwd,
-            shell=IS_WINDOWS,
-            encoding='utf-8',
-            errors='replace',
+        # Hardened run: prompt via stdin, output to temp files (no pipe-EOF
+        # drain hang), process-tree kill on timeout. See powerspawn/proc.py.
+        returncode, stdout_text, stderr_text, timed_out = run_captured(
+            cmd, cwd=cwd, timeout=timeout, stdin_text=prompt,
         )
-        
+
         duration = time.time() - start_time
-        
-        if result.returncode != 0 and not result.stdout:
-            error_msg = result.stderr or f"Exit code {result.returncode}"
+
+        if timed_out or (returncode != 0 and not stdout_text):
+            error_msg = (f"Timed out after {timeout}s; process tree killed"
+                         if timed_out else (stderr_text or f"Exit code {returncode}"))
             log_spawn_complete(
                 spawn_id=spawn_id,
                 success=False,
@@ -111,8 +111,8 @@ def spawn_claude(
                 error=error_msg
             )
             return AgentResult(success=False, text="", spawn_id=spawn_id, error=error_msg, provider="claude")
-            
-        agent_result = _parse_claude_response(result.stdout)
+
+        agent_result = _parse_claude_response(stdout_text)
         agent_result.spawn_id = spawn_id
         agent_result.model = resolved_model
         

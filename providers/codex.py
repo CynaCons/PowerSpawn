@@ -4,6 +4,7 @@ Codex CLI Provider
 
 import json
 import subprocess
+import threading
 import time
 import sys
 from dataclasses import dataclass, field
@@ -12,6 +13,7 @@ from typing import Optional, Iterator
 
 from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
+from ..proc import kill_process_tree
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
@@ -74,6 +76,8 @@ def _spawn_codex_stream(
     cmd.append("-")
     
     proc = None
+    timer = None
+    timed_out = {"v": False}
     try:
         proc = subprocess.Popen(
             cmd,
@@ -86,11 +90,24 @@ def _spawn_codex_stream(
             encoding='utf-8',
             errors='replace',
         )
-        
+
+        # Watchdog: the streaming read below (`for line in proc.stdout`) has no
+        # timeout of its own, so a codex worker that stalls mid-stream would hang
+        # forever. Fire a process-TREE kill after `timeout`s; killing the process
+        # closes stdout, which ends the loop instead of blocking indefinitely.
+        # (shell=True means proc.pid is the cmd.exe wrapper — taskkill /T walks
+        # the whole tree so the real codex child dies too.)
+        def _on_timeout():
+            timed_out["v"] = True
+            if proc:
+                kill_process_tree(proc.pid)
+        timer = threading.Timer(timeout, _on_timeout)
+        timer.start()
+
         if proc.stdin:
             proc.stdin.write(prompt)
             proc.stdin.close()
-            
+
         if proc.stdout:
             for line in proc.stdout:
                 line = line.strip()
@@ -98,17 +115,19 @@ def _spawn_codex_stream(
                     event = _parse_codex_event(line)
                     if event:
                         yield event
-                        
-        proc.wait(timeout=timeout)
-        
-    except subprocess.TimeoutExpired:
-        if proc: proc.kill()
-        yield CodexEvent(type="error", data={"message": f"Timed out after {timeout}s"})
+
+        proc.wait()
+
+        if timed_out["v"]:
+            yield CodexEvent(type="error", data={"message": f"Timed out after {timeout}s; process tree killed"})
+
     except Exception as e:
         yield CodexEvent(type="error", data={"message": str(e)})
     finally:
+        if timer:
+            timer.cancel()
         if proc and proc.poll() is None:
-            proc.kill()
+            kill_process_tree(proc.pid)
 
 def spawn_codex(
     prompt: str,

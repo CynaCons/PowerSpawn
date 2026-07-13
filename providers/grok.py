@@ -25,6 +25,8 @@ from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
+from ..proc import run_captured
+from ..context import inject_agents_context
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
@@ -32,35 +34,6 @@ IS_WINDOWS = sys.platform == "win32"
 # The Grok CLI binary. Normally `grok` (the installer puts ~/.grok/bin on
 # PATH). Honor GROK_BIN so a machine without it on PATH can point at the exe.
 GROK_BIN = os.environ.get("GROK_BIN", "grok")
-
-
-def _kill_process_tree(pid: int) -> None:
-    """Kill a process and all its descendants.
-
-    The Grok CLI spawns worker/daemon children; killing only the direct child
-    (or, worse, the cmd.exe shell wrapper) leaves them orphaned holding the
-    output handles, which is what makes a timed-out run hang forever instead of
-    returning. taskkill /T walks the whole tree on Windows.
-    """
-    try:
-        if IS_WINDOWS:
-            subprocess.run(
-                ["taskkill", "/F", "/T", "/PID", str(pid)],
-                capture_output=True, timeout=15,
-            )
-        else:
-            import signal
-            os.killpg(os.getpgid(pid), signal.SIGKILL)
-    except Exception:
-        pass
-
-
-def _read_text_file(path: str) -> str:
-    try:
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
-            return fh.read()
-    except OSError:
-        return ""
 
 
 def get_workspace_dir() -> Path:
@@ -104,13 +77,14 @@ def spawn_grok(
     )
 
     cwd = working_dir or str(get_workspace_dir())
+    worker_prompt = inject_agents_context(prompt, working_dir, provider="grok")
 
     prompt_file = None
     try:
         with tempfile.NamedTemporaryFile(
             "w", suffix=".md", prefix="powerspawn-grok-", delete=False, encoding="utf-8"
         ) as f:
-            f.write(prompt)
+            f.write(worker_prompt)
             prompt_file = f.name
 
         # grok --prompt-file <path> --model <m> --output-format plain
@@ -130,47 +104,12 @@ def spawn_grok(
         if system_prompt:
             cmd.extend(["--rules", system_prompt])
 
-        # Capture to temp FILES, not pipes. subprocess pipes force the parent to
-        # drain stdout to EOF on cleanup, and a Grok worker/daemon that inherits
-        # the pipe handle keeps that EOF from ever arriving — so a hung or
-        # timed-out run blocks the caller indefinitely (observed: a spawn that
-        # never returned well past its own timeout). Files have no EOF wait, and
-        # `shell=IS_WINDOWS` is dropped so the timeout kill reaches grok.exe
-        # directly rather than an intermediate cmd.exe wrapper. stdin=DEVNULL so
-        # any child that reads stdin (e.g. a heredoc `python -` gate on Windows)
-        # gets EOF instead of blocking forever.
-        out_path = prompt_file + ".out"
-        err_path = prompt_file + ".err"
-        timed_out = False
-        with open(out_path, "w", encoding="utf-8") as fout, \
-                open(err_path, "w", encoding="utf-8") as ferr:
-            proc = subprocess.Popen(
-                cmd,
-                stdin=subprocess.DEVNULL,
-                stdout=fout,
-                stderr=ferr,
-                cwd=cwd,
-            )
-            try:
-                proc.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                timed_out = True
-                _kill_process_tree(proc.pid)
-                try:
-                    proc.wait(timeout=15)
-                except subprocess.TimeoutExpired:
-                    pass
-
-        returncode = proc.returncode
+        # Hardened run: output to temp files (no pipe-EOF drain hang), stdin
+        # DEVNULL, process-tree kill on timeout. See powerspawn/proc.py.
+        returncode, output_text, error_text, timed_out = run_captured(
+            cmd, cwd=cwd, timeout=timeout,
+        )
         duration = time.time() - start_time
-
-        output_text = _read_text_file(out_path).strip()
-        error_text = _read_text_file(err_path).strip()
-        for _p in (out_path, err_path):
-            try:
-                os.unlink(_p)
-            except OSError:
-                pass
 
         if timed_out:
             error_text = (

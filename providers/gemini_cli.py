@@ -10,6 +10,7 @@ from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
+from ..proc import run_captured
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
@@ -59,26 +60,22 @@ def spawn_gemini_cli(
     cwd = working_dir or str(get_workspace_dir())
     
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=cwd,
-            shell=IS_WINDOWS,
-            encoding='utf-8',
-            errors='replace',
+        # Hardened run: output to temp files (no pipe-EOF drain hang),
+        # process-tree kill on timeout. See powerspawn/proc.py.
+        returncode, output_text, error_text, timed_out = run_captured(
+            cmd, cwd=cwd, timeout=timeout,
         )
-        
+
         duration = time.time() - start_time
-        
-        output_text = result.stdout.strip() if result.stdout else ""
-        error_text = result.stderr.strip() if result.stderr else ""
-        
-        success = result.returncode == 0 and output_text != ""
-        
+
+        if timed_out:
+            error_text = (error_text + f"\n[powerspawn] gemini timed out after "
+                          f"{timeout}s; process tree killed").strip()
+
+        success = (not timed_out) and returncode == 0 and output_text != ""
+
         if not success and not output_text:
-            error_msg = error_text or f"Exit code {result.returncode}"
+            error_msg = error_text or f"Exit code {returncode}"
             log_spawn_complete(spawn_id, False, "", duration, 0.0, error_msg)
             return AgentResult(success=False, text="", spawn_id=spawn_id, error=error_msg, provider="gemini-cli")
             

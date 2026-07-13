@@ -78,7 +78,7 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="spawn_claude",
-            description="Spawn Claude CLI agent. Context: CLAUDE.md.",
+            description="Spawn Claude CLI agent. Context: AGENTS.md (injected as the shared worker briefing) + CLAUDE.md (CLI auto-load).",
             inputSchema={
                 "type": "object",
                 "required": ["prompt"],
