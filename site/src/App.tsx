@@ -1,5 +1,6 @@
 import { Hero } from './components/Hero'
 import { Features } from './components/Features'
+import { McpOverview } from './components/McpOverview'
 import { HowItWorks } from './components/HowItWorks'
 import { Comparison } from './components/Comparison'
 import { Roadmap } from './components/Roadmap'
@@ -11,6 +12,7 @@ function App() {
     <div className="min-h-screen bg-[var(--ps-bg-dark)]">
       <Hero />
       <Features />
+      <McpOverview />
       <HowItWorks />
       <Comparison />
       <Roadmap />

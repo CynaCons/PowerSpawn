@@ -191,30 +191,36 @@ def test_multiple_spawns_newest_first(tmp_path):
 
 def test_max_entries_limit(tmp_path):
     """Test that IAC.md respects MAX_IAC_ENTRIES limit."""
+    from logger import MAX_IAC_ENTRIES
+
     with patch('logger.get_output_dir', return_value=tmp_path):
         logger = AgentLogger()
 
-        # Create more than MAX_IAC_ENTRIES spawns (50)
-        # We spawn 60 agents to ensure at least 10 are trimmed
-        spawn_ids = []
-        for i in range(60):
-            spawn_id = logger.log_spawn_start(
+        # Overflow the cap so oldest interaction-history entries are trimmed.
+        total = MAX_IAC_ENTRIES + 10
+        for i in range(total):
+            logger.log_spawn_start(
                 agent="Claude",
                 model="haiku",
                 prompt=f"Task {i}",
                 tools=[],
                 task_summary=f"Task {i}"
             )
-            spawn_ids.append(spawn_id)
 
         iac_file = tmp_path / "IAC.md"
         content = iac_file.read_text(encoding='utf-8')
 
-        # Should only have last 50 task ENTRIES (not in Active Agents table)
-        # Check for entry headers (### 🤖 Task X) to verify entry limits
-        assert "### 🤖 Task 59" in content  # Most recent entry (60th)
-        assert "### 🤖 Task 10" in content   # 50th from end (index 10-59 = 50 items)
-        assert "### 🤖 Task 9" not in content  # Entry should be trimmed
+        # Interaction-history entries (### headers) are capped at MAX_IAC_ENTRIES.
+        # Active Agents table may still list older running rows — assert on headers only.
+        import re
+        headers = re.findall(r"^### 🤖 Task (\d+)", content, flags=re.M)
+        assert len(headers) == MAX_IAC_ENTRIES
+        assert headers[0] == str(total - 1)  # newest first
+        assert str(total - 1) in headers
+        assert "10" in headers
+        assert "9" not in headers  # oldest 10 history entries trimmed
+
+
 
 
 def test_global_logger_functions(tmp_path):

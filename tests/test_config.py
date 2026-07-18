@@ -54,3 +54,28 @@ def test_model_alias_resolution(monkeypatch):
     assert settings.get_model_alias("test_provider", "latest") == "model-v2-beta"
     assert settings.get_model_alias("test_provider", None) == "model-v1"
     assert settings.get_model_alias("test_provider", "unknown") == "unknown"
+
+
+def test_codex_gpt56_sol_terra_luna_aliases():
+    """Live models.json must expose GPT-5.6 Sol / Terra / Luna for spawn_codex."""
+    settings = Settings()
+    assert settings.get_model_alias("codex", None) == "gpt-5.6-terra"
+    assert settings.get_model_alias("codex", "sol") == "gpt-5.6-sol"
+    assert settings.get_model_alias("codex", "gpt-5.6-sol") == "gpt-5.6-sol"
+    assert settings.get_model_alias("codex", "terra") == "gpt-5.6-terra"
+    assert settings.get_model_alias("codex", "tera") == "gpt-5.6-terra"
+    assert settings.get_model_alias("codex", "luna") == "gpt-5.6-luna"
+    assert settings.get_model_alias("codex", "gpt-5.6-luna") == "gpt-5.6-luna"
+    for alias in ("sol", "terra", "tera", "luna", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"):
+        assert alias in settings.get_model_list("codex")
+
+
+def test_grok_cli_defaults_to_4_5():
+    """Grok CLI path must default to Cursor Grok 4.5 (and legacy aliases map to it)."""
+    settings = Settings()
+    assert settings.get_model_alias("grok", None) == "grok-4.5"
+    assert settings.get_model_alias("grok", "grok-4.5") == "grok-4.5"
+    assert settings.get_model_alias("grok", "4.5") == "grok-4.5"
+    assert settings.get_model_alias("grok", "cursor-grok-4.5") == "grok-4.5"
+    assert settings.get_model_alias("grok", "build") == "grok-4.5"
+    assert "grok-4.5" in settings.get_model_list("grok")

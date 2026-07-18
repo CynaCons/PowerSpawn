@@ -12,16 +12,16 @@ const terminalLines = [
   { text: 'spawn_claude("Review authentication module")', delay: 0.8, color: 'text-indigo-400' },
   { text: '→ Agent #a3f2 running (sonnet) [CLI]', delay: 1.1, color: 'text-green-400' },
   { text: '', delay: 1.3 },
-  { text: 'spawn_codex("Run npm test, report failures")', delay: 1.5, color: 'text-indigo-400' },
-  { text: '→ Agent #b7c1 running (gpt-5.1) [CLI]', delay: 1.8, color: 'text-green-400' },
+  { text: 'spawn_codex("Run npm test, report failures", model="sol")', delay: 1.5, color: 'text-indigo-400' },
+  { text: '→ Agent #b7c1 running (gpt-5.6-sol) [CLI]', delay: 1.8, color: 'text-green-400' },
   { text: '', delay: 2 },
-  { text: '# API Agents - Text responses, coordinator applies', delay: 2.3, color: 'text-cyan-400' },
-  { text: 'spawn_grok("Analyze architecture decisions")', delay: 2.6, color: 'text-orange-400' },
-  { text: '→ Agent #d5e2 running (grok-3) [API]', delay: 2.9, color: 'text-green-400' },
+  { text: '# Grok Build CLI — Cursor Grok 4.5 (default)', delay: 2.3, color: 'text-cyan-400' },
+  { text: 'spawn_grok("Analyze architecture decisions", force=True)', delay: 2.6, color: 'text-orange-400' },
+  { text: '→ Agent #d5e2 running (grok-4.5) [CLI]', delay: 2.9, color: 'text-green-400' },
   { text: '', delay: 3.1 },
   { text: 'wait_for_agents()  # All complete ✓', delay: 3.4, color: 'text-cyan-400' },
   { text: '', delay: 3.7 },
-  { text: '✓ CLI + API agents. More models. More power.', delay: 4, color: 'text-emerald-400' },
+  { text: '✓ Sol / Terra / Luna + Grok 4.5. More models. More power.', delay: 4, color: 'text-emerald-400' },
 ]
 
 function AnimatedTerminal() {
@@ -153,7 +153,7 @@ export function Hero() {
         >
           Multi-Agent AI Orchestration Made Simple
           <br />
-          <span className="text-gray-400">A Python MCP that wraps CLIs and APIs, logging all inputs/outputs deterministically for transparency, reuse, and review.</span>
+          <span className="text-gray-400">Python MCP for Claude, Codex (Sol/Terra/Luna), Cursor, Grok 4.5, Copilot, Gemini &amp; more — with deterministic IAC logging.</span>
         </motion.p>
 
         {/* Install command */}
@@ -188,10 +188,16 @@ export function Hero() {
             View on GitHub
           </a>
           <a
-            href="#quick-start"
+            href="#mcp"
             className="px-8 py-3 border border-gray-600 hover:border-gray-500 rounded-lg font-semibold transition-colors"
           >
-            Quick Start →
+            MCP Overview →
+          </a>
+          <a
+            href="#quick-start"
+            className="px-8 py-3 border border-gray-700 hover:border-gray-500 rounded-lg font-semibold transition-colors text-gray-300"
+          >
+            Quick Start
           </a>
         </motion.div>
 

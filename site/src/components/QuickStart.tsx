@@ -48,20 +48,20 @@ Coordinator thinking...
 spawn_claude("Review authentication module for security issues")
 → Agent #a1b2 running (sonnet) [CLI]
 
-spawn_codex("Run npm test, report any failures")
-→ Agent #c3d4 running (gpt-5.1) [CLI]
+# Codex GPT-5.6 family: sol (flagship) | terra (default) | luna (fast)
+spawn_codex("Run npm test, report any failures", model="sol")
+→ Agent #c3d4 running (gpt-5.6-sol) [CLI]
 
-# Waiting for CLI agents to complete...
 wait_for_agents()
 ✓ Claude: Found 2 potential issues
-✓ Codex: All 47 tests passing
+✓ Codex (Sol): All 47 tests passing
 
-# Now getting API agent analysis
-spawn_grok("Analyze the auth architecture, suggest improvements")
-→ Agent #e5f6 running (grok-3) [API]
+# Grok Build CLI — Cursor Grok 4.5 by default (force applies edits)
+spawn_grok("Analyze the auth architecture, suggest improvements", force=True)
+→ Agent #e5f6 running (grok-4.5) [CLI]
 
 wait_for_agents()
-✓ Grok: 3 architectural recommendations
+✓ Grok 4.5: 3 architectural recommendations
 
 # Coordinator synthesizes results and presents to user`,
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.8.0
+MCP Agent Spawner Server v1.8.1
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,9 +17,16 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.8.1:
+  - Codex models: GPT-5.6 Sol / Terra / Luna (sol, terra, tera, luna aliases).
+  - Grok CLI default: Cursor Grok 4.5; legacy build/composer aliases map to 4.5.
+  - Unit tests: PowerSpawn import alias + model registry coverage; logger cap test.
+  - powerspawn.com: MCP overview section + updated model examples.
+
 Changelog v1.8.0:
   - spawn_grok now drives the Grok CLI (Grok Build) headless — the primary
-    Grok path. Models: grok-build (default), grok-composer-2.5-fast.
+    Grok path. Models: grok-4.5 (default / Cursor Grok 4.5); legacy build/composer
+    aliases map to grok-4.5.
     Prompt goes via --prompt-file (no Windows 8KB CLI limit); force=true
     auto-approves tool executions (edits applied), otherwise plan mode.
   - Legacy x.ai chat-completions path preserved as spawn_grok_api.
@@ -55,7 +62,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.8.0"
+SERVER_VERSION = "1.8.1"
 
 try:
     from mcp.server import Server
@@ -96,7 +103,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="spawn_codex",
-            description="Spawn Codex CLI agent. Context: AGENTS.md.",
+            description="Spawn Codex CLI agent (GPT-5.6 Sol/Terra/Luna + prior gens). Context: AGENTS.md.",
             inputSchema={
                 "type": "object",
                 "required": ["prompt"],

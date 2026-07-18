@@ -1,15 +1,17 @@
 """
-PowerSpawn - Multi-Agent Orchestration System v1.7.0
+PowerSpawn - Multi-Agent Orchestration System v1.8.1
 
 Two modes of agent spawning:
 
 CLI AGENTS (Full Autonomy):
     spawn_claude   - Claude Code sub-agent (can edit files, run commands)
-    spawn_codex    - Codex sub-agent (can edit files, run commands)
+    spawn_codex    - Codex sub-agent (GPT-5.6 Sol/Terra/Luna)
+    spawn_grok     - Grok Build CLI (default: Cursor Grok 4.5)
+    spawn_cursor   - Cursor agent CLI
     spawn_copilot  - Copilot sub-agent (can edit files, run commands)
 
 API AGENTS (Text Response Only):
-    spawn_grok     - X.ai Grok (text analysis, research)
+    spawn_grok_api - X.ai Grok chat API fallback
     spawn_gemini   - Google Gemini (long context, multimodal)
     spawn_mistral  - Mistral AI (European model, code tasks)
 
@@ -38,7 +40,7 @@ from .logger import (
 )
 from .config import settings
 
-__version__ = "1.7.0"
+__version__ = "1.8.1"
 __all__ = [
     # CLI Agents
     "spawn_claude",

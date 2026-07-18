@@ -351,32 +351,33 @@ Auto-loaded by Codex CLI. Defines:
 ```
 
 ### spawn_codex
+Spawn a Codex CLI agent. Models follow the GPT‑5.6 Sol / Terra / Luna family
+(see `~/.codex/models_cache.json` / OpenAI GPT‑5.6 release).
 ```json
 {
-  "prompt": "Your task description"
+  "prompt": "Your task description",
+  "model": "gpt-5.6-terra"   // default: balanced Terra
 }
 ```
+
+**Codex GPT‑5.6 family (primary):**
+| Alias | Resolves to | Role |
+|-------|-------------|------|
+| `sol` / `gpt-5.6-sol` | `gpt-5.6-sol` | Flagship frontier coding agent |
+| `terra` / `tera` / `gpt-5.6-terra` | `gpt-5.6-terra` | Balanced everyday default |
+| `luna` / `gpt-5.6-luna` | `gpt-5.6-luna` | Fast / cost-efficient |
+
+Also accepted: prior-gen `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, legacy `gpt-5.3-codex` names, `codex` → Terra, `codex-mini` → mini.
 
 ### spawn_copilot
 ```json
 {
   "prompt": "Your task description",
-  "model": "gpt-5.1"  // gpt-5.1 | gpt-5 | gpt-5.1-codex | gpt-5-mini |
-                       // claude-sonnet | claude-haiku | claude-opus | gemini
+  "model": "claude-opus-4.8"
 }
 ```
 
-**Available models:**
-| Model | Provider | Description |
-|-------|----------|-------------|
-| `gpt-5.1` | OpenAI | GPT-5.1 (default) |
-| `gpt-5` | OpenAI | GPT-5 |
-| `gpt-5.1-codex` | OpenAI | Optimized for code |
-| `gpt-5-mini` | OpenAI | Fast, lightweight |
-| `claude-sonnet` | Anthropic | Claude Sonnet 4.6 |
-| `claude-haiku` | Anthropic | Claude Haiku 4.5 |
-| `claude-opus` | Anthropic | Claude Opus 4.7 |
-| `gemini` | Google | Gemini 3 Pro Preview |
+**Copilot models (examples):** `claude-opus-4.8`, `claude-sonnet-5`, `gpt-5.5`, `gemini-3.1-pro`, …
 
 ### spawn_grok
 Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
@@ -384,15 +385,16 @@ Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
 ```json
 {
   "prompt": "Your task description",
-  "model": "grok-build",        // grok-build (default) | composer | composer-2.5
+  "model": "grok-4.5",           // default = Cursor Grok 4.5 (see `grok models`)
   "force": false,               // true = auto-approve tools, edits applied; false = plan mode
   "timeout": 600,
   "system_prompt": "Optional extra rules (appended via --rules)"
 }
 ```
 **Notes:** The prompt is passed via `--prompt-file`, so long spec prompts do
-not hit the Windows ~8 KB command-line limit. `composer` resolves to
-`grok-composer-2.5-fast` (the Cursor composer model exposed by the Grok CLI).
+not hit the Windows ~8 KB command-line limit. Default model is **`grok-4.5`**
+(Cursor Grok 4.5). Legacy aliases (`build`, `composer`, `composer-2.5`, …)
+resolve to `grok-4.5` so older callers keep working when the CLI only exposes 4.5.
 
 ### spawn_grok_api
 Legacy Grok via X.ai API (text response only). Needs `XAI_API_KEY`.

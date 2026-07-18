@@ -18,9 +18,14 @@
   "codex": {
     "default": "gpt-5.6-terra",
     "aliases": {
+      "gpt-5.6-sol": "gpt-5.6-sol",
+      "sol": "gpt-5.6-sol",
       "gpt-5.6-terra": "gpt-5.6-terra",
       "terra": "gpt-5.6-terra",
-      "gpt-5.6": "gpt-5.6",
+      "tera": "gpt-5.6-terra",
+      "gpt-5.6-luna": "gpt-5.6-luna",
+      "luna": "gpt-5.6-luna",
+      "gpt-5.6": "gpt-5.6-terra",
       "gpt-5.5": "gpt-5.5",
       "gpt-5.4": "gpt-5.4",
       "gpt-5.4-mini": "gpt-5.4-mini",
@@ -30,7 +35,8 @@
       "gpt-5.1-codex-max": "gpt-5.1-codex-max",
       "gpt-5.1-codex": "gpt-5.1-codex",
       "codex": "gpt-5.6-terra",
-      "codex-mini": "gpt-5.4-mini"
+      "codex-mini": "gpt-5.4-mini",
+      "codex-auto-review": "codex-auto-review"
     }
   },
   "copilot": {
@@ -65,14 +71,18 @@
     }
   },
   "grok": {
-    "default": "grok-build",
+    "default": "grok-4.5",
     "aliases": {
-      "grok-build": "grok-build",
-      "build": "grok-build",
-      "grok-code": "grok-build",
-      "composer": "grok-composer-2.5-fast",
-      "composer-2.5": "grok-composer-2.5-fast",
-      "grok-composer-2.5-fast": "grok-composer-2.5-fast"
+      "grok-4.5": "grok-4.5",
+      "4.5": "grok-4.5",
+      "cursor-grok-4.5": "grok-4.5",
+      "cursor": "grok-4.5",
+      "grok-build": "grok-4.5",
+      "build": "grok-4.5",
+      "grok-code": "grok-4.5",
+      "composer": "grok-4.5",
+      "composer-2.5": "grok-4.5",
+      "grok-composer-2.5-fast": "grok-4.5"
     }
   },
   "grok-api": {
@@ -159,6 +169,8 @@
       "gemini-3-pro": "gemini-3-pro",
       "gemini-3.1-pro": "gemini-3.1-pro",
       "gemini-3.5-flash": "gemini-3.5-flash",
+      "grok-4.5": "grok-4.5",
+      "cursor-grok-4.5": "grok-4.5",
       "grok-4.3": "grok-4.3",
       "grok-build": "grok-build-0.1",
       "glm-5.2": "glm-5.2",

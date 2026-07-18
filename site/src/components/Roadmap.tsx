@@ -8,13 +8,14 @@ const roadmapItems = [
   { version: 'v0.2', title: 'MCP Server', desc: 'Full MCP protocol, wait_for_agents, context handling', status: 'completed' },
   { version: 'v0.3', title: 'Landing Page', desc: 'powerspawn.com with React + Tailwind', status: 'completed' },
   { version: 'v0.4', title: 'Copilot Integration', desc: 'spawn_copilot with GPT, Claude, and Gemini models', status: 'completed' },
-  { version: 'v0.5', title: 'API Agents', desc: 'spawn_grok, spawn_gemini, spawn_mistral - Text-response agents via API', status: 'completed' },
-  // Current
-  { version: 'v0.6', title: 'Two-Mode Architecture', desc: 'CLI agents (file access) + API agents (text response) unified', status: 'current' },
+  { version: 'v0.5', title: 'API Agents', desc: 'spawn_gemini, spawn_mistral + legacy spawn_grok_api', status: 'completed' },
+  { version: 'v0.6', title: 'Two-Mode Architecture', desc: 'CLI agents (file access) + API agents (text response) unified', status: 'completed' },
+  { version: 'v1.7', title: 'AGENTS.md Context + Hang Hardening', desc: 'Universal worker context; subprocess timeout / tree kill', status: 'completed' },
+  { version: 'v1.8', title: 'Grok Build CLI + Cursor', desc: 'spawn_grok via grok CLI; spawn_cursor; model alias registry', status: 'completed' },
+  { version: 'v1.8.1', title: 'GPT-5.6 + Grok 4.5 Models', desc: 'Codex Sol/Terra/Luna; Cursor Grok 4.5 default; site MCP overview; pytest green', status: 'current' },
   // Upcoming
   { version: 'v0.7', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
   { version: 'v0.8', title: 'Reusable Contexts', desc: 'Spawn agents with previous session I/O. Chain agent generations with full context history in IAC', status: 'upcoming' },
-  { version: 'v0.9', title: 'Test Suite', desc: 'Unit and integration tests with CI/CD', status: 'upcoming' },
   { version: 'v1.0', title: 'Stable Release', desc: 'Production-ready with full documentation', status: 'upcoming' },
 ]
 

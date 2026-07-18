@@ -6,22 +6,22 @@ const features = [
   {
     icon: '🔀',
     title: 'Dual-Mode Architecture',
-    description: 'CLI Agents (Claude, Codex, Copilot, Gemini) have full file access. API Agents (Grok, Gemini, Mistral) return text responses that the coordinator applies.',
+    description: 'CLI agents (Claude, Codex, Cursor, Grok Build, Copilot, Gemini CLI) have full workspace tools. Optional API fallbacks (Grok API, Gemini, Mistral) return text the coordinator applies.',
   },
   {
     icon: '🔌',
     title: 'Uses Your CLI Subscriptions',
-    description: 'CLI agents use your existing subscriptions. API agents need API keys. Mix and match based on your setup.',
+    description: 'CLI agents use your existing Claude / Codex / Cursor / Grok / Copilot logins. API agents need keys only when you choose them.',
   },
   {
     icon: '🎯',
     title: 'Deterministic, Not Hopeful',
-    description: 'Python MCP wraps CLIs (Claude, Codex, Copilot) and APIs (Grok, Gemini, Mistral), logging ALL inputs and outputs automatically. Great for reuse, transparency, and review.',
+    description: 'Python MCP wraps CLIs and APIs, logging ALL inputs and outputs to IAC.md automatically. Great for reuse, transparency, and review.',
   },
   {
     icon: '⚖️',
-    title: 'Load Balancing',
-    description: 'Hit Claude rate limit? Spawn Codex or Copilot. One Copilot CLI gives you GPT, Claude, AND Gemini models.',
+    title: 'Load Balancing + Latest Models',
+    description: 'Hit a rate limit? Route to Codex Sol/Terra/Luna, Cursor, or Grok 4.5. One MCP surface, many model families.',
   },
   {
     icon: '👁️',
@@ -105,7 +105,7 @@ export function Features() {
               "Everything that CAN be done deterministically SHALL be done deterministically."
             </blockquote>
             <p className="mt-4 text-gray-400 text-sm">
-              The Python MCP wraps CLIs (Claude, Codex, Copilot, Gemini) and APIs (Grok, Gemini, Mistral), capturing every input and output deterministically.
+              The Python MCP wraps CLIs (Claude, Codex, Cursor, Grok Build, Copilot, Gemini) and optional APIs, capturing every input and output deterministically.
               <br />
               <span className="text-gray-500">Complete transparency. Easy reuse. Full audit trail for review.</span>
             </p>
