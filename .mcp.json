@@ -1,9 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp.json",
   "mcpServers": {
-    "agents": {
+    "powerspawn": {
       "command": "python",
-      "args": ["-m", "PowerSpawn.mcp_server"],
+      "args": ["-m", "powerspawn.mcp_server"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUNBUFFERED": "1"
+      }
+    },
+    "powerplan": {
+      "command": "python",
+      "args": ["powerplan/powerplan_server.py"],
       "env": {
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1"

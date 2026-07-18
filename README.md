@@ -1,10 +1,42 @@
 # PowerSpawn - Universal Multi-Agent MCP Server
 
-**Live:** [powerspawn.com](https://powerspawn.com) | **Version 1.6.2**
+**Live:** [powerspawn.com](https://powerspawn.com) | **Version 1.8.1**
 
 > **Spawn Claude, Codex, AND Copilot from one coordinator. Your agents leave a paper trail.**
 
 A lightweight MCP server for cross-model AI agent orchestration. Works with Claude Code, GitHub Copilot, and any MCP-compatible client. Supports GPT, Claude, Gemini, Grok, and Mistral models through CLI and API providers.
+
+### Companion: [powerplan](https://github.com/CynaCons/powerplan)
+
+This repo **vendors [powerplan](https://github.com/CynaCons/powerplan) as a git submodule**
+(`powerplan/`). powerplan is a **separate MCP server** that makes `PLAN.md` the
+operational backbone of agentic work (show progress, manage iterations/tasks).
+
+```bash
+git clone --recurse-submodules https://github.com/CynaCons/PowerSpawn.git
+# or, if already cloned:
+git submodule update --init --recursive
+```
+
+Register **both** servers (they do not merge into one MCP):
+
+```json
+{
+  "mcpServers": {
+    "powerspawn": {
+      "command": "python",
+      "args": ["-m", "powerspawn.mcp_server"]
+    },
+    "powerplan": {
+      "command": "python",
+      "args": ["powerplan/powerplan_server.py"]
+    }
+  }
+}
+```
+
+Site / docs: [cynacons.github.io/powerplan](https://cynacons.github.io/powerplan/) ·
+standalone install also works without PowerSpawn (`pip install -e .` from the powerplan repo).
 
 ---
 
