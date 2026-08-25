@@ -4,12 +4,22 @@
     "aliases": {
       "sonnet": "sonnet",
       "haiku": "haiku",
-      "opus": "opus"
+      "opus": "opus",
+      "fable": "claude-fable-5",
+      "fable-5": "claude-fable-5",
+      "opus-5": "claude-opus-5",
+      "sonnet-5": "claude-sonnet-5",
+      "haiku-4.5": "claude-haiku-4-5-20251001"
     }
   },
   "codex": {
-    "default": "gpt-5.4",
+    "default": "gpt-5.6-sol",
     "aliases": {
+      "gpt-5.6-sol": "gpt-5.6-sol",
+      "gpt-5.6-terra": "gpt-5.6-terra",
+      "gpt-5.6-luna": "gpt-5.6-luna",
+      "gpt-5.6": "gpt-5.6-sol",
+      "sol": "gpt-5.6-sol",
       "gpt-5.4": "gpt-5.4",
       "gpt-5.4-mini": "gpt-5.4-mini",
       "gpt-5.3-codex": "gpt-5.3-codex",
@@ -17,39 +27,35 @@
       "gpt-5.2-codex": "gpt-5.2-codex",
       "gpt-5.1-codex-max": "gpt-5.1-codex-max",
       "gpt-5.1-codex": "gpt-5.1-codex",
-      "codex": "gpt-5.4",
-      "codex-max": "gpt-5.3-codex"
+      "codex": "gpt-5.6-sol",
+      "codex-max": "gpt-5.6-sol"
     }
   },
   "copilot": {
-    "default": "gpt-5.4",
+    "default": "gpt-5.6-sol",
     "aliases": {
+      "gpt-5.6-sol": "gpt-5.6-sol",
+      "gpt-5.6-terra": "gpt-5.6-terra",
+      "gpt-5.6-luna": "gpt-5.6-luna",
+      "gpt-5.6": "gpt-5.6-sol",
+      "claude-opus-5": "claude-opus-5",
+      "claude-sonnet-5": "claude-sonnet-5",
+      "claude-fable-5": "claude-fable-5",
       "claude-opus-4.7": "claude-opus-4.7",
       "claude-sonnet-4.6": "claude-sonnet-4.6",
-      "claude-opus-4.6": "claude-opus-4.6",
-      "claude-sonnet-4.5": "claude-sonnet-4.5",
-      "claude-haiku-4.5": "claude-haiku-4.5",
-      "claude-opus-4.5": "claude-opus-4.5",
-      "claude-sonnet": "claude-sonnet-4.6",
-      "claude-haiku": "claude-haiku-4.5",
-      "claude-opus": "claude-opus-4.7",
+      "claude-opus": "claude-opus-5",
+      "claude-sonnet": "claude-sonnet-5",
       "gpt-5.4": "gpt-5.4",
-      "gpt-5.4-mini": "gpt-5.4-mini",
       "gpt-5.3-codex": "gpt-5.3-codex",
-      "gpt-5.2": "gpt-5.2",
-      "gpt-5.1-codex": "gpt-5.1-codex",
-      "gpt-5.1": "gpt-5.1",
-      "gpt-5": "gpt-5",
-      "gpt-5-mini": "gpt-5-mini",
-      "gpt-4.1": "gpt-4.1",
       "gemini-3.1-pro": "gemini-3.1-pro-preview",
-      "gemini-3-pro-preview": "gemini-3-pro-preview",
       "gemini": "gemini-3.1-pro-preview"
     }
   },
   "grok": {
-    "default": "grok-4.1-reasoning",
+    "default": "grok-4.6",
     "aliases": {
+      "grok-4.6": "grok-4.6",
+      "grok-4.5": "grok-4.5",
       "grok-4.1": "grok-4-1-fast-non-reasoning",
       "grok-4.1-reasoning": "grok-4-1-fast-reasoning",
       "grok-4": "grok-4-fast-non-reasoning",
@@ -81,10 +87,10 @@
     }
   },
   "mistral": {
-    "default": "mistral-small",
+    "default": "mistral-large",
     "aliases": {
       "mistral-large": "mistral-large-latest",
-      "mistral-large-3": "mistral-large-3-25-12",
+      "mistral-large-3": "mistral-large-latest",
       "mistral-medium": "mistral-medium-latest",
       "mistral-medium-agents": "mistral-medium-2505",
       "mistral-small": "mistral-small-latest",
