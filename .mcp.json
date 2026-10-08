@@ -3,7 +3,10 @@
   "mcpServers": {
     "powerspawn": {
       "command": "python",
-      "args": ["-m", "powerspawn"],
+      "args": [
+        "-m",
+        "powerspawn"
+      ],
       "env": {
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1"
@@ -11,7 +14,10 @@
     },
     "powerplan": {
       "command": "python",
-      "args": ["powerplan/powerplan_server.py"],
+      "args": [
+        "-m",
+        "powerplan"
+      ],
       "env": {
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1"

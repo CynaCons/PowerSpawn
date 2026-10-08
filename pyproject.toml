@@ -23,7 +23,7 @@ api = [
   "google-genai>=1.0.0",
   "mistralai>=1.0.0",
 ]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "powerplan-mcp>=0.9"]  # powerplan: the PLAN.md MCP in .mcp.json
 
 [project.scripts]
 powerspawn = "powerspawn.mcp_server:run"
