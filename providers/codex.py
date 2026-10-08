@@ -144,12 +144,14 @@ def spawn_codex(
         Codex CLI automatically loads AGENTS.md from the project root.
     """
     start_time = time.time()
-    resolved_model = settings.get_model_alias("codex", model)
-    
+    # No model requested: pass no --model so Codex uses the account's own default
+    # (a hardcoded default breaks whenever OpenAI changes what an account may use).
+    resolved_model = settings.get_model_alias("codex", model) if model else None
+
     sandbox_mode = "bypass" if bypass_sandbox else "read-only"
     spawn_id = log_spawn_start(
         agent="Codex",
-        model=resolved_model,
+        model=resolved_model or "codex default",
         prompt=prompt,
         tools=[f"sandbox:{sandbox_mode}"],
         task_summary=task_summary,
@@ -203,6 +205,6 @@ def spawn_codex(
         session_id=session_id,
         usage=usage,
         error=error,
-        model=resolved_model,
+        model=resolved_model or "codex default",
         provider="codex"
     )

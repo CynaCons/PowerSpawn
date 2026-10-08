@@ -70,7 +70,7 @@ const modelFamilies = [
       { alias: 'sol', role: 'Near-Astra quality, balanced default' },
       { alias: 'luna', role: 'Fast / cost-efficient' },
     ],
-    note: 'Aliases: astra, sol, luna → gpt-6-*; terra → gpt-5.6-terra. Default: gpt-6-sol.',
+    note: 'Aliases: astra, luna → gpt-6-*; sol → gpt-6.1-sol; terra → gpt-5.6-terra. No model: Codex picks your account default.',
   },
   {
     title: 'Grok CLI — Grok Build',

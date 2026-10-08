@@ -19,7 +19,7 @@ Configuration:
 
 Changelog v1.9.0:
   - Model refresh (Oct 2026): Claude Fable 5.1 / Opus 5.5 / Sonnet 5.5;
-    Codex GPT-6 Astra / Sol / Luna (default gpt-6-sol; retired gpt-5.4/5.3/5.2/5.1
+    Codex GPT-6 Astra / Sol / Luna (sol = gpt-6.1-sol; no model -> Codex's own default; retired gpt-5.4/5.3/5.2/5.1
     ids dropped); Copilot default claude-opus-5.5; Grok CLI default grok-4.6
     (+ grok-4.7); Grok API default grok-4.7 (+ grok-build-0.1); Gemini 3.8 Flash
     as gemini-flash; Mistral Large 4 / Medium 3.5 / Small 4 pinned ids.

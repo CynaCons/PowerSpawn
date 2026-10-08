@@ -37,7 +37,7 @@ spawn_claude("Review authentication module for security issues")
 
 # Codex GPT-6 family: astra (flagship) | sol (default) | luna (fast)
 spawn_codex("Run npm test, report any failures", model="sol")
-→ Agent #c3d4 running (gpt-6-sol) [CLI]
+→ Agent #c3d4 running (gpt-6.1-sol) [CLI]
 
 wait_for_agents()
 ✓ Claude: Found 2 potential issues

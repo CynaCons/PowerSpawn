@@ -55,11 +55,12 @@ def test_model_alias_resolution(monkeypatch):
 
 
 def test_codex_gpt6_astra_sol_luna_aliases():
-    """Live models.json must expose GPT-6 Astra / Sol / Luna for spawn_codex (default Sol)."""
+    """Live models.json must expose GPT-6 Astra / Sol / Luna for spawn_codex (sol = 6.1)."""
     settings = Settings()
-    assert settings.get_model_alias("codex", None) == "gpt-6-sol"
+    assert settings.get_model_alias("codex", None) == "gpt-6.1-sol"
     assert settings.get_model_alias("codex", "astra") == "gpt-6-astra"
-    assert settings.get_model_alias("codex", "sol") == "gpt-6-sol"
+    assert settings.get_model_alias("codex", "sol") == "gpt-6.1-sol"
+    assert settings.get_model_alias("codex", "gpt-6-sol") == "gpt-6-sol"
     assert settings.get_model_alias("codex", "luna") == "gpt-6-luna"
     assert settings.get_model_alias("codex", "gpt-6.1-sol") == "gpt-6.1-sol"
     # GPT-5.6 generation stays reachable (Terra has no GPT-6 successor)

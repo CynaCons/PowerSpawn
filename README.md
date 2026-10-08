@@ -344,7 +344,7 @@ result = spawn_claude("Review src/App.tsx for security issues")
 result = spawn_codex("Run npm test and report failures")
 
 # Spawn Copilot with any model (Claude, GPT, Gemini, Grok)
-result = spawn_copilot("Analyze this codebase structure", model="gpt-6-sol")
+result = spawn_copilot("Analyze this codebase structure", model="gpt-6.1-sol")
 result = spawn_copilot("Write documentation", model="gemini")
 ```
 
@@ -429,19 +429,23 @@ Spawn a Codex CLI agent. Models follow the GPT‑6 Astra / Sol / Luna family
 ```json
 {
   "prompt": "Your task description",
-  "model": "gpt-6-sol"   // default: balanced Sol
+  "model": "sol"   // optional; omit it to use your Codex account's default
 }
 ```
+
+Without `model`, PowerSpawn passes no `--model` and Codex picks the default for your
+account and CLI version (currently `gpt-6.1-sol`), so a model OpenAI withdraws for your
+plan can't break spawning.
 
 **Codex GPT‑6 family (primary):**
 | Alias | Resolves to | Role |
 |-------|-------------|------|
 | `astra` / `gpt-6-astra` | `gpt-6-astra` | Most capable — complex, long-horizon work |
-| `sol` / `gpt-6-sol` | `gpt-6-sol` | Near-Astra quality, everyday default |
-| `gpt-6.1-sol` | `gpt-6.1-sol` | Newer Sol (needs a recent Codex CLI) |
+| `sol` / `gpt-6.1-sol` | `gpt-6.1-sol` | Near-Astra quality, everyday choice (needs Codex CLI ≥ 0.158) |
+| `gpt-6-sol` | `gpt-6-sol` | Previous Sol |
 | `luna` / `gpt-6-luna` | `gpt-6-luna` | Fast / cost-efficient |
 
-Also accepted: prior-gen `gpt-5.6-sol`, `gpt-5.6-terra` (`terra` / `tera`), `gpt-5.6-luna`, `gpt-5.5` (retires from Codex 2026-10-14), `codex` → Sol, `codex-mini` → Luna. Retired `gpt-5.4*` / `gpt-5.3-codex*` / older ids were removed.
+Also accepted: prior-gen `gpt-5.6-sol`, `gpt-5.6-terra` (`terra` / `tera`), `gpt-5.6-luna`, `gpt-5.5` (retires from Codex 2026-10-14), `codex` → `gpt-6.1-sol`, `codex-mini` → Luna. Retired `gpt-5.4*` / `gpt-5.3-codex*` / older ids were removed.
 
 ### spawn_copilot
 ```json

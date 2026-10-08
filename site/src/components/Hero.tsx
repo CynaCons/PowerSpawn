@@ -13,7 +13,7 @@ const terminalLines = [
   { text: '→ Agent #a3f2 running (sonnet) [CLI]', delay: 1.1, color: 'text-green-400' },
   { text: '', delay: 1.3 },
   { text: 'spawn_codex("Run npm test, report failures", model="sol")', delay: 1.5, color: 'text-indigo-400' },
-  { text: '→ Agent #b7c1 running (gpt-6-sol) [CLI]', delay: 1.8, color: 'text-green-400' },
+  { text: '→ Agent #b7c1 running (gpt-6.1-sol) [CLI]', delay: 1.8, color: 'text-green-400' },
   { text: '', delay: 2 },
   { text: '# Grok Build CLI — Grok 4.6 (default)', delay: 2.3, color: 'text-cyan-400' },
   { text: 'spawn_grok("Analyze architecture decisions", force=True)', delay: 2.6, color: 'text-orange-400' },
