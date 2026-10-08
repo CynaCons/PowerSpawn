@@ -255,5 +255,6 @@ All model updates, docs, smoke verified. Git changes ready for review (models.js
 - [ ] Release: owner adds PyPI pending publisher (powerspawn / CynaCons / powerspawn / publish.yml), then tag v1.9.0 -> Publish workflow -> PyPI + MCP Registry
 - [x] Codex: no --model unless requested (account default); sol/codex/default -> gpt-6.1-sol; Codex CLI updated 0.154 -> 0.161 (969bbee, CI green)
 - [x] Use powerplan 0.9.0: .mcp.json -> python -m powerplan, powerplan-mcp>=0.9 in dev extras, submodule at v0.9.0 (handshake shows the turn-end instructions; 48 tests pass)
+- [x] verify_providers_availability fixed (package import, current provider names, Cursor) and exposed as MCP tool; grok_cli.py draft deleted; plan, docs and timeout probe committed (b4724cf, 51 tests)
 ## Future (Backlog)
 - [ ] Blackboard for cross-app agent coordination (Claude Code / Codex Desktop / Cursor / Claude Desktop): boards with message streams + leased state entries, blocking wait, Stop-hook wake. Timeout probe at experiments/timeout_probe (CLI results: Claude Code 150s ok, Codex 0.154 90s ok w/o tool_timeout_sec, Cursor CLI cut at 60s). Pending: desktop app probe runs, single- vs multi-machine decision, PowerSpawn vs separate server.
