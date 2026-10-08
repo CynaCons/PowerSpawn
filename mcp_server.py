@@ -63,6 +63,7 @@ from .providers import (
     spawn_mistral,
     spawn_cursor
 )
+from .providers.availability import verify_providers_availability
 
 # Ensure UTF-8 encoding on Windows
 if sys.platform == "win32":
@@ -235,6 +236,11 @@ async def list_tools() -> list[Tool]:
                     "timeout": {"type": "integer", "default": 300}
                 }
             }
+        ),
+        Tool(
+            name="verify_providers_availability",
+            description="Check which spawn_* providers can run here (CLI on PATH, API key set), with install links for missing ones.",
+            inputSchema={"type": "object", "properties": {}}
         )
     ]
 
@@ -269,6 +275,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_result(arguments)
         elif name == "wait_for_agents":
             return await handle_wait_for_agents(arguments)
+        elif name == "verify_providers_availability":
+            return [TextContent(type="text", text=json.dumps(verify_providers_availability(), indent=2))]
         else:
             return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
     except Exception as e:

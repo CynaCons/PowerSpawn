@@ -519,6 +519,11 @@ Returns the agent's output, cost, and status.
 ### wait_for_agents
 Blocks until all running agents complete. Returns all results.
 
+### verify_providers_availability
+Reports which `spawn_*` tools can run on this machine: CLI providers are checked on
+PATH, API providers by API key. Missing ones come with a hint and an install link.
+CLI logins aren't checked; a missing login shows up when you spawn.
+
 ## Use Cases
 
 ### 1. Parallel Test + Review
