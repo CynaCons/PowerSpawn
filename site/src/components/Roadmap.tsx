@@ -12,7 +12,8 @@ const roadmapItems = [
   { version: 'v0.6', title: 'Two-Mode Architecture', desc: 'CLI agents (file access) + API agents (text response) unified', status: 'completed' },
   { version: 'v1.7', title: 'AGENTS.md Context + Hang Hardening', desc: 'Universal worker context; subprocess timeout / tree kill', status: 'completed' },
   { version: 'v1.8', title: 'Grok Build CLI + Cursor', desc: 'spawn_grok via grok CLI; spawn_cursor; model alias registry', status: 'completed' },
-  { version: 'v1.8.1', title: 'GPT-5.6 + Grok 4.5 Models', desc: 'Codex Sol/Terra/Luna; Cursor Grok 4.5 default; site MCP overview; pytest green', status: 'current' },
+  { version: 'v1.8.1', title: 'GPT-5.6 + Grok 4.5 Models', desc: 'Codex Sol/Terra/Luna; Cursor Grok 4.5 default; site MCP overview; pytest green', status: 'completed' },
+  { version: 'v1.9.0', title: 'Oct 2026 Model Refresh', desc: 'Claude 5.5 / Fable 5.1; Codex GPT-6 Astra/Sol/Luna; Grok 4.7; Gemini 3.8 Flash; Mistral Large 4', status: 'current' },
   // Upcoming
   { version: 'v0.7', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
   { version: 'v0.8', title: 'Reusable Contexts', desc: 'Spawn agents with previous session I/O. Chain agent generations with full context history in IAC', status: 'upcoming' },

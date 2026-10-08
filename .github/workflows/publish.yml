@@ -1,0 +1,60 @@
+name: Publish
+
+# Push a vX.Y.Z tag (or `gh workflow run Publish --ref vX.Y.Z`) to release:
+# test -> build -> PyPI (trusted publishing) -> MCP Registry (GitHub OIDC).
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check tag matches package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pkg=$(python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('__init__.py').read()).group(1))")
+          srv=$(python -c "import json;print(json.load(open('server.json'))['version'])")
+          test "v$pkg" = "${GITHUB_REF_NAME}" && test "$srv" = "$pkg"
+
+      - name: Install
+        run: pip install -e ".[dev]" build
+
+      - name: Test
+        run: python -m pytest -q
+
+      - name: Build
+        run: python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+      - name: Wait for PyPI to serve the new README
+        run: sleep 45
+
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+
+      - name: Publish to MCP Registry
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

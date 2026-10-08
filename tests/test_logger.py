@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 # Import will be set up by conftest.py
-from logger import (
+from powerspawn.logger import (
     generate_spawn_id,
     log_spawn_start,
     log_spawn_complete,
@@ -31,7 +31,7 @@ def test_generate_spawn_id_unique():
 def test_log_spawn_start_creates_entry(tmp_path):
     """Test log_spawn_start creates IAC.md entry."""
     # Create a logger instance with temp directory
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         logger = AgentLogger()
 
         spawn_id = logger.log_spawn_start(
@@ -63,7 +63,7 @@ def test_log_spawn_start_creates_entry(tmp_path):
 
 def test_log_spawn_start_without_task_summary(tmp_path):
     """Test log_spawn_start generates task_summary from prompt."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         logger = AgentLogger()
 
         long_prompt = "This is a very long first line that should be truncated when used as task summary " * 5
@@ -83,7 +83,7 @@ def test_log_spawn_start_without_task_summary(tmp_path):
 
 def test_log_spawn_complete_updates_entry(tmp_path):
     """Test log_spawn_complete updates existing entry."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         logger = AgentLogger()
 
         # First create an entry
@@ -125,7 +125,7 @@ def test_log_spawn_complete_updates_entry(tmp_path):
 
 def test_log_spawn_complete_with_failure(tmp_path):
     """Test log_spawn_complete handles failures correctly."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         logger = AgentLogger()
 
         spawn_id = logger.log_spawn_start(
@@ -158,7 +158,7 @@ def test_log_spawn_complete_with_failure(tmp_path):
 
 def test_multiple_spawns_newest_first(tmp_path):
     """Test that multiple spawns are ordered newest first."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         logger = AgentLogger()
 
         # Create multiple spawns
@@ -191,9 +191,9 @@ def test_multiple_spawns_newest_first(tmp_path):
 
 def test_max_entries_limit(tmp_path):
     """Test that IAC.md respects MAX_IAC_ENTRIES limit."""
-    from logger import MAX_IAC_ENTRIES
+    from powerspawn.logger import MAX_IAC_ENTRIES
 
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         logger = AgentLogger()
 
         # Overflow the cap so oldest interaction-history entries are trimmed.
@@ -225,9 +225,9 @@ def test_max_entries_limit(tmp_path):
 
 def test_global_logger_functions(tmp_path):
     """Test global log_spawn_start and log_spawn_complete functions."""
-    with patch('logger.get_output_dir', return_value=tmp_path):
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
         # Reset global logger
-        import logger as logger_module
+        import powerspawn.logger as logger_module
         logger_module._logger = None
 
         # Use global functions

@@ -13,15 +13,15 @@ const terminalLines = [
   { text: '→ Agent #a3f2 running (sonnet) [CLI]', delay: 1.1, color: 'text-green-400' },
   { text: '', delay: 1.3 },
   { text: 'spawn_codex("Run npm test, report failures", model="sol")', delay: 1.5, color: 'text-indigo-400' },
-  { text: '→ Agent #b7c1 running (gpt-5.6-sol) [CLI]', delay: 1.8, color: 'text-green-400' },
+  { text: '→ Agent #b7c1 running (gpt-6-sol) [CLI]', delay: 1.8, color: 'text-green-400' },
   { text: '', delay: 2 },
-  { text: '# Grok Build CLI — Cursor Grok 4.5 (default)', delay: 2.3, color: 'text-cyan-400' },
+  { text: '# Grok Build CLI — Grok 4.6 (default)', delay: 2.3, color: 'text-cyan-400' },
   { text: 'spawn_grok("Analyze architecture decisions", force=True)', delay: 2.6, color: 'text-orange-400' },
-  { text: '→ Agent #d5e2 running (grok-4.5) [CLI]', delay: 2.9, color: 'text-green-400' },
+  { text: '→ Agent #d5e2 running (grok-4.6) [CLI]', delay: 2.9, color: 'text-green-400' },
   { text: '', delay: 3.1 },
   { text: 'wait_for_agents()  # All complete ✓', delay: 3.4, color: 'text-cyan-400' },
   { text: '', delay: 3.7 },
-  { text: '✓ Sol / Terra / Luna + Grok 4.5. More models. More power.', delay: 4, color: 'text-emerald-400' },
+  { text: '✓ GPT-6 Astra / Sol / Luna + Grok 4.7. More models. More power.', delay: 4, color: 'text-emerald-400' },
 ]
 
 function AnimatedTerminal() {
@@ -91,7 +91,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function Hero() {
-  const installCommand = 'git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn'
+  const installCommand = 'claude mcp add powerspawn -- uvx powerspawn'
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 overflow-hidden">

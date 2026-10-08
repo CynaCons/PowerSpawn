@@ -20,14 +20,15 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from .paths import get_workspace_dir
+
 # Providers whose CLI already auto-loads AGENTS.md from the project root — do not
 # inject it again for these (it would duplicate a potentially large file).
 NATIVELY_LOADS_AGENTS_MD = frozenset({"codex", "copilot"})
 
 
 def _workspace_root() -> Path:
-    # powerspawn/context.py -> powerspawn/ -> workspace root
-    return Path(__file__).resolve().parent.parent
+    return get_workspace_dir()
 
 
 def load_agents_context(working_dir: Optional[str] = None) -> str:

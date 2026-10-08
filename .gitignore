@@ -37,3 +37,6 @@ IAC.md
 
 # API Keys (never commit!)
 api_keys.json
+
+# PowerSpawn runtime state (IAC.md) when run as an installed package
+.powerspawn/

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.CynaCons/powerspawn",
+  "title": "PowerSpawn",
+  "description": "Spawn and supervise Claude, Codex, Copilot, Cursor, Gemini, Grok and Mistral coding agents",
+  "version": "1.9.0",
+  "websiteUrl": "https://powerspawn.com",
+  "repository": {
+    "url": "https://github.com/CynaCons/powerspawn",
+    "source": "github",
+    "id": "1108162984"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "powerspawn",
+      "version": "1.9.0",
+      "registryBaseUrl": "https://pypi.org",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "XAI_API_KEY",
+          "description": "xAI key for spawn_grok_api (optional; CLI agents use their own logins)",
+          "isSecret": true,
+          "isRequired": false
+        },
+        {
+          "name": "GEMINI_API_KEY",
+          "description": "Google AI key for spawn_gemini (optional)",
+          "isSecret": true,
+          "isRequired": false
+        },
+        {
+          "name": "MISTRAL_API_KEY",
+          "description": "Mistral key for spawn_mistral (optional)",
+          "isSecret": true,
+          "isRequired": false
+        },
+        {
+          "name": "PYTHONUNBUFFERED",
+          "value": "1",
+          "description": "Unbuffered stdio so MCP JSON-RPC flushes immediately."
+        },
+        {
+          "name": "PYTHONIOENCODING",
+          "value": "utf-8",
+          "description": "UTF-8 stdio (needed on Windows)."
+        }
+      ]
+    }
+  ]
+}

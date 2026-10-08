@@ -17,9 +17,7 @@ from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
 
-def get_workspace_dir() -> Path:
-    """Get the workspace root directory (parent of powerspawn/)."""
-    return Path(__file__).parent.parent.parent
+from ..paths import get_workspace_dir
 
 def _parse_claude_response(response_text: str) -> AgentResult:
     """Parse JSON output from Claude CLI."""

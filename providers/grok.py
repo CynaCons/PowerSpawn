@@ -8,8 +8,8 @@ way to spawn Grok; the legacy x.ai chat-completions path lives in grok_api.py
 Auth is `grok login` (grok.com account), handled by the CLI itself — no key
 handling here, same as the Cursor and Gemini CLI providers.
 
-Models (from `grok models`): grok-4.5 (default / Cursor Grok 4.5).
-Legacy aliases (build, composer, …) resolve to grok-4.5 so older callers keep working.
+Models (from `grok models`): grok-4.6 (default), grok-4.7, grok-4.5.
+Legacy aliases (build, composer, …) resolve to the default so older callers keep working.
 
 The prompt is always passed via --prompt-file (a temp file) rather than as a
 command-line argument, so long spec prompts do not hit the Windows ~8 KB
@@ -37,8 +37,7 @@ IS_WINDOWS = sys.platform == "win32"
 GROK_BIN = os.environ.get("GROK_BIN", "grok")
 
 
-def get_workspace_dir() -> Path:
-    return Path(__file__).parent.parent.parent
+from ..paths import get_workspace_dir
 
 def spawn_grok(
     prompt: str,

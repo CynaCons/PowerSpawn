@@ -26,8 +26,7 @@ IS_WINDOWS = sys.platform == "win32"
 # this override should be removed once installs land cursor-agent on PATH.
 CURSOR_BIN = os.environ.get("CURSOR_AGENT_BIN", "cursor-agent")
 
-def get_workspace_dir() -> Path:
-    return Path(__file__).parent.parent.parent
+from ..paths import get_workspace_dir
 
 def spawn_cursor(
     prompt: str,

@@ -3,42 +3,29 @@ import { useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
 
 const codeSnippets = {
-  install: `# Add PowerSpawn to your project
-git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn
+  install: `# Nothing to install with uv — the MCP client runs it on demand:
+uvx powerspawn
 
-# Install dependencies
-pip install mcp`,
+# Or install the \`powerspawn\` command with pipx / pip:
+pipx install "powerspawn[api]"`,
 
-  config: `# For Claude Code, create TWO files:
+  config: `# Claude Code — one command, available in every project:
+claude mcp add --scope user powerspawn -- \\
+  uvx powerspawn
 
-# FILE 1: .mcp.json (project root)
+# Or commit a .mcp.json to a project:
 {
-  "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp.json",
   "mcpServers": {
-    "agents": {
-      "command": "python",
-      "args": ["powerspawn/mcp_server.py"],
-      "env": {
-        "PYTHONIOENCODING": "utf-8",
-        "PYTHONUNBUFFERED": "1"
-      }
+    "powerspawn": {
+      "command": "uvx",
+      "args": ["powerspawn"],
+      "env": { "XAI_API_KEY": "...", "GEMINI_API_KEY": "...", "MISTRAL_API_KEY": "..." }
     }
   }
 }
 
-# FILE 2: .claude/settings.local.json
-{
-  "permissions": { "allow": [], "deny": [], "ask": [] },
-  "enabledMcpjsonServers": ["agents"],
-  "enableAllProjectMcpServers": true
-}
-
-# Then restart Claude Code to load the MCP server!
-
-# For API agents, set env vars or create api_keys.json:
-#   export XAI_API_KEY=...     # for Grok
-#   export GEMINI_API_KEY=...  # for Gemini
-#   export MISTRAL_API_KEY=... # for Mistral`,
+# VS Code, Cursor and Codex use the same command + args.
+# API keys are only needed for the API agents (Grok API, Gemini, Mistral).`,
 
   usage: `User: "Review the auth module and run the tests.
         Get a second opinion from Grok on the architecture."
@@ -48,20 +35,20 @@ Coordinator thinking...
 spawn_claude("Review authentication module for security issues")
 → Agent #a1b2 running (sonnet) [CLI]
 
-# Codex GPT-5.6 family: sol (flagship) | terra (default) | luna (fast)
+# Codex GPT-6 family: astra (flagship) | sol (default) | luna (fast)
 spawn_codex("Run npm test, report any failures", model="sol")
-→ Agent #c3d4 running (gpt-5.6-sol) [CLI]
+→ Agent #c3d4 running (gpt-6-sol) [CLI]
 
 wait_for_agents()
 ✓ Claude: Found 2 potential issues
 ✓ Codex (Sol): All 47 tests passing
 
-# Grok Build CLI — Cursor Grok 4.5 by default (force applies edits)
+# Grok Build CLI — Grok 4.6 by default (force applies edits)
 spawn_grok("Analyze the auth architecture, suggest improvements", force=True)
-→ Agent #e5f6 running (grok-4.5) [CLI]
+→ Agent #e5f6 running (grok-4.6) [CLI]
 
 wait_for_agents()
-✓ Grok 4.5: 3 architectural recommendations
+✓ Grok 4.6: 3 architectural recommendations
 
 # Coordinator synthesizes results and presents to user`,
 }

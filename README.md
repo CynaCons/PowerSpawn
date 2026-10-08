@@ -1,6 +1,7 @@
+<!-- mcp-name: io.github.CynaCons/powerspawn -->
 # PowerSpawn - Universal Multi-Agent MCP Server
 
-**Live:** [powerspawn.com](https://powerspawn.com) | **Version 1.8.1**
+**Live:** [powerspawn.com](https://powerspawn.com) | **Version 1.9.0**
 
 > **Spawn Claude, Codex, AND Copilot from one coordinator. Your agents leave a paper trail.**
 
@@ -8,35 +9,22 @@ A lightweight MCP server for cross-model AI agent orchestration. Works with Clau
 
 ### Companion: [powerplan](https://github.com/CynaCons/powerplan)
 
-This repo **vendors [powerplan](https://github.com/CynaCons/powerplan) as a git submodule**
-(`powerplan/`). powerplan is a **separate MCP server** that makes `PLAN.md` the
-operational backbone of agentic work (show progress, manage iterations/tasks).
-
-```bash
-git clone --recurse-submodules https://github.com/CynaCons/PowerSpawn.git
-# or, if already cloned:
-git submodule update --init --recursive
-```
-
-Register **both** servers (they do not merge into one MCP):
+[powerplan](https://github.com/CynaCons/powerplan) is a **separate MCP server** that
+makes `PLAN.md` the operational backbone of agentic work (show progress, manage
+iterations/tasks). It is published as `powerplan-mcp`; register it next to PowerSpawn:
 
 ```json
 {
   "mcpServers": {
-    "powerspawn": {
-      "command": "python",
-      "args": ["-m", "powerspawn.mcp_server"]
-    },
-    "powerplan": {
-      "command": "python",
-      "args": ["powerplan/powerplan_server.py"]
-    }
+    "powerspawn": { "command": "uvx", "args": ["powerspawn"] },
+    "powerplan":  { "command": "uvx", "args": ["powerplan-mcp"] }
   }
 }
 ```
 
-Site / docs: [cynacons.github.io/powerplan](https://cynacons.github.io/powerplan/) ·
-standalone install also works without PowerSpawn (`pip install -e .` from the powerplan repo).
+This repo also vendors powerplan as a git submodule (`powerplan/`) for development.
+
+Site / docs: [cynacons.github.io/powerplan](https://cynacons.github.io/powerplan/)
 
 ---
 
@@ -52,7 +40,7 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 | **Codex** | `spawn_codex` | ✓ Yes | ✓ Yes | Code generation, testing |
 | **Copilot** | `spawn_copilot` | ✓ Yes | ✓ Yes | Multi-model via CLI |
 | **Gemini** | `spawn_gemini_cli` | ✓ Yes | ✓ Yes | Multimodal via CLI |
-| **Grok** | `spawn_grok` | ✓ Yes (`force`) | ✓ Yes | Grok Build agent + composer-2.5 |
+| **Grok** | `spawn_grok` | ✓ Yes (`force`) | ✓ Yes | Grok Build agent (Grok 4.6 / 4.7) |
 
 **Use CLI agents for:**
 - Code refactoring across multiple files
@@ -186,92 +174,144 @@ We analyzed 900+ MCP repositories and major frameworks. Findings:
 
 ## Installation
 
-PowerSpawn is distributed as a **git submodule** - no package managers needed.
+PowerSpawn is a standard Python MCP server with a `powerspawn` command. It
+runs in whatever folder your MCP client launches it from (normally your
+project root), so one install works for every project.
 
-### Add to your project
+### Requirements
+
+- Python 3.10+ (or [uv](https://docs.astral.sh/uv/), which gets Python for you)
+- The CLIs you want to spawn, on `PATH` and logged in: `claude`, `codex`,
+  `copilot`, `gemini`, `grok`, `cursor-agent`.
+
+### Option A: uvx (recommended, nothing to install)
 
 ```bash
-# Add as submodule
-git submodule add https://github.com/CynaCons/PowerSpawn.git powerspawn
-
-# Install Python dependencies
-pip install mcp
+uvx powerspawn
 ```
+
+Add `"powerspawn[api]"` extras for the text-only API providers (Grok API, Gemini, Mistral):
+
+```bash
+uvx --from "powerspawn[api]" powerspawn
+```
+
+To run unreleased `main` instead of the PyPI release:
+`uvx --from git+https://github.com/CynaCons/powerspawn powerspawn`.
+
+### Option B: pip / pipx
+
+```bash
+pipx install "powerspawn[api]"
+# or
+pip install "powerspawn[api]"
+```
+
+This puts a `powerspawn` command on your PATH. `python -m powerspawn` does the same thing.
 
 ### Windows: Install PowerShell Core (required for Copilot shell commands)
 
 Copilot CLI uses PowerShell Core (`pwsh`) for shell commands on Windows. Without it, file operations (Create, Edit, Read) work, but shell commands fail.
 
 ```powershell
-# Install via winget
 winget install Microsoft.PowerShell
-
-# Verify installation
 pwsh --version  # Should show PowerShell 7.x
 ```
 
-> **Note:** After installation, restart your terminal for PATH changes to take effect.
-
 ### Configure your MCP client
 
-#### Claude Code (Two files required)
+#### Claude Code
 
-**Step 1: Define the MCP server** (`.mcp.json` in project root):
+```bash
+# Available in every project (user scope)
+claude mcp add --scope user powerspawn -- uvx powerspawn
+
+# With API keys for the API providers
+claude mcp add --scope user powerspawn -e XAI_API_KEY=... -e GEMINI_API_KEY=... -e MISTRAL_API_KEY=... \
+  -- uvx --from "powerspawn[api]" powerspawn
+```
+
+Or check it into a project as `.mcp.json`:
+
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/anthropics/mcp/main/schema/mcp.json",
   "mcpServers": {
-    "agents": {
-      "command": "python",
-      "args": ["powerspawn/mcp_server.py"],
-      "env": {
-        "PYTHONIOENCODING": "utf-8",
-        "PYTHONUNBUFFERED": "1"
-      }
+    "powerspawn": {
+      "command": "uvx",
+      "args": ["powerspawn"]
     }
   }
 }
 ```
 
-**Step 2: Enable the MCP server** (`.claude/settings.local.json`):
-```json
-{
-  "permissions": {
-    "allow": [],
-    "deny": [],
-    "ask": []
-  },
-  "enabledMcpjsonServers": [
-    "agents"
-  ],
-  "enableAllProjectMcpServers": true
-}
-```
+If you installed with pip/pipx, use `"command": "powerspawn", "args": []`.
 
-**Step 3: Restart Claude Code** to load the MCP server.
+#### VS Code / GitHub Copilot (`.vscode/mcp.json`)
 
-> **Note:** The `.claude/` directory is created automatically if it doesn't exist. Both files are required - `.mcp.json` defines the server, and `settings.local.json` enables it.
-
-#### GitHub Copilot (Single file)
-
-**`.vscode/mcp.json`:**
 ```json
 {
   "servers": {
     "powerspawn": {
-      "command": "python",
-      "args": ["powerspawn/mcp_server.py"],
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["powerspawn"],
       "cwd": "${workspaceFolder}"
     }
   }
 }
 ```
 
+#### Cursor (`.cursor/mcp.json` or `~/.cursor/mcp.json`)
+
+```json
+{
+  "mcpServers": {
+    "powerspawn": {
+      "command": "uvx",
+      "args": ["powerspawn"]
+    }
+  }
+}
+```
+
+#### Codex CLI (`~/.codex/config.toml`)
+
+```toml
+[mcp_servers.powerspawn]
+command = "uvx"
+args = ["powerspawn"]
+```
+
+### Configuration
+
+| What | Where |
+|------|-------|
+| API keys | `XAI_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY` in the client's `env` block (preferred), or an `api_keys.json` in `<project>/.powerspawn/` or the user config dir (`%APPDATA%\powerspawn\` / `~/.config/powerspawn/`) |
+| Extra/changed models | A `models.json` in the same places. It only needs the providers and aliases you change; they're layered on top of the bundled registry. |
+| Workspace | Defaults to the client's working directory; set `POWERSPAWN_WORKSPACE` to override |
+| IAC.md log | `<project>/.powerspawn/IAC.md` (override with `POWERSPAWN_STATE_DIR`) |
+
 ### Update to latest version
 
+`uvx` re-resolves on `uvx --refresh ...`; pip/pipx users run `pipx upgrade powerspawn` /
+`pip install -U powerspawn`.
+
+### Legacy: vendored submodule
+
+Projects that vendor PowerSpawn as a `powerspawn/` folder keep working unchanged
+(`python -m powerspawn.mcp_server` launched from the project root). In that layout
+IAC.md stays inside `powerspawn/`.
+
+### Developing PowerSpawn
+
 ```bash
-git submodule update --remote powerspawn
+git clone --recurse-submodules https://github.com/CynaCons/powerspawn
+cd powerspawn
+pip install -e ".[api,dev]"
+pytest -q
 ```
+
+The repo's own `.mcp.json` runs `python -m powerspawn`, i.e. this editable install.
 
 ## Quick Start
 
@@ -280,12 +320,13 @@ git submodule update --remote powerspawn
 Once configured, these MCP tools are available:
 
 ```
-mcp__agents__spawn_claude   - Spawn Claude sub-agent (haiku/sonnet/opus)
-mcp__agents__spawn_codex    - Spawn Codex sub-agent (GPT-5.1)
-mcp__agents__spawn_copilot  - Spawn Copilot sub-agent (GPT/Claude/Gemini)
-mcp__agents__list           - List running/completed agents
-mcp__agents__result         - Get agent result by ID
-mcp__agents__wait_for_agents - Wait for all agents to complete
+mcp__powerspawn__spawn_claude     - Claude Code sub-agent (haiku/sonnet/opus/fable)
+mcp__powerspawn__spawn_codex      - Codex sub-agent (GPT-6 Astra/Sol/Luna)
+mcp__powerspawn__spawn_copilot    - Copilot sub-agent (Claude/GPT/Gemini/Grok)
+mcp__powerspawn__spawn_grok       - Grok Build CLI sub-agent
+mcp__powerspawn__list             - List running/completed agents
+mcp__powerspawn__result           - Get agent result by ID
+mcp__powerspawn__wait_for_agents  - Wait for all agents to complete
 ```
 
 **Example prompt:**
@@ -294,7 +335,7 @@ mcp__agents__wait_for_agents - Wait for all agents to complete
 ### Standalone Python
 
 ```python
-from spawner import spawn_claude, spawn_codex, spawn_copilot
+from powerspawn import spawn_claude, spawn_codex, spawn_copilot
 
 # Spawn Claude for code review
 result = spawn_claude("Review src/App.tsx for security issues")
@@ -302,8 +343,8 @@ result = spawn_claude("Review src/App.tsx for security issues")
 # Spawn Codex for testing (preserves Claude rate limit)
 result = spawn_codex("Run npm test and report failures")
 
-# Spawn Copilot with any model (GPT, Claude, or Gemini)
-result = spawn_copilot("Analyze this codebase structure", model="gpt-5.1")
+# Spawn Copilot with any model (Claude, GPT, Gemini, Grok)
+result = spawn_copilot("Analyze this codebase structure", model="gpt-6-sol")
 result = spawn_copilot("Write documentation", model="gemini")
 ```
 
@@ -377,39 +418,40 @@ Auto-loaded by Codex CLI. Defines:
 ```json
 {
   "prompt": "Your task description",
-  "model": "sonnet",        // haiku | sonnet | opus
+  "model": "sonnet",        // haiku | sonnet | opus | fable (or opus-5.5, sonnet-5.5, fable-5.1, …)
   "timeout": 600            // seconds (default: 600)
 }
 ```
 
 ### spawn_codex
-Spawn a Codex CLI agent. Models follow the GPT‑5.6 Sol / Terra / Luna family
-(see `~/.codex/models_cache.json` / OpenAI GPT‑5.6 release).
+Spawn a Codex CLI agent. Models follow the GPT‑6 Astra / Sol / Luna family
+(see `~/.codex/models_cache.json` / the Codex models page).
 ```json
 {
   "prompt": "Your task description",
-  "model": "gpt-5.6-terra"   // default: balanced Terra
+  "model": "gpt-6-sol"   // default: balanced Sol
 }
 ```
 
-**Codex GPT‑5.6 family (primary):**
+**Codex GPT‑6 family (primary):**
 | Alias | Resolves to | Role |
 |-------|-------------|------|
-| `sol` / `gpt-5.6-sol` | `gpt-5.6-sol` | Flagship frontier coding agent |
-| `terra` / `tera` / `gpt-5.6-terra` | `gpt-5.6-terra` | Balanced everyday default |
-| `luna` / `gpt-5.6-luna` | `gpt-5.6-luna` | Fast / cost-efficient |
+| `astra` / `gpt-6-astra` | `gpt-6-astra` | Most capable — complex, long-horizon work |
+| `sol` / `gpt-6-sol` | `gpt-6-sol` | Near-Astra quality, everyday default |
+| `gpt-6.1-sol` | `gpt-6.1-sol` | Newer Sol (needs a recent Codex CLI) |
+| `luna` / `gpt-6-luna` | `gpt-6-luna` | Fast / cost-efficient |
 
-Also accepted: prior-gen `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, legacy `gpt-5.3-codex` names, `codex` → Terra, `codex-mini` → mini.
+Also accepted: prior-gen `gpt-5.6-sol`, `gpt-5.6-terra` (`terra` / `tera`), `gpt-5.6-luna`, `gpt-5.5` (retires from Codex 2026-10-14), `codex` → Sol, `codex-mini` → Luna. Retired `gpt-5.4*` / `gpt-5.3-codex*` / older ids were removed.
 
 ### spawn_copilot
 ```json
 {
   "prompt": "Your task description",
-  "model": "claude-opus-4.8"
+  "model": "claude-opus-5.5"
 }
 ```
 
-**Copilot models (examples):** `claude-opus-4.8`, `claude-sonnet-5`, `gpt-5.5`, `gemini-3.1-pro`, …
+**Copilot models (examples):** `claude-opus-5.5` (default), `claude-sonnet-5.5`, `claude-fable-5.1`, `gpt-6.1-sol`, `gpt-6-astra`, `gemini-3.8-flash`, `grok-4.7`, `kimi-k3`, `auto`, …
 
 ### spawn_grok
 Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
@@ -417,23 +459,23 @@ Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
 ```json
 {
   "prompt": "Your task description",
-  "model": "grok-4.5",           // default = Cursor Grok 4.5 (see `grok models`)
+  "model": "grok-4.6",           // default; also grok-4.7, grok-4.5 (see `grok models`)
   "force": false,               // true = auto-approve tools, edits applied; false = plan mode
   "timeout": 600,
   "system_prompt": "Optional extra rules (appended via --rules)"
 }
 ```
 **Notes:** The prompt is passed via `--prompt-file`, so long spec prompts do
-not hit the Windows ~8 KB command-line limit. Default model is **`grok-4.5`**
-(Cursor Grok 4.5). Legacy aliases (`build`, `composer`, `composer-2.5`, …)
-resolve to `grok-4.5` so older callers keep working when the CLI only exposes 4.5.
+not hit the Windows ~8 KB command-line limit. Default model is **`grok-4.6`**
+(the newest model `grok models` lists on CLI 1.0.30; pass `grok-4.7` once your CLI
+offers it). Legacy aliases (`build`, `composer`, `composer-2.5`, …) resolve to the default.
 
 ### spawn_grok_api
 Legacy Grok via X.ai API (text response only). Needs `XAI_API_KEY`.
 ```json
 {
   "prompt": "Your task description",
-  "model": "grok-4.3",
+  "model": "grok-4.7",           // default; also grok-4.6, grok-4.5, grok-4.3, grok-4.20*, grok-build
   "system_prompt": "Optional role context"
 }
 ```
@@ -444,7 +486,7 @@ Spawn a Gemini sub-agent via Google API (text response only).
 ```json
 {
   "prompt": "Your task description",
-  "model": "gemini-2.0-flash"  // gemini-2.0-flash | gemini-1.5-pro | gemini-1.5-flash
+  "model": "gemini-pro"  // gemini-pro (3.1 Pro, default) | gemini-flash (3.8 Flash) | gemini-flash-lite
 }
 ```
 **Note:** API agent - returns text only, cannot modify files.
@@ -454,7 +496,7 @@ Spawn a Mistral sub-agent via Mistral API (text response only).
 ```json
 {
   "prompt": "Your task description",
-  "model": "mistral-large"     // mistral-large | mistral-small | codestral | devstral
+  "model": "mistral-large"     // mistral-large | mistral-large-4 | mistral-medium | mistral-small | codestral
 }
 ```
 **Note:** API agent - returns text only, cannot modify files.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.8.1
+MCP Agent Spawner Server v1.9.0
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -16,6 +16,13 @@ Configuration:
   - api_keys.json (local file)
   - Environment variables
   - models.json (model aliases)
+
+Changelog v1.9.0:
+  - Model refresh (Oct 2026): Claude Fable 5.1 / Opus 5.5 / Sonnet 5.5;
+    Codex GPT-6 Astra / Sol / Luna (default gpt-6-sol; retired gpt-5.4/5.3/5.2/5.1
+    ids dropped); Copilot default claude-opus-5.5; Grok CLI default grok-4.6
+    (+ grok-4.7); Grok API default grok-4.7 (+ grok-build-0.1); Gemini 3.8 Flash
+    as gemini-flash; Mistral Large 4 / Medium 3.5 / Small 4 pinned ids.
 
 Changelog v1.8.1:
   - Codex models: GPT-5.6 Sol / Terra / Luna (sol, terra, tera, luna aliases).
@@ -62,7 +69,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.8.1"
+SERVER_VERSION = "1.9.0"
 
 try:
     from mcp.server import Server
@@ -74,7 +81,7 @@ except ImportError:
     print("ERROR: MCP SDK not installed. Run: pip install mcp", file=sys.stderr)
     sys.exit(1)
 
-server = Server("agents")
+server = Server("powerspawn")
 
 # =============================================================================
 # TOOL DEFINITIONS
@@ -103,7 +110,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="spawn_codex",
-            description="Spawn Codex CLI agent (GPT-5.6 Sol/Terra/Luna + prior gens). Context: AGENTS.md.",
+            description="Spawn Codex CLI agent (GPT-6 Astra/Sol/Luna + GPT-5.6 Sol/Terra/Luna). Context: AGENTS.md.",
             inputSchema={
                 "type": "object",
                 "required": ["prompt"],
@@ -356,7 +363,7 @@ async def handle_wait_for_agents(args: dict) -> list[TextContent]:
 async def main():
     async with stdio_server() as (read_stream, write_stream):
         init_options = InitializationOptions(
-            server_name="agents",
+            server_name="powerspawn",
             server_version=SERVER_VERSION,
             capabilities=server.get_capabilities(
                 notification_options=NotificationOptions(),
@@ -365,5 +372,10 @@ async def main():
         )
         await server.run(read_stream, write_stream, init_options)
 
-if __name__ == "__main__":
+def run() -> None:
+    """Console-script entry point (`powerspawn`)."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    run()

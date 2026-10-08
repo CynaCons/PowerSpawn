@@ -18,8 +18,7 @@ from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
 
-def get_workspace_dir() -> Path:
-    return Path(__file__).parent.parent.parent
+from ..paths import get_workspace_dir
 
 @dataclass
 class CodexEvent:

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "powerspawn"
+dynamic = ["version"]
+description = "MCP server that spawns and supervises AI coding agents (Claude, Codex, Copilot, Cursor, Gemini, Grok, Mistral)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "CynaCons" }]
+keywords = ["mcp", "agents", "multi-agent", "orchestration", "claude", "codex", "copilot", "grok", "gemini"]
+dependencies = [
+  "mcp>=1.0.0,<2",  # 2.x dropped the Server decorator API used here
+]
+
+[project.optional-dependencies]
+# API (text-only) providers: spawn_grok_api, spawn_gemini, spawn_mistral
+api = [
+  "openai>=1.0.0",
+  "google-genai>=1.0.0",
+  "mistralai>=1.0.0",
+]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+powerspawn = "powerspawn.mcp_server:run"
+
+[project.urls]
+Homepage = "https://powerspawn.com"
+Repository = "https://github.com/CynaCons/powerspawn"
+
+# The repo root *is* the package (it is also vendored as a `powerspawn/` folder
+# inside consumer projects), so map it explicitly instead of using src/ layout.
+[tool.setuptools]
+packages = ["powerspawn", "powerspawn.providers"]
+package-dir = { "powerspawn" = "." }
+
+[tool.setuptools.package-data]
+powerspawn = ["models.json"]
+
+[tool.setuptools.dynamic]
+version = { attr = "powerspawn.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

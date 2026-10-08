@@ -26,6 +26,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
+from .paths import get_state_dir
 
 # Global lock for file operations (thread-safe within process)
 _file_lock = threading.Lock()
@@ -56,12 +57,8 @@ IAC_HEADER_TEMPLATE = """# Inter Agent Context (IAC)
 
 
 def get_output_dir() -> Path:
-    """Get the output directory for IAC.md.
-
-    Always returns the same directory as mcp_server.py (powerspawn/).
-    This keeps PowerSpawn self-contained with no external dependencies.
-    """
-    return Path(__file__).parent
+    """Get the output directory for IAC.md (see paths.get_state_dir)."""
+    return get_state_dir()
 
 
 def get_agents_dir() -> Path:
@@ -155,6 +152,7 @@ class AgentLogger:
     def _ensure_iac_exists(self):
         """Ensure IAC.md exists with proper header."""
         if not self.iac_path.exists():
+            self.iac_path.parent.mkdir(parents=True, exist_ok=True)
             self.iac_path.write_text(self._build_header(), encoding='utf-8')
 
     def _read_iac(self) -> str:

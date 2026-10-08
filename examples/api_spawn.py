@@ -87,7 +87,7 @@ def example_gemini_basic():
     result = spawn_gemini(
         "Explain the difference between async/await and threads in Python. "
         "Include a brief code example.",
-        model="gemini-3-pro",
+        model="gemini-pro",
         task_summary="Async vs threads explanation",
     )
 
