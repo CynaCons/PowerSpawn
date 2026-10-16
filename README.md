@@ -41,6 +41,33 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 | **Copilot** | `spawn_copilot` | ✓ Yes | ✓ Yes | Multi-model via CLI |
 | **Gemini** | `spawn_gemini_cli` | ✓ Yes | ✓ Yes | Multimodal via CLI |
 | **Grok** | `spawn_grok` | ✓ Yes (`force`) | ✓ Yes | Grok Build agent (Grok 4.6 / 4.7) |
+| **OpenCode** | `spawn_opencode` | ✓ Yes | ✓ Yes | Free models (DeepSeek V4.1 Flash, GLM 5.3 Flash), live PowerScroll board card |
+
+#### OpenCode agents report to your PowerScroll board
+
+`spawn_opencode` runs `opencode run` headless (private server, permissions
+auto-approved) and defaults to the free `opencode/deepseek-v4.1-flash-free`
+(`model="glm"` for GLM 5.3 Flash). Dropped free-endpoint connections are retried.
+
+When a [PowerScroll](https://github.com/CynaCons/PowerScroll) notebook with a
+board is open and its Agent bridge is on, every spawn shows up there live:
+
+1. PowerSpawn creates a card in **doing**, claimed by the agent's name
+   (`agent_name`, default `oc-<model>-<hex>`), and marks the agent active.
+2. The agent gets the `powerscroll` MCP server under that name and adds its plan
+   as checklist steps, ticks them, and posts notes and status lines as it works.
+3. On exit PowerSpawn posts the final answer as a note and moves the card to
+   **done**, or to **waiting** with the error when the run failed.
+
+PowerSpawn does steps 1 and 3 itself, so the card is right even when a model
+ignores the board instructions. A missing board never fails a spawn; the result
+says why the card was skipped.
+
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `POWERSCROLL_MCP_COMMAND` | `npx -y powerscroll-mcp` | PowerScroll MCP server command line (or a JSON array). Boards need powerscroll-mcp ≥ 0.68. |
+| `POWERSCROLL_BOARD` | first board | Board id or title to report to (`board` argument overrides). |
+| `POWERSPAWN_BOARD` | `on` | `off` disables board reporting. |
 
 **Use CLI agents for:**
 - Code refactoring across multiple files
@@ -324,6 +351,7 @@ mcp__powerspawn__spawn_claude     - Claude Code sub-agent (haiku/sonnet/opus/fab
 mcp__powerspawn__spawn_codex      - Codex sub-agent (GPT-6 Astra/Sol/Luna)
 mcp__powerspawn__spawn_copilot    - Copilot sub-agent (Claude/GPT/Gemini/Grok)
 mcp__powerspawn__spawn_grok       - Grok Build CLI sub-agent
+mcp__powerspawn__spawn_opencode   - OpenCode sub-agent (free DeepSeek / GLM), PowerScroll board card
 mcp__powerspawn__list             - List running/completed agents
 mcp__powerspawn__result           - Get agent result by ID
 mcp__powerspawn__wait_for_agents  - Wait for all agents to complete

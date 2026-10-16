@@ -1,5 +1,5 @@
 """
-PowerSpawn - Multi-Agent Orchestration System v1.9.0
+PowerSpawn - Multi-Agent Orchestration System v1.10.0
 
 Two modes of agent spawning:
 
@@ -9,6 +9,7 @@ CLI AGENTS (Full Autonomy):
     spawn_grok     - Grok Build CLI (default: Grok 4.6)
     spawn_cursor   - Cursor agent CLI
     spawn_copilot  - Copilot sub-agent (can edit files, run commands)
+    spawn_opencode - OpenCode sub-agent (free DeepSeek / GLM; reports to PowerScroll board)
 
 API AGENTS (Text Response Only):
     spawn_grok_api - X.ai Grok chat API fallback
@@ -40,7 +41,7 @@ from .logger import (
 )
 from .config import settings
 
-__version__ = "1.9.0"
+__version__ = "1.10.0"
 __all__ = [
     # CLI Agents
     "spawn_claude",

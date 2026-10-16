@@ -63,6 +63,7 @@ def run_captured(
     timeout: int = 300,
     stdin_text: Optional[str] = None,
     shell: Optional[bool] = None,
+    env: Optional[dict] = None,
 ) -> Tuple[int, str, str, bool]:
     """Run ``cmd`` capturing stdout/stderr to temp files.
 
@@ -72,6 +73,7 @@ def run_captured(
 
     ``stdin_text`` is delivered to the child's stdin via a temp file; when None,
     stdin is DEVNULL so a child that reads stdin gets EOF instead of blocking.
+    ``env`` replaces the child's environment when given.
     """
     if shell is None:
         shell = IS_WINDOWS
@@ -104,6 +106,7 @@ def run_captured(
                 stderr=ferr,
                 cwd=cwd,
                 shell=shell,
+                env=env,
             )
             try:
                 proc.wait(timeout=timeout)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.9.0
+MCP Agent Spawner Server v1.10.0
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
 
 Tools:
-  spawn_claude, spawn_codex, spawn_copilot, spawn_grok, spawn_gemini_cli, spawn_cursor (CLI)
+  spawn_claude, spawn_codex, spawn_copilot, spawn_opencode, spawn_grok, spawn_gemini_cli, spawn_cursor (CLI)
   spawn_grok_api, spawn_gemini, spawn_mistral (API)
 
 Management:
@@ -16,6 +16,13 @@ Configuration:
   - api_keys.json (local file)
   - Environment variables
   - models.json (model aliases)
+
+Changelog v1.10.0:
+  - spawn_opencode: OpenCode CLI headless (free DeepSeek V4.1 Flash / GLM 5.3
+    Flash and any OpenCode model), retries dropped free-endpoint connections.
+  - PowerScroll board reporting: each OpenCode agent gets a card on the owner's
+    open board (created/closed by PowerSpawn) plus the powerscroll MCP under its
+    own name for live checklist ticks and notes.
 
 Changelog v1.9.0:
   - Model refresh (Oct 2026): Claude Fable 5.1 / Opus 5.5 / Sonnet 5.5;
@@ -61,7 +68,8 @@ from .providers import (
     spawn_gemini,
     spawn_gemini_cli,
     spawn_mistral,
-    spawn_cursor
+    spawn_cursor,
+    spawn_opencode,
 )
 from .providers.availability import verify_providers_availability
 
@@ -70,7 +78,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.9.0"
+SERVER_VERSION = "1.10.0"
 
 try:
     from mcp.server import Server
@@ -156,6 +164,25 @@ async def list_tools() -> list[Tool]:
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("cursor")},
                     "force": {"type": "boolean", "default": False, "description": "Apply file changes directly (--force)."}
+                }
+            }
+        ),
+        Tool(
+            name="spawn_opencode",
+            description=("Spawn OpenCode CLI agent (free models: deepseek = DeepSeek V4.1 Flash, glm = GLM 5.3 Flash). "
+                         "Edits files, runs commands. Context: AGENTS.md. Reports live to the owner's PowerScroll board: "
+                         "PowerSpawn creates the agent's card (doing), the agent adds steps/ticks/notes via the powerscroll MCP, "
+                         "and the card is closed with the result (done) or moved to waiting on failure."),
+            inputSchema={
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {"type": "string"},
+                    "model": {"type": "string", "description": "Alias (" + ", ".join(settings.get_model_list("opencode")) + ") or any OpenCode provider/model id."},
+                    "timeout": {"type": "integer", "default": 900},
+                    "agent_name": {"type": "string", "description": "Name on the board, e.g. 'oc-seo-1' (default: oc-<model>-<hex>)."},
+                    "task_summary": {"type": "string", "description": "Card title (default: first line of the prompt)."},
+                    "board": {"type": "string", "description": "Board id or title (default: POWERSCROLL_BOARD, else the first board)."}
                 }
             }
         ),
@@ -261,6 +288,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return await handle_spawn(arguments, "gemini_cli", spawn_gemini_cli)
         elif name == "spawn_cursor":
             return await handle_spawn(arguments, "cursor", spawn_cursor)
+        elif name == "spawn_opencode":
+            return await handle_spawn(arguments, "opencode", spawn_opencode)
         elif name == "spawn_grok":
             return await handle_spawn(arguments, "grok", spawn_grok)
         elif name == "spawn_grok_api":

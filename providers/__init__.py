@@ -11,6 +11,7 @@ from .gemini import spawn_gemini
 from .gemini_cli import spawn_gemini_cli
 from .mistral import spawn_mistral
 from .cursor import spawn_cursor
+from .opencode import spawn_opencode
 
 __all__ = [
     "AgentResult",
@@ -23,4 +24,5 @@ __all__ = [
     "spawn_gemini_cli",
     "spawn_mistral",
     "spawn_cursor",
+    "spawn_opencode",
 ]

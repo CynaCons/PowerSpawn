@@ -196,5 +196,17 @@
       "glm-5.3": "glm-5.3",
       "kimi-k3": "kimi-k3"
     }
+  },
+  "opencode": {
+    "default": "opencode/deepseek-v4.1-flash-free",
+    "aliases": {
+      "deepseek": "opencode/deepseek-v4.1-flash-free",
+      "deepseek-v4.1-flash-free": "opencode/deepseek-v4.1-flash-free",
+      "glm": "opencode/glm-5.3-flash-free",
+      "glm-5.3-flash-free": "opencode/glm-5.3-flash-free",
+      "mimo": "opencode/mimo-v2.6-flash-free",
+      "nemotron": "opencode/nemotron-3-ultra-free",
+      "longcat": "opencode/longcat-2.5-preview-free"
+    }
   }
 }

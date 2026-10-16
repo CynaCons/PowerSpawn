@@ -19,7 +19,7 @@ def test_cli_by_path_and_api_by_key(monkeypatch):
     assert p["codex"]["available"] and p["codex"]["message"] == "ready"
     assert not p["claude"]["available"] and "'claude' is not on PATH" in p["claude"]["message"]
     assert p["mistral"]["available"] and not p["grok_api"]["available"]
-    assert report["summary"] == {"total_providers": 9, "available": 2,
+    assert report["summary"] == {"total_providers": 10, "available": 2,
                                  "cli_available": 1, "api_available": 1}
     assert report["overall"] == "limited"
 

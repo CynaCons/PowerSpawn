@@ -25,6 +25,8 @@ PROVIDERS = {
     "gemini_cli": ("spawn_gemini_cli", "cli", "gemini", "Gemini CLI",
                    "https://github.com/google-gemini/gemini-cli"),
     "grok": ("spawn_grok", "cli", "grok", "Grok Build CLI", "https://x.ai"),
+    "opencode": ("spawn_opencode", "cli", "opencode", "OpenCode CLI (free models)",
+                 "https://opencode.ai"),
     "grok_api": ("spawn_grok_api", "api", "grok", "xAI API (XAI_API_KEY)",
                  "https://console.x.ai"),
     "gemini": ("spawn_gemini", "api", "gemini", "Gemini API (GEMINI_API_KEY)",
