@@ -1,5 +1,5 @@
 """
-PowerSpawn - Multi-Agent Orchestration System v1.10.2
+PowerSpawn - Multi-Agent Orchestration System v1.10.3
 
 Two modes of agent spawning:
 
@@ -41,7 +41,7 @@ from .logger import (
 )
 from .config import settings
 
-__version__ = "1.10.2"
+__version__ = "1.10.3"
 __all__ = [
     # CLI Agents
     "spawn_claude",

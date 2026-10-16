@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.10.2
+MCP Agent Spawner Server v1.10.3
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -16,6 +16,9 @@ Configuration:
   - api_keys.json (local file)
   - Environment variables
   - models.json (model aliases)
+
+Changelog v1.10.3:
+  - spawn_opencode backs off 60 s, then 120 s, after "Rate limit exceeded" (was 5 s, 10 s).
 
 Changelog v1.10.2:
   - spawn_opencode retries "Upstream request failed: Endpoint is unavailable".
@@ -84,7 +87,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.10.2"
+SERVER_VERSION = "1.10.3"
 
 try:
     from mcp.server import Server

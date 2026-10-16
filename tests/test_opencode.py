@@ -110,3 +110,13 @@ def test_unavailable_endpoint_is_retried(monkeypatch):
     calls = _setup(monkeypatch, [_events(down), _events(TEXT)])
     result = opencode.spawn_opencode("task", model="glm")
     assert result.success and len(calls["runs"]) == 2
+
+
+def test_rate_limit_backs_off_for_minutes(monkeypatch):
+    limited = {"type": "error", "error": {"message": "Rate limit exceeded. Please try again later."}}
+    calls = _setup(monkeypatch, [_events(limited), _events(limited), _events(TEXT)])
+    slept = []
+    monkeypatch.setattr(opencode.time, "sleep", slept.append)
+    result = opencode.spawn_opencode("task")
+    assert result.success and len(calls["runs"]) == 3
+    assert slept == [60, 120]

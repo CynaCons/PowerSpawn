@@ -33,6 +33,7 @@ TRANSIENT_ERRORS = ("socket connection was closed", "Transport:", "ECONNRESET",
                     "rate limit", "overloaded", "503", "502",
                     "Endpoint is unavailable", "Upstream request failed")
 MAX_ATTEMPTS = 3
+RATE_LIMIT_BACKOFF = 60  # seconds before the first retry after "Rate limit exceeded"; doubles
 
 
 def _parse_events(stdout: str) -> tuple[list[str], list[str]]:
@@ -129,7 +130,9 @@ def spawn_opencode(
         transient = not texts and any(t.lower() in e.lower() for e in errors for t in TRANSIENT_ERRORS)
         if timed_out or not transient or attempt == MAX_ATTEMPTS:
             break
-        time.sleep(5 * attempt)
+        # A rate limit needs minutes, not seconds; a dropped connection retries fast.
+        rate_limited = any("rate limit" in e.lower() for e in errors)
+        time.sleep(RATE_LIMIT_BACKOFF * 2 ** (attempt - 1) if rate_limited else 5 * attempt)
 
     duration = time.time() - start_time
     text = "\n\n".join(texts)  # the whole run, for the coordinator
