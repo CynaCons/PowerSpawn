@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.10.2
+MCP Agent Spawner Server v1.11.0
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,6 +17,15 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.11.0:
+  - Board reporting now targets PowerBoard (providers/powerboard.py). PowerBoard
+    runs standalone (PowerBoard.html, served by powerboard-mcp on port 41778) or
+    embedded in a PowerScroll notebook (powerscroll-mcp); both expose the same
+    board tools, so only configuration changes.
+  - New POWERBOARD_MCP_COMMAND / POWERBOARD_BOARD (legacy POWERSCROLL_* names
+    still read; POWERBOARD_* wins). The agent's board MCP gets both
+    POWERBOARD_AGENT_NAME and POWERNOTE_AGENT_NAME and is named `powerboard`.
+
 Changelog v1.10.2:
   - spawn_opencode retries "Upstream request failed: Endpoint is unavailable".
 
@@ -26,8 +35,8 @@ Changelog v1.10.1:
 Changelog v1.10.0:
   - spawn_opencode: OpenCode CLI headless (free DeepSeek V4.1 Flash / GLM 5.3
     Flash and any OpenCode model), retries dropped free-endpoint connections.
-  - PowerScroll board reporting: each OpenCode agent gets a card on the owner's
-    open board (created/closed by PowerSpawn) plus the powerscroll MCP under its
+  - PowerBoard board reporting: each OpenCode agent gets a card on the owner's
+    open board (created/closed by PowerSpawn) plus the powerboard MCP under its
     own name for live checklist ticks and notes.
 
 Changelog v1.9.0:
@@ -84,7 +93,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.10.2"
+SERVER_VERSION = "1.11.0"
 
 try:
     from mcp.server import Server
@@ -176,8 +185,8 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="spawn_opencode",
             description=("Spawn OpenCode CLI agent (free models: deepseek = DeepSeek V4.1 Flash, glm = GLM 5.3 Flash). "
-                         "Edits files, runs commands. Context: AGENTS.md. Reports live to the owner's PowerScroll board: "
-                         "PowerSpawn creates the agent's card (doing), the agent adds steps/ticks/notes via the powerscroll MCP, "
+                         "Edits files, runs commands. Context: AGENTS.md. Reports live to the owner's PowerBoard: "
+                         "PowerSpawn creates the agent's card (doing), the agent adds steps/ticks/notes via the powerboard MCP, "
                          "and the card is closed with the result (done) or moved to waiting on failure."),
             inputSchema={
                 "type": "object",
@@ -188,7 +197,7 @@ async def list_tools() -> list[Tool]:
                     "timeout": {"type": "integer", "default": 900},
                     "agent_name": {"type": "string", "description": "Name on the board, e.g. 'oc-seo-1' (default: oc-<model>-<hex>)."},
                     "task_summary": {"type": "string", "description": "Card title (default: first line of the prompt)."},
-                    "board": {"type": "string", "description": "Board id or title (default: POWERSCROLL_BOARD, else the first board)."},
+                    "board": {"type": "string", "description": "Board id or title (default: POWERBOARD_BOARD, else POWERSCROLL_BOARD, else the first board)."},
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
                 }
             }

@@ -5,10 +5,11 @@ Runs `opencode run` headless (private server per spawn, permissions
 auto-approved) with any OpenCode model, including the free `opencode/*-free`
 ones (DeepSeek, GLM, ...).
 
-Every spawn reports to the PowerScroll board the owner has open (see
-powerscroll.py): PowerSpawn creates and closes the agent's card itself, and
-the agent gets the powerscroll MCP server, under its own name, to add
-checklist steps, ticks and notes while it works.
+Every spawn reports to the owner's PowerBoard (see powerboard.py): PowerSpawn
+creates and closes the agent's card itself, and the agent gets the powerboard
+MCP server, under its own name, to add checklist steps, ticks and notes while
+it works. PowerBoard runs standalone (PowerBoard.html, powerboard-mcp) or
+embedded in a PowerScroll notebook (powerscroll-mcp); the same tools either way.
 
 Context Handling:
     OpenCode loads AGENTS.md from the project root.
@@ -25,7 +26,7 @@ from ..config import settings
 from ..proc import run_captured
 from ..paths import get_workspace_dir
 from .types import AgentResult
-from . import powerscroll
+from . import powerboard
 
 # Free endpoints drop connections or go briefly unavailable under load; such a
 # run produces no text.
@@ -54,17 +55,17 @@ def _parse_events(stdout: str) -> tuple[list[str], list[str]]:
 
 
 def _mcp_config(name: str) -> str:
-    """OpenCode config that gives the agent the powerscroll MCP server under its own name."""
+    """OpenCode config that gives the agent the powerboard MCP server under its own name."""
     base = {}
     if os.environ.get("OPENCODE_CONFIG_CONTENT"):
         try:
             base = json.loads(os.environ["OPENCODE_CONFIG_CONTENT"])
         except ValueError:
             base = {}
-    base.setdefault("mcp", {})["powerscroll"] = {
+    base.setdefault("mcp", {})["powerboard"] = {
         "type": "local",
-        "command": powerscroll.server_command(),
-        "environment": {"POWERNOTE_AGENT_NAME": name},
+        "command": powerboard.server_command(),
+        "environment": {"POWERBOARD_AGENT_NAME": name, "POWERNOTE_AGENT_NAME": name},
         "enabled": True,
     }
     return json.dumps(base)
@@ -81,20 +82,20 @@ def spawn_opencode(
     working_dir: Optional[str] = None,
 ) -> AgentResult:
     """
-    Spawn an OpenCode CLI agent that reports to the PowerScroll board.
+    Spawn an OpenCode CLI agent that reports to the PowerBoard.
 
     Args:
         prompt: The task.
         model: Alias from models.json ("deepseek", "glm", ...) or any provider/model id.
         timeout: Seconds before the process tree is killed.
         agent_name: Name on the board (default: oc-<model>-<4 hex>).
-        board: Board id or title (default: POWERSCROLL_BOARD, else the first board).
+        board: Board id or title (default: POWERBOARD_BOARD, else POWERSCROLL_BOARD, else the first board).
         task_summary: Card title (default: first line of the prompt).
     """
     start_time = time.time()
     resolved_model = settings.get_model_alias("opencode", model)
     short = resolved_model.split("/")[-1].replace("-free", "").split("-")[0]
-    name = powerscroll.agent_name(agent_name or f"oc-{short}-{secrets.token_hex(2)}")
+    name = powerboard.agent_name(agent_name or f"oc-{short}-{secrets.token_hex(2)}")
     title = (task_summary or next((l.strip("# ").strip() for l in prompt.splitlines() if l.strip()), "task"))[:120]
 
     spawn_id = log_spawn_start(
@@ -106,14 +107,14 @@ def spawn_opencode(
         agent_type="CLI",
     )
 
-    card, board_warning = powerscroll.start_card(
+    card, board_warning = powerboard.start_card(
         name, title, prompt[:1500], ["opencode", short], board=board,
     )
-    env = {**os.environ, "POWERNOTE_AGENT_NAME": name}
+    env = {**os.environ, "POWERBOARD_AGENT_NAME": name, "POWERNOTE_AGENT_NAME": name}
     full_prompt = prompt
     if card:
         env["OPENCODE_CONFIG_CONTENT"] = _mcp_config(name)
-        full_prompt = powerscroll.agent_brief(card) + prompt
+        full_prompt = powerboard.agent_brief(card) + prompt
 
     cmd = ["opencode", "run", "--standalone", "--auto", "--format", "json", "-m", resolved_model]
     cwd = working_dir or str(get_workspace_dir())
@@ -143,7 +144,7 @@ def spawn_opencode(
         error = "\n".join(parts) or f"Exit code {returncode}"
 
     if card:
-        warn = powerscroll.finish_card(card, success, final_answer if success else (error or text), duration)
+        warn = powerboard.finish_card(card, success, final_answer if success else (error or text), duration)
         board_warning = warn or board_warning
     if board_warning:
         text = f"{text}\n\n[powerspawn] {board_warning}".strip()
