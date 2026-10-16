@@ -458,7 +458,8 @@ Auto-loaded by Codex CLI. Defines:
 {
   "prompt": "Your task description",
   "model": "sonnet",        // haiku | sonnet | opus | fable (or opus-5.5, sonnet-5.5, fable-5.1, …)
-  "timeout": 600            // seconds (default: 600)
+  "timeout": 600,           // seconds (default: 600)
+  "working_dir": "C:/dev/_wt/task-1"   // optional; default: the workspace
 }
 ```
 
@@ -468,7 +469,9 @@ Spawn a Codex CLI agent. Models follow the GPT‑6 Astra / Sol / Luna family
 ```json
 {
   "prompt": "Your task description",
-  "model": "sol"   // optional; omit it to use your Codex account's default
+  "model": "sol",  // optional; omit it to use your Codex account's default
+  "timeout": 900,  // seconds (default: 900)
+  "working_dir": "C:/dev/_wt/task-1"   // optional; default: the workspace
 }
 ```
 
@@ -490,7 +493,9 @@ Also accepted: prior-gen `gpt-5.6-sol`, `gpt-5.6-terra` (`terra` / `tera`), `gpt
 ```json
 {
   "prompt": "Your task description",
-  "model": "claude-opus-5.5"
+  "model": "claude-opus-5.5",
+  "timeout": 900,  // seconds (default: 900)
+  "working_dir": "C:/dev/_wt/task-1"   // optional; default: the workspace
 }
 ```
 
@@ -505,6 +510,7 @@ Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
   "model": "grok-4.6",           // default; also grok-4.7, grok-4.5 (see `grok models`)
   "force": false,               // true = auto-approve tools, edits applied; false = plan mode
   "timeout": 600,
+  "working_dir": "C:/dev/_wt/task-1",  // optional; default: the workspace
   "system_prompt": "Optional extra rules (appended via --rules)"
 }
 ```

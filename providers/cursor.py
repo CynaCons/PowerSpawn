@@ -32,7 +32,7 @@ def spawn_cursor(
     prompt: str,
     *,
     model: str = None,
-    timeout: int = 300,
+    timeout: int = 900,
     task_summary: Optional[str] = None,
     working_dir: Optional[str] = None,
     force: bool = False,

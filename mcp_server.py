@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.11.0
+MCP Agent Spawner Server v1.11.1
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,6 +17,11 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.11.1:
+  - spawn_codex, spawn_copilot and spawn_cursor expose `timeout` (default now
+    900 s, was an undocumented 300 s that killed real coding tasks) and
+    `working_dir`; spawn_claude and spawn_grok expose `working_dir`. spawn_claude
+    now really defaults to the 600 s its schema advertises.
 Changelog v1.11.0:
   - Board reporting now targets PowerBoard (providers/powerboard.py). PowerBoard
     runs standalone (PowerBoard.html, served by powerboard-mcp on port 41778) or
@@ -95,7 +100,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.11.0"
+SERVER_VERSION = "1.11.1"
 
 try:
     from mcp.server import Server
@@ -126,6 +131,7 @@ async def list_tools() -> list[Tool]:
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("claude")},
                     "timeout": {"type": "integer", "default": 600},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "dangerously_skip_permissions": {
                         "type": "boolean",
                         "default": True,
@@ -142,7 +148,9 @@ async def list_tools() -> list[Tool]:
                 "required": ["prompt"],
                 "properties": {
                     "prompt": {"type": "string"},
-                    "model": {"type": "string", "enum": settings.get_model_list("codex")}
+                    "model": {"type": "string", "enum": settings.get_model_list("codex")},
+                    "timeout": {"type": "integer", "default": 900},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
                 }
             }
         ),
@@ -154,7 +162,9 @@ async def list_tools() -> list[Tool]:
                 "required": ["prompt"],
                 "properties": {
                     "prompt": {"type": "string"},
-                    "model": {"type": "string", "enum": settings.get_model_list("copilot")}
+                    "model": {"type": "string", "enum": settings.get_model_list("copilot")},
+                    "timeout": {"type": "integer", "default": 900},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
                 }
             }
         ),
@@ -180,6 +190,8 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("cursor")},
+                    "timeout": {"type": "integer", "default": 900},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "force": {"type": "boolean", "default": False, "description": "Apply file changes directly (--force)."}
                 }
             }
@@ -215,6 +227,7 @@ async def list_tools() -> list[Tool]:
                     "model": {"type": "string", "enum": settings.get_model_list("grok")},
                     "force": {"type": "boolean", "default": False, "description": "Auto-approve all tool executions (edits applied to disk)."},
                     "timeout": {"type": "integer", "default": 600},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "system_prompt": {"type": "string", "description": "Extra rules appended to the agent's system prompt (--rules)."}
                 }
             }

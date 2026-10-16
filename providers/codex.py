@@ -133,7 +133,7 @@ def spawn_codex(
     *,
     model: str = None,
     bypass_sandbox: bool = True,
-    timeout: int = 300,
+    timeout: int = 900,
     task_summary: Optional[str] = None,
     working_dir: Optional[str] = None,
 ) -> AgentResult:

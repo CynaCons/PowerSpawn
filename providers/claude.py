@@ -48,7 +48,7 @@ def spawn_claude(
     *,
     model: str = None,
     tools: Optional[list[str]] = None,
-    timeout: int = 300,
+    timeout: int = 600,
     task_summary: Optional[str] = None,
     dangerously_skip_permissions: bool = True,
     working_dir: Optional[str] = None,

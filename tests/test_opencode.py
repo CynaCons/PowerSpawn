@@ -133,8 +133,20 @@ def test_board_env_precedence(monkeypatch):
 def test_mcp_schema_exposes_working_dir():
     import asyncio
     from PowerSpawn.mcp_server import list_tools
-    tool = next(t for t in asyncio.run(list_tools()) if t.name == "spawn_opencode")
-    assert "working_dir" in tool.inputSchema["properties"]
+    tools = {t.name: t.inputSchema["properties"] for t in asyncio.run(list_tools())}
+    for name in ("spawn_opencode", "spawn_claude", "spawn_codex", "spawn_copilot", "spawn_cursor", "spawn_grok"):
+        assert "working_dir" in tools[name] and "timeout" in tools[name], name
+
+
+def test_cli_worker_defaults_match_their_schema():
+    import asyncio
+    import inspect
+    from PowerSpawn.mcp_server import list_tools
+    from PowerSpawn.providers import claude, codex, copilot, cursor
+    tools = {t.name: t.inputSchema["properties"] for t in asyncio.run(list_tools())}
+    for mod, fn in ((claude, "spawn_claude"), (codex, "spawn_codex"), (copilot, "spawn_copilot"), (cursor, "spawn_cursor")):
+        default = inspect.signature(getattr(mod, fn)).parameters["timeout"].default
+        assert default == tools[fn]["timeout"]["default"], fn
 
 
 def test_unavailable_endpoint_is_retried(monkeypatch):
