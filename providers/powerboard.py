@@ -1,23 +1,29 @@
 """
-PowerScroll board reporting for spawned agents.
+PowerBoard board reporting for spawned agents.
 
-A spawned agent gets a card on a board of the PowerScroll notebook the owner
-has open, so the owner watches the work happen. PowerSpawn does the bookends
-itself (card created + claimed when the agent starts, a result note and the
-move to done/waiting when it exits) instead of trusting the model to: free
-models do not reliably follow board instructions. The agent adds checklist
-items, ticks and notes in between through its own powerscroll MCP server.
+A spawned agent gets a card on a board, so the owner watches the work happen.
+PowerSpawn does the bookends itself (card created + claimed when the agent
+starts, a result note and the move to done/waiting when it exits) instead of
+trusting the model to: free models do not reliably follow board instructions.
+The agent adds checklist items, ticks and notes in between through its own
+powerboard MCP server.
 
-Talks to the notebook through the PowerScroll MCP server (stdio), which joins
-the hub on ws://127.0.0.1:41777 as a peer, so this works next to any other
-agent already connected. Every failure is reported, never raised: the board
-must never stop a spawn.
+PowerBoard runs standalone (PowerBoard.html, served by the powerboard-mcp
+server on port 41778) or embedded in a PowerScroll notebook (served by
+powerscroll-mcp); both expose the same board tools, so only the configuration
+changes. Board traffic goes through that MCP server (stdio), which joins the
+notebook hub as a peer, so this works next to any other agent already
+connected. Every failure is reported, never raised: the board must never stop
+a spawn.
 
 Config (environment):
-  POWERSCROLL_MCP_COMMAND  server command line, or a JSON array
-                           (default: npx -y powerscroll-mcp; needs >= 0.68 for boards)
-  POWERSCROLL_BOARD        board id or title (default: the first board)
+  POWERBOARD_MCP_COMMAND   server command line, or a JSON array
+                           (default: npx -y powerboard-mcp)
+  POWERBOARD_BOARD         board id or title (default: the first board)
   POWERSPAWN_BOARD=off     disable board reporting
+
+  Legacy names still accepted: POWERSCROLL_MCP_COMMAND, POWERSCROLL_BOARD.
+  The newer POWERBOARD_* names win when both are set.
 """
 
 import asyncio
@@ -29,7 +35,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
-DEFAULT_COMMAND = "npx -y powerscroll-mcp"
+DEFAULT_COMMAND = "npx -y powerboard-mcp"
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,39}$")
 LOCK_RETRY_SECONDS = 45
 CALL_TIMEOUT_SECONDS = 30
@@ -44,15 +50,23 @@ def board_enabled() -> bool:
     return os.environ.get("POWERSPAWN_BOARD", "on").strip().lower() not in ("off", "0", "false", "no")
 
 
+def agent_env(me: str) -> dict[str, str]:
+    """Environment for the board MCP server: both names, so it works whether the
+    host is the standalone powerboard-mcp or powerscroll-mcp."""
+    return {**os.environ, "POWERBOARD_AGENT_NAME": me, "POWERNOTE_AGENT_NAME": me}
+
+
 def server_command() -> list[str]:
-    raw = os.environ.get("POWERSCROLL_MCP_COMMAND", "").strip() or DEFAULT_COMMAND
+    raw = (os.environ.get("POWERBOARD_MCP_COMMAND", "").strip()
+           or os.environ.get("POWERSCROLL_MCP_COMMAND", "").strip()
+           or DEFAULT_COMMAND)
     if raw.startswith("["):
         return [str(x) for x in json.loads(raw)]
     return [part.strip('"') for part in shlex.split(raw, posix=(os.name != "nt"))]
 
 
 def agent_name(raw: str) -> str:
-    """Coerce anything into a valid PowerScroll agent name."""
+    """Coerce anything into a valid PowerBoard agent name."""
     name = re.sub(r"[^a-z0-9._-]+", "-", (raw or "").lower()).strip("-._")[:40]
     if not name or not NAME_RE.match(name):
         name = ("a" + name)[:40] if name else "agent"
@@ -76,8 +90,7 @@ async def _run_calls(me: str, calls) -> list:
     from mcp.client.stdio import stdio_client
 
     cmd = server_command()
-    env = {**os.environ, "POWERNOTE_AGENT_NAME": me}
-    params = StdioServerParameters(command=cmd[0], args=cmd[1:], env=env)
+    params = StdioServerParameters(command=cmd[0], args=cmd[1:], env=agent_env(me))
     results = []
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
@@ -149,14 +162,15 @@ def start_card(me: str, title: str, description: str, labels: list[str],
     Returns (card, None) or (None, reason)."""
     if not board_enabled():
         return None, "board reporting disabled (POWERSPAWN_BOARD=off)"
-    wanted = board or os.environ.get("POWERSCROLL_BOARD", "")
+    wanted = (board or os.environ.get("POWERBOARD_BOARD", "")
+              or os.environ.get("POWERSCROLL_BOARD", ""))
     try:
         boards = _call(me, [("board_list", {})])[0]
         picked = _pick_board((boards or {}).get("boards", []), wanted)
         if picked is None:
             if wanted:
                 return None, f"no board named or with id '{wanted}' in the open notebook"
-            return None, "the open notebook has no board: create one in PowerScroll"
+            return None, "the open board host has no board: create one in PowerBoard"
         bid = picked["id"]
         created = _call(me, [
             ("card_create", {"boardId": bid, "title": title[:120], "description": description,
@@ -167,7 +181,7 @@ def start_card(me: str, title: str, description: str, labels: list[str],
         ])
         return BoardCard(me, bid, picked.get("title", ""), _number(created[0])), None
     except Exception as e:  # never let the board stop a spawn
-        return None, f"PowerScroll board unavailable: {e}"
+        return None, f"PowerBoard board unavailable: {e}"
 
 
 def _number(card_result: Any) -> int:
@@ -196,15 +210,15 @@ def finish_card(card: BoardCard, success: bool, summary: str, duration_s: float)
         ])
         return None
     except Exception as e:
-        return f"PowerScroll board update failed: {e}"
+        return f"PowerBoard board update failed: {e}"
 
 
 def agent_brief(card: BoardCard) -> str:
     """The board protocol, prepended to the agent's prompt."""
     return (
-        "## PowerScroll board — report your progress (required)\n"
+        "## PowerBoard board — report your progress (required)\n"
         f"You are agent `{card.me}`. The owner watches your work live on card {card.ref} of the "
-        f"PowerScroll board \"{card.board_title}\". Use the `powerscroll` MCP tools and pass these "
+        f"PowerBoard board \"{card.board_title}\". Use the `powerboard` MCP tools and pass these "
         f"arguments on every call: me=\"{card.me}\", boardId=\"{card.board_id}\", card={card.number}.\n"
         "1. First, before any other work: `card_checklist_add` once per step of your plan (3-7 short steps).\n"
         "2. While working: `card_check` (item = 1-based index, done=true) as each step completes, "

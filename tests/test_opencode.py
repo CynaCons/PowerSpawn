@@ -1,8 +1,8 @@
-"""spawn_opencode: JSON events, transient retries, and the PowerScroll board bookends."""
+"""spawn_opencode: JSON events, transient retries, and the PowerBoard board bookends."""
 
 import json
 
-from PowerSpawn.providers import opencode, powerscroll
+from PowerSpawn.providers import opencode, powerboard
 
 
 def _events(*events):
@@ -24,9 +24,9 @@ def _setup(monkeypatch, outputs, card=None):
     monkeypatch.setattr(opencode, "log_spawn_start", lambda **kw: "id")
     monkeypatch.setattr(opencode, "log_spawn_complete", lambda *a, **kw: None)
     monkeypatch.setattr(opencode.time, "sleep", lambda s: None)
-    monkeypatch.setattr(powerscroll, "start_card",
+    monkeypatch.setattr(powerboard, "start_card",
                         lambda *a, **kw: (card, None if card else "no board"))
-    monkeypatch.setattr(powerscroll, "finish_card",
+    monkeypatch.setattr(powerboard, "finish_card",
                         lambda c, ok, text, d: calls["finish"].append((ok, text)))
     return calls
 
@@ -54,13 +54,14 @@ def test_alias_and_no_board_still_runs(monkeypatch):
 
 
 def test_board_card_brief_mcp_and_close(monkeypatch):
-    card = powerscroll.BoardCard("oc-seo-1", "p-1", "Dashboard", 7)
+    card = powerboard.BoardCard("oc-seo-1", "p-1", "Dashboard", 7)
     calls = _setup(monkeypatch, [_events(TEXT)], card=card)
     result = opencode.spawn_opencode("Fix the sitemap", agent_name="oc-seo-1")
     run = calls["runs"][0]
+    assert run["env"]["POWERBOARD_AGENT_NAME"] == "oc-seo-1"
     assert run["env"]["POWERNOTE_AGENT_NAME"] == "oc-seo-1"
-    mcp = json.loads(run["env"]["OPENCODE_CONFIG_CONTENT"])["mcp"]["powerscroll"]
-    assert mcp["environment"] == {"POWERNOTE_AGENT_NAME": "oc-seo-1"}
+    mcp = json.loads(run["env"]["OPENCODE_CONFIG_CONTENT"])["mcp"]["powerboard"]
+    assert mcp["environment"] == {"POWERBOARD_AGENT_NAME": "oc-seo-1", "POWERNOTE_AGENT_NAME": "oc-seo-1"}
     assert 'me="oc-seo-1", boardId="p-1", card=7' in run["prompt"]
     assert run["prompt"].endswith("Fix the sitemap")
     assert calls["finish"] == [(True, "42")]
@@ -68,7 +69,7 @@ def test_board_card_brief_mcp_and_close(monkeypatch):
 
 
 def test_failure_moves_card_with_the_error(monkeypatch):
-    card = powerscroll.BoardCard("oc-x", "p-1", "Dashboard", 3)
+    card = powerboard.BoardCard("oc-x", "p-1", "Dashboard", 3)
     calls = _setup(monkeypatch, [_events(DROPPED)] * 3, card=card)
     result = opencode.spawn_opencode("task")
     assert not result.success and len(calls["runs"]) == 3
@@ -76,26 +77,57 @@ def test_failure_moves_card_with_the_error(monkeypatch):
 
 
 def test_agent_name_is_always_valid():
-    assert powerscroll.agent_name("OC Seo #1") == "oc-seo-1"
-    assert powerscroll.NAME_RE.match(powerscroll.agent_name("__"))
-    assert len(powerscroll.agent_name("x" * 80)) == 40
+    assert powerboard.agent_name("OC Seo #1") == "oc-seo-1"
+    assert powerboard.NAME_RE.match(powerboard.agent_name("__"))
+    assert len(powerboard.agent_name("x" * 80)) == 40
 
 
 def test_pick_board_by_id_title_or_first():
     boards = [{"id": "a", "title": "Dashboard"}, {"id": "b", "title": "Agents"}]
-    assert powerscroll._pick_board(boards, "")["id"] == "a"
-    assert powerscroll._pick_board(boards, "b")["id"] == "b"
-    assert powerscroll._pick_board(boards, "agents")["id"] == "b"
-    assert powerscroll._pick_board(boards, "nope") is None
+    assert powerboard._pick_board(boards, "")["id"] == "a"
+    assert powerboard._pick_board(boards, "b")["id"] == "b"
+    assert powerboard._pick_board(boards, "agents")["id"] == "b"
+    assert powerboard._pick_board(boards, "nope") is None
+
+
+def test_agent_env_sets_both_names():
+    env = powerboard.agent_env("oc-seo-1")
+    assert env["POWERBOARD_AGENT_NAME"] == "oc-seo-1"
+    assert env["POWERNOTE_AGENT_NAME"] == "oc-seo-1"
 
 
 def test_server_command_parsing(monkeypatch):
-    monkeypatch.setenv("POWERSCROLL_MCP_COMMAND", '["node", "C:/x/server.js"]')
-    assert powerscroll.server_command() == ["node", "C:/x/server.js"]
-    monkeypatch.setenv("POWERSCROLL_MCP_COMMAND", "node C:/x/server.js")
-    assert powerscroll.server_command() == ["node", "C:/x/server.js"]
+    monkeypatch.setenv("POWERBOARD_MCP_COMMAND", '["node", "C:/x/server.js"]')
+    assert powerboard.server_command() == ["node", "C:/x/server.js"]
+    monkeypatch.setenv("POWERBOARD_MCP_COMMAND", "node C:/x/server.js")
+    assert powerboard.server_command() == ["node", "C:/x/server.js"]
+    monkeypatch.delenv("POWERBOARD_MCP_COMMAND")
+    # Legacy name still read, and POWERBOARD_* wins when both are set.
+    monkeypatch.setenv("POWERSCROLL_MCP_COMMAND", "node C:/legacy.js")
+    assert powerboard.server_command() == ["node", "C:/legacy.js"]
+    monkeypatch.setenv("POWERBOARD_MCP_COMMAND", "node C:/new.js")
+    assert powerboard.server_command() == ["node", "C:/new.js"]
+    monkeypatch.delenv("POWERBOARD_MCP_COMMAND")
     monkeypatch.delenv("POWERSCROLL_MCP_COMMAND")
-    assert powerscroll.server_command() == ["npx", "-y", "powerscroll-mcp"]
+    assert powerboard.server_command() == ["npx", "-y", "powerboard-mcp"]
+
+
+def test_board_env_precedence(monkeypatch):
+    boards = {"boards": [{"id": "new", "title": "New"}, {"id": "old", "title": "Old"}]}
+
+    def fake_call(me, calls):
+        if calls[0] == ("board_list", {}):
+            return [boards]
+        return [{"card": {"number": 5}} for _ in calls]
+
+    monkeypatch.setattr(powerboard, "_call", fake_call)
+    monkeypatch.setenv("POWERBOARD_BOARD", "new")
+    monkeypatch.setenv("POWERSCROLL_BOARD", "old")
+    card, warn = powerboard.start_card("me", "t", "d", [])
+    assert warn is None and card.board_id == "new"
+    monkeypatch.delenv("POWERBOARD_BOARD")
+    card, warn = powerboard.start_card("me", "t", "d", [])
+    assert warn is None and card.board_id == "old"
 
 
 def test_mcp_schema_exposes_working_dir():

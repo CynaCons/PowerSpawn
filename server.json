@@ -3,7 +3,7 @@
   "name": "io.github.CynaCons/powerspawn",
   "title": "PowerSpawn",
   "description": "Spawn and supervise Claude, Codex, Copilot, Cursor, Gemini, Grok and Mistral coding agents",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "websiteUrl": "https://powerspawn.com",
   "repository": {
     "url": "https://github.com/CynaCons/powerspawn",
@@ -14,7 +14,7 @@
     {
       "registryType": "pypi",
       "identifier": "powerspawn",
-      "version": "1.10.3",
+      "version": "1.11.0",
       "registryBaseUrl": "https://pypi.org",
       "runtimeHint": "uvx",
       "transport": {
