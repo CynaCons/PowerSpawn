@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.11.1
+MCP Agent Spawner Server v1.11.2
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,6 +17,10 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.11.2:
+  - Board cards no longer get skipped when PowerSpawn starts the board hub
+    itself (standalone PowerBoard on 41778): "No PowerBoard/PowerScroll ... is
+    connected" is retried for 15 s, longer than the app's 10 s redial backoff.
 Changelog v1.11.1:
   - spawn_codex, spawn_copilot and spawn_cursor expose `timeout` (default now
     900 s, was an undocumented 300 s that killed real coding tasks) and
@@ -100,7 +104,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.11.1"
+SERVER_VERSION = "1.11.2"
 
 try:
     from mcp.server import Server

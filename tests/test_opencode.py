@@ -130,6 +130,18 @@ def test_board_env_precedence(monkeypatch):
     assert warn is None and card.board_id == "old"
 
 
+def test_board_call_waits_for_the_app_to_redial_a_new_hub():
+    missing = "No PowerBoard is connected. Open PowerBoard.html, then turn on Settings"
+    assert powerboard._retry_delay(missing, now=5, deadline=45, app_deadline=15) == 1
+    assert powerboard._retry_delay(missing, now=16, deadline=45, app_deadline=15) is None
+    notebook = "No PowerScroll notebook is connected. Open your notebook, then turn on"
+    assert powerboard._retry_delay(notebook, now=5, deadline=45, app_deadline=15) == 1
+    assert powerboard._retry_delay("LOCKED: x holds it", now=20, deadline=45, app_deadline=15) == 3
+    assert powerboard._retry_delay("Not connected to the agent hub yet. Retry in a moment.", 20, 45, 15) == 1
+    assert powerboard._retry_delay("LOCKED: x", now=50, deadline=45, app_deadline=15) is None
+    assert powerboard._retry_delay("NOT_FOUND: no card", now=1, deadline=45, app_deadline=15) is None
+
+
 def test_mcp_schema_exposes_working_dir():
     import asyncio
     from PowerSpawn.mcp_server import list_tools

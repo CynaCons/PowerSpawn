@@ -39,6 +39,10 @@ DEFAULT_COMMAND = "npx -y powerboard-mcp"
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,39}$")
 LOCK_RETRY_SECONDS = 45
 CALL_TIMEOUT_SECONDS = 30
+# A hub this call just started has no app yet: the app redials with a backoff
+# capped at 10 s, so wait a little longer than that before giving up.
+APP_WAIT_SECONDS = 15
+APP_MISSING = " is connected. Open"  # "No PowerBoard is connected. Open ..." / "No PowerScroll notebook ..."
 READ_TOOLS = {"board_list", "board_read", "card_get", "bridge_status"}
 
 
@@ -83,6 +87,17 @@ def _payload(result) -> Any:
         return text
 
 
+def _retry_delay(msg: str, now: float, deadline: float, app_deadline: float) -> Optional[float]:
+    """Seconds to wait before retrying a failed board call, or None to give up."""
+    if APP_MISSING in msg:  # the app has not redialled the hub this call started
+        return 1 if now < app_deadline else None
+    if msg.startswith("LOCKED") and now < deadline:  # another agent holds the lease
+        return 3
+    if "Retry in a moment" in msg and now < deadline:  # the peer is still joining the hub
+        return 1
+    return None
+
+
 async def _run_calls(me: str, calls) -> list:
     """Run calls in one short-lived peer session. Disconnecting at the end
     releases the notebook lease at once, so the agent's own writes are free."""
@@ -92,6 +107,7 @@ async def _run_calls(me: str, calls) -> list:
     cmd = server_command()
     params = StdioServerParameters(command=cmd[0], args=cmd[1:], env=agent_env(me))
     results = []
+    app_deadline = time.monotonic() + APP_WAIT_SECONDS
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await asyncio.wait_for(session.initialize(), CALL_TIMEOUT_SECONDS)
@@ -111,11 +127,9 @@ async def _run_calls(me: str, calls) -> list:
                         results.append(_payload(res))
                         break
                     except BoardError as e:
-                        # LOCKED: another agent holds the lease. "Not connected to
-                        # the agent hub yet": the peer is still joining after start.
-                        transient = str(e).startswith("LOCKED") or "Retry in a moment" in str(e)
-                        if transient and time.monotonic() < deadline:
-                            await asyncio.sleep(1 if "Retry in a moment" in str(e) else 3)
+                        delay = _retry_delay(str(e), time.monotonic(), deadline, app_deadline)
+                        if delay is not None:
+                            await asyncio.sleep(delay)
                             continue
                         raise BoardError(f"{name}: {e}") from None
     return results
