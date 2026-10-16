@@ -27,9 +27,11 @@ from ..paths import get_workspace_dir
 from .types import AgentResult
 from . import powerscroll
 
-# Free endpoints drop connections under load; such a run produces no text.
+# Free endpoints drop connections or go briefly unavailable under load; such a
+# run produces no text.
 TRANSIENT_ERRORS = ("socket connection was closed", "Transport:", "ECONNRESET",
-                    "rate limit", "overloaded", "503", "502")
+                    "rate limit", "overloaded", "503", "502",
+                    "Endpoint is unavailable", "Upstream request failed")
 MAX_ATTEMPTS = 3
 
 

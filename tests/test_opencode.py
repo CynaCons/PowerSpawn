@@ -103,3 +103,10 @@ def test_mcp_schema_exposes_working_dir():
     from PowerSpawn.mcp_server import list_tools
     tool = next(t for t in asyncio.run(list_tools()) if t.name == "spawn_opencode")
     assert "working_dir" in tool.inputSchema["properties"]
+
+
+def test_unavailable_endpoint_is_retried(monkeypatch):
+    down = {"type": "error", "error": {"message": "Upstream request failed: Endpoint is unavailable."}}
+    calls = _setup(monkeypatch, [_events(down), _events(TEXT)])
+    result = opencode.spawn_opencode("task", model="glm")
+    assert result.success and len(calls["runs"]) == 2
