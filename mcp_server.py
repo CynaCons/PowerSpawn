@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.10.0
+MCP Agent Spawner Server v1.10.1
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -16,6 +16,9 @@ Configuration:
   - api_keys.json (local file)
   - Environment variables
   - models.json (model aliases)
+
+Changelog v1.10.1:
+  - spawn_opencode exposes working_dir (one git worktree per agent task).
 
 Changelog v1.10.0:
   - spawn_opencode: OpenCode CLI headless (free DeepSeek V4.1 Flash / GLM 5.3
@@ -78,7 +81,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.10.0"
+SERVER_VERSION = "1.10.1"
 
 try:
     from mcp.server import Server
@@ -182,7 +185,8 @@ async def list_tools() -> list[Tool]:
                     "timeout": {"type": "integer", "default": 900},
                     "agent_name": {"type": "string", "description": "Name on the board, e.g. 'oc-seo-1' (default: oc-<model>-<hex>)."},
                     "task_summary": {"type": "string", "description": "Card title (default: first line of the prompt)."},
-                    "board": {"type": "string", "description": "Board id or title (default: POWERSCROLL_BOARD, else the first board)."}
+                    "board": {"type": "string", "description": "Board id or title (default: POWERSCROLL_BOARD, else the first board)."},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
                 }
             }
         ),

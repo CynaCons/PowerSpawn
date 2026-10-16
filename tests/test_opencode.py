@@ -96,3 +96,10 @@ def test_server_command_parsing(monkeypatch):
     assert powerscroll.server_command() == ["node", "C:/x/server.js"]
     monkeypatch.delenv("POWERSCROLL_MCP_COMMAND")
     assert powerscroll.server_command() == ["npx", "-y", "powerscroll-mcp"]
+
+
+def test_mcp_schema_exposes_working_dir():
+    import asyncio
+    from PowerSpawn.mcp_server import list_tools
+    tool = next(t for t in asyncio.run(list_tools()) if t.name == "spawn_opencode")
+    assert "working_dir" in tool.inputSchema["properties"]
