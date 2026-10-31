@@ -19,6 +19,7 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 | **Claude** | `spawn_claude` | ✓ Yes | ✓ Yes | Complex reasoning, code review |
 | **Codex** | `spawn_codex` | ✓ Yes | ✓ Yes | Code generation, testing |
 | **Copilot** | `spawn_copilot` | ✓ Yes | ✓ Yes | Multi-model via CLI |
+| **Cursor** | `spawn_cursor` | ✓ Yes (read-only by default) | ✓ Yes (read-only by default) | Gemini/Grok/Kimi via Cursor credits |
 | **Gemini** | `spawn_gemini_cli` | ✓ Yes | ✓ Yes | Multimodal via CLI |
 
 **Use CLI agents for:**
@@ -250,6 +251,7 @@ Once configured, these MCP tools are available:
 mcp__agents__spawn_claude   - Spawn Claude sub-agent (haiku/sonnet/opus)
 mcp__agents__spawn_codex    - Spawn Codex sub-agent (GPT-5.1)
 mcp__agents__spawn_copilot  - Spawn Copilot sub-agent (GPT/Claude/Gemini)
+mcp__agents__spawn_cursor   - Spawn Cursor sub-agent (Gemini/Grok/Kimi/GPT/Claude via Cursor credits)
 mcp__agents__list           - List running/completed agents
 mcp__agents__result         - Get agent result by ID
 mcp__agents__wait_for_agents - Wait for all agents to complete
@@ -308,6 +310,7 @@ PowerSpawn relies on the CLI tools' built-in context loading:
 | Claude | `claude` | `CLAUDE.md` from project root |
 | Codex | `codex` | `AGENTS.md` from project root |
 | Copilot | `copilot` | `AGENTS.md` from project root |
+| Cursor | `cursor-agent` | `AGENTS.md` / `.cursor/rules` from workspace |
 
 These files should contain:
 - Project structure overview
@@ -376,6 +379,20 @@ Auto-loaded by Codex CLI. Defines:
 | `claude-haiku` | Anthropic | Claude Haiku 4.5 |
 | `claude-opus` | Anthropic | Claude Opus 4.7 |
 | `gemini` | Google | Gemini 3 Pro Preview |
+
+### spawn_cursor
+```json
+{
+  "prompt": "Your task description",
+  "model": "grok",          // composer | gemini | grok | kimi | glm | deepseek | gpt | sonnet | ... (see models.json)
+  "timeout": 600,           // seconds (default: 600)
+  "read_only": true,        // true = --mode ask (default); false = may edit files / run commands (--force)
+  "working_dir": "C:/path"  // optional workspace
+}
+```
+Runs `cursor-agent -p --model <id> --output-format text --trust --workspace <dir> [--mode ask | --force]`.
+The prompt is piped via stdin, so long prompts are not limited by the Windows command-line length.
+`cursor-agent models` lists the ids your Cursor account can use.
 
 ### spawn_grok
 Spawn a Grok sub-agent via X.ai API (text response only).

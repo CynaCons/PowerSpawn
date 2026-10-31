@@ -52,37 +52,51 @@ def spawn_claude(
     task_summary: Optional[str] = None,
     dangerously_skip_permissions: bool = True,
     working_dir: Optional[str] = None,
+    resume_session_id: Optional[str] = None,
+    system_prompt: Optional[str] = None,
 ) -> AgentResult:
     """
     Spawn a Claude CLI agent.
-    
+
     Context Handling:
         Claude CLI automatically loads CLAUDE.md from the project root.
+
+    Args:
+        resume_session_id: If provided, resume an existing session instead of starting new.
+        system_prompt: Custom system prompt (appended to default).
     """
     start_time = time.time()
-    
+
     # Resolve model
     resolved_model = settings.get_model_alias("claude", model)
-    
+
     # Log start
     spawn_id = log_spawn_start(
         agent="Claude",
         model=resolved_model,
         prompt=prompt,
         tools=tools or [],
-        task_summary=task_summary,
+        task_summary=task_summary or (f"Resume:{resume_session_id[:8]}" if resume_session_id else None),
         agent_type="CLI"
     )
-    
+
     # Build command
     cmd = ["claude", "-p", "--output-format", "json"]
     cmd.extend(["--model", resolved_model])
-    
+
     if tools:
         cmd.extend(["--tools", ",".join(tools)])
-        
+
     if dangerously_skip_permissions:
         cmd.append("--dangerously-skip-permissions")
+
+    # Resume existing session
+    if resume_session_id:
+        cmd.extend(["--resume", resume_session_id])
+
+    # Custom system prompt (appended to default)
+    if system_prompt:
+        cmd.extend(["--append-system-prompt", system_prompt])
         
     cwd = working_dir or str(get_workspace_dir())
     
