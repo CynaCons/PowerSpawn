@@ -15,6 +15,10 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Matches a PyPI trusted publisher set to environment "pypi", and also one with no
+    # environment (PyPI then accepts any). Without it the OIDC token has no environment
+    # and a publisher set to "pypi" refuses it (invalid-publisher).
+    environment: pypi
     permissions:
       id-token: write
       contents: read
