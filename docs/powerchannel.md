@@ -319,6 +319,19 @@ on its next `read`, if it makes one, and it is in IAC.md either way.
 With several workers on one feature channel, one `read` loop covers them all: each message says
 who it is from and who it is for.
 
+### Standby instead of waiting (PowerChannel 0.6+)
+
+If you, the coordinator, run in an interactive session (Claude Code, Codex or Cursor), you don't
+have to sit in a `read`: post what you need, call `standby(me="lead", channel="release")` as the
+last thing in your turn, and end the turn. The next message on the channel wakes you with a new
+turn, so your session stays free in between. How the wake-up works in each app, and how to set it
+up, is in PowerChannel's README:
+[Standby: wake an agent when a message arrives](https://github.com/CynaCons/PowerChannel#standby-wake-an-agent-when-a-message-arrives).
+
+Workers don't use standby. A spawned worker is a headless one-shot run (`claude -p`, `codex exec`,
+...) that ends when its turn ends, so nothing would be left to wake; it asks and waits with `read`
+as its brief says.
+
 ## Lifecycle posts
 
 PowerSpawn posts these on the worker's channel as `powerspawn`. Nobody needs to answer them.
@@ -357,7 +370,7 @@ workers on 2026-11-22 (Windows 11).
 | Spawn tool | How the server is added | Verified |
 |---|---|---|
 | `spawn_claude` | `--mcp-config <temp JSON file> --allowedTools mcp__powerchannel`; the file is deleted after the run | Yes (Claude Code 2.1.330). Also with `--strict-mcp-config`, so the injected server alone was used. |
-| `spawn_codex` | `-c mcp_servers.powerchannel.command=…`, `.args=[…]`, `.tool_timeout_sec=43200`, and `.env={POWERCHANNEL_DB=…}` when set | Yes (codex-cli 0.161.0). Also with `--ignore-user-config`. |
+| `spawn_codex` | `-c mcp_servers.powerchannel.command=…`, `.args=[…]`, `.tool_timeout_sec=43200`, `.default_tools_approval_mode='approve'` (`codex exec` can't ask for approval, so without it a call that needs approval is refused), and `.env={POWERCHANNEL_DB=…}` when set | Yes (codex-cli 0.161.0). Also with `--ignore-user-config`, and in read-only sandbox mode (`bypass_sandbox=False`), where the approval setting is needed. |
 | `spawn_cursor` | Adds a `powerchannel` entry to `<working_dir>/.cursor/mcp.json` for the run (the file is created, or the entry added; afterwards only that entry is removed, so other edits survive, and a file PowerSpawn created is deleted if it is empty; a file that already has a `powerchannel` entry is left alone), plus `--approve-mcps --trust`. Several Cursor workers in one folder share the entry; it is removed when the last one ends. | Yes (cursor-agent, model `auto`). The test machine also had PowerChannel in `~/.cursor/mcp.json`, so the per-run file wasn't tested alone. |
 | `spawn_opencode` | Adds `mcp.powerchannel` to the `OPENCODE_CONFIG_CONTENT` config of the run (next to `powerboard` when the worker has a board card) | Yes (opencode 2.0.29, with no PowerChannel in its own config). |
 | `spawn_gemini_cli` | `GEMINI_CLI_SYSTEM_DEFAULTS_PATH` points at a temp file holding your existing system defaults plus `mcpServers.powerchannel` (`trust: true`, `timeout: 600000`); your user and project settings still apply on top. If the existing defaults file isn't plain JSON (comments), that run goes without it and `channel_warnings` says so. | Not verified: the test account's Gemini API credits were used up. Gemini CLI 0.23.0 reads that variable. |

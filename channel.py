@@ -438,6 +438,9 @@ def codex_args() -> list[str]:
         "-c", f"mcp_servers.{SERVER_NAME}.command={_toml_str(cmd[0])}",
         "-c", f"mcp_servers.{SERVER_NAME}.args=[{','.join(_toml_str(a) for a in cmd[1:])}]",
         "-c", f"mcp_servers.{SERVER_NAME}.tool_timeout_sec={CODEX_TOOL_TIMEOUT}",
+        # `codex exec` can't ask anyone, so without this a PowerChannel call that needs
+        # approval is refused ("approval policy is never").
+        "-c", f"mcp_servers.{SERVER_NAME}.default_tools_approval_mode='approve'",
     ]
     env = server_env()
     if env:

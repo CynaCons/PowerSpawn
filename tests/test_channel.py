@@ -125,7 +125,8 @@ def test_claude_gets_a_temp_mcp_config(board_env):
 def test_codex_config_overrides(board_env):
     args = pc.codex_args()
     flat = " ".join(args)
-    assert args.count("-c") == 4
+    assert args.count("-c") == 5
+    assert "mcp_servers.powerchannel.default_tools_approval_mode='approve'" in flat
     assert "mcp_servers.powerchannel.args=['-m','powerchannel']" in flat
     assert "mcp_servers.powerchannel.tool_timeout_sec=43200" in flat
     assert f"mcp_servers.powerchannel.env={{POWERCHANNEL_DB='{board_env}'}}" in flat

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.12.0
+MCP Agent Spawner Server v1.12.1
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,6 +17,12 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.12.1:
+  - Codex workers on a channel get default_tools_approval_mode='approve' for the
+    PowerChannel server: without it `codex exec` refused calls that needed
+    approval (seen with bypass_sandbox=False).
+  - Guide: coordinators can use PowerChannel 0.6's standby instead of waiting in read.
+  - Publish workflow runs in the "pypi" environment.
 Changelog v1.12.0:
   - PowerChannel integration (optional; `pip install "powerspawn[channel]"`).
     Every spawn_* takes `name` (unique agent name, default <cli>-<4 hex>), and
@@ -121,7 +127,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.12.0"
+SERVER_VERSION = "1.12.1"
 
 try:
     from mcp.server import Server
@@ -159,6 +165,8 @@ Channels (optional; need PowerChannel in the Python that runs PowerSpawn:
   post(me=<you>, channel=<channel>, message="@<worker name>: ..."). Use a shorter wait if your
   app stops tool calls sooner (Cursor: 50, Gemini CLI: 540; Codex needs tool_timeout_sec=43200).
   While a channel worker runs, wait with read, not wait_for_agents, or its questions go unanswered.
+  In an interactive session with PowerChannel 0.6+, you can instead call standby(me, channel) and
+  end your turn: the next message on the channel wakes you.
 - A worker waits for one answer about (timeout - 120) / 2 seconds, at least 60; the spawn
   response shows it as worker_waits_up_to_seconds. To give yourself N seconds to answer, pass
   timeout >= 2N + 120 (Gemini CLI's default 300 gives only 90). With several workers, answer
