@@ -40,6 +40,7 @@ PowerSpawn offers two distinct ways to spawn agents, each with different capabil
 | **Codex** | `spawn_codex` | ✓ Yes | ✓ Yes | Code generation, testing |
 | **Copilot** | `spawn_copilot` | ✓ Yes | ✓ Yes | Multi-model via CLI |
 | **Gemini** | `spawn_gemini_cli` | ✓ Yes | ✓ Yes | Multimodal via CLI |
+| **Cursor** | `spawn_cursor` | ✓ Yes (`force`) | ✓ Yes | Cursor agent CLI (`model="auto"` on the Free plan) |
 | **Grok** | `spawn_grok` | ✓ Yes (`force`) | ✓ Yes | Grok Build agent (Grok 4.6 / 4.7) |
 | **OpenCode** | `spawn_opencode` | ✓ Yes | ✓ Yes | Free models (DeepSeek V4.1 Flash, GLM 5.3 Flash), live PowerBoard card |
 
@@ -118,6 +119,38 @@ Coordinator: "Ask Gemini and Grok to review this function"
 → Both return analysis text
 → Coordinator synthesizes feedback and applies fixes
 ```
+
+## Workers on channels (PowerChannel)
+
+Every spawn gets a unique agent name, and can join a
+[PowerChannel](https://github.com/CynaCons/PowerChannel) channel where it posts results and asks
+you questions while it runs. PowerSpawn keeps the worker's lifecycle and model; PowerChannel
+carries the conversation. It is optional: install it with `pip install "powerspawn[channel]"`
+(or `uvx --from "powerspawn[channel]" powerspawn`), and give your own app the PowerChannel MCP so
+you can read and answer (`claude mcp add --scope user powerchannel -- uvx powerchannel`).
+
+```text
+spawn_codex(prompt="Fix the flaky login test ...", name="auth-fix", channel="release")
+read(me="lead", channel="release", wait_seconds=600)
+  → powerspawn: started auth-fix: codex (codex default). Task: Fix the flaky login test ...
+  → auth-fix: @coordinator: mock the SMTP server, or mark the test as integration?
+post(me="lead", channel="release", message="@auth-fix: mock it with tests/fixtures/smtp.py.")
+  → auth-fix: done, test mocked on branch fix/login (commit 8d8a235)
+  → powerspawn: finished auth-fix in 214s: ...
+```
+
+| Argument | Meaning |
+|---|---|
+| `name` (every `spawn_*`) | The worker's unique name on PowerChannel and in `list`, `result` and IAC.md. Default: `<cli>-<4 hex>`, e.g. `codex-3f9a`. |
+| `channel` (Claude, Codex, Copilot, Cursor, Gemini CLI, OpenCode) | Omit: no channel. `"release"`: a shared feature channel. `"dedicated"`: a channel of its own, `dm-<name>`. |
+
+With a channel, the worker gets the PowerChannel tools for that run only (no global config is
+touched) and a short brief: read once, post results and questions there, wait for answers with
+`read(wait_seconds=...)`. PowerSpawn posts `started` / `finished` / `failed` / `timed out` as
+`powerspawn`, and mirrors the worker's channel conversation into IAC.md. Grok doesn't support
+channels yet; the API agents have no tools, so they never will.
+
+Full guide, per-CLI support table and troubleshooting: **[docs/powerchannel.md](https://github.com/CynaCons/powerspawn/blob/main/docs/powerchannel.md)**.
 
 ## Why PowerSpawn?
 
@@ -550,8 +583,18 @@ Spawn a Mistral sub-agent via Mistral API (text response only).
 ```
 **Note:** API agent - returns text only, cannot modify files.
 
+### Every spawn_* also takes
+```json
+{
+  "name": "auth-fix",       // optional unique agent name (default: <cli>-<4 hex>)
+  "channel": "release"      // optional PowerChannel channel, or "dedicated" for dm-<name>
+                            // (Claude, Codex, Copilot, Cursor, Gemini CLI, OpenCode only)
+}
+```
+See [docs/powerchannel.md](https://github.com/CynaCons/powerspawn/blob/main/docs/powerchannel.md).
+
 ### list
-Returns running and completed agent IDs.
+Returns running agents (id, seconds, type, name, channel) and the last completed ones.
 
 ### result
 ```json
@@ -559,7 +602,7 @@ Returns running and completed agent IDs.
   "agent_id": "abc123"
 }
 ```
-Returns the agent's output, cost, and status.
+Returns the agent's output, cost, status, name and channel.
 
 ### wait_for_agents
 Blocks until all running agents complete. Returns all results.
@@ -673,8 +716,10 @@ This was fixed in PowerSpawn v1.6.2 (spawner.py:611).
 - [x] Landing page at powerspawn.com
 - [x] GitHub Copilot integration (spawn_copilot)
 - [x] API agents: Grok, Gemini, Mistral
-- [ ] MCP Registry submission
-- [ ] Unit and integration test suite
+- [x] Unit and integration test suite
+- [x] Workers on PowerChannel channels: unique names, questions while running (1.12.0)
+- [ ] MCP Registry listing (publish workflow ready)
+- [ ] Resume a sleeping worker when its dedicated channel gets a message
 
 ## License
 

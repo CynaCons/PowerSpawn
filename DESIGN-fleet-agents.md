@@ -7,9 +7,9 @@ can converse with and re-invoke cheaply.
 - **Feature A — Persistent / resumable role agents:** give a worker a role, then
   re-invoke *the same* worker later (reusing the CLI's session) without re-sending
   the full context.
-- **Feature B — Ask-coordinator IPC channel:** let a running worker block on a
-  question to the coordinator and resume once answered, with the coordinator
-  notified to change focus.
+- **Feature B — Worker questions:** let a running worker ask the coordinator and
+  wait for the answer. **Built in v1.12.0 on PowerChannel**; the filesystem mailbox
+  first planned for it is dropped (see Feature B below).
 
 They share one substrate and compose (a persistent expert that can also ask
 questions), but are independently shippable. **Recommended order: A first** (lower
@@ -78,57 +78,42 @@ CLI's resume flag; `create/ask_persistent_agent` are thin wrappers over that.
 
 ---
 
-## Feature B — Ask-coordinator IPC channel
+## Feature B — Worker questions over PowerChannel (replaces the ask-coordinator mailbox)
 
-### Concept
-A running worker calls a provided **`ask_coordinator "<question>"`** command
-(available as a shell tool, documented in AGENTS.md so every worker knows the
-protocol). That command **blocks** until the coordinator answers, prints the answer
-to stdout (which the worker reads as tool output), and the worker resumes — no
-restart, no context re-injection.
+**Status: decided 2026-11-22, built in v1.12.0.** The filesystem mailbox planned here
+(`.powerspawn/ipc/<agent_id>/`, `python -m powerspawn.ask`, `list_pending_questions`,
+`answer_agent`) is **dropped**. Worker questions go over
+[PowerChannel](https://github.com/CynaCons/PowerChannel) instead: named channels in one
+SQLite file shared by every agent on the machine, with `channels`, `post` and a `read` that
+can wait for the next message. The guide is [docs/powerchannel.md](docs/powerchannel.md).
 
-### Mechanism — filesystem mailbox (portable MVP)
-Per agent: `.powerspawn/ipc/<agent_id>/`. Protocol via an append-only `channel.jsonl`
-(or `question.json`/`answer.json` pairs):
+Why: PowerChannel already is the blocking, cross-app message channel this section was going
+to build, and it works for agents PowerSpawn didn't spawn too (the owner's own Claude Code,
+Codex and Cursor sessions). One mechanism instead of two.
 
-1. Worker runs `python -m powerspawn.ask "<question>"` (a tiny client injected via
-   PATH / documented in AGENTS.md).
-2. The client writes `{qid, text, ts}` to the mailbox and **polls** for a matching
-   `answer` record, blocking up to `--wait` seconds (default e.g. 600s), emitting a
-   periodic heartbeat so the CLI's idle-timeout doesn't kill it.
-3. The **agent manager** watches mailboxes; when a question appears it flips the
-   agent's status to `waiting_on_coordinator` and **emits a notification** (MCP/task
-   event) so the harness nudges the coordinator to change focus. Polling via `list`
-   is the fallback if notifications aren't delivered.
-4. Coordinator calls `answer_agent(agent_id, answer)` → writes the `answer` record →
-   the worker's client unblocks, prints the answer, the worker continues.
+How it works now:
+- Every `spawn_*` gives its worker a unique agent name (`name`, or generated `<cli>-<4 hex>`).
+- `channel` is optional; the coordinator chooses: none, a shared feature channel
+  (`channel="release"`), or one for that worker alone (`channel="dedicated"` -> `dm-<name>`).
+- With a channel, PowerSpawn adds the PowerChannel MCP server to that one run and prepends a
+  brief: read once, post results and questions, start questions with `@coordinator:`, then
+  `read(wait_seconds=N)` with N below both the spawn timeout and the CLI's MCP tool limit.
+- The coordinator watches with its own `read(..., wait_seconds=...)` and answers with `post`.
+- PowerSpawn posts started / finished / failed / timed out as `powerspawn`, and mirrors the
+  channel traffic of the run into IAC.md, which stays the audit log.
 
-Chosen over named pipes/sockets: files are cross-platform, inspectable, and work
-for *any* CLI that can run a shell command — no per-provider integration.
+What the old risks became:
+- *Model compliance*: unchanged; the brief tells the worker exactly what to call, with a
+  fallback ("no answer after 3 waits: proceed and say what you assumed").
+- *CLI tool timeouts*: per-CLI wait limits in the brief (Cursor CLI 50 s, Gemini 540 s,
+  Claude/Codex up to 12 h capped by the spawn timeout).
+- *Coordinator notification*: the coordinator waits in `read`; nothing pushes to it.
+- *Cleanup*: PowerChannel keeps 7 days of messages; there are no mailboxes to sweep.
 
-### API (new MCP tools)
-- `list_pending_questions()` → `[{agent_id, qid, text, ts}]` (also surfaced in `list`).
-- `answer_agent(agent_id, answer, qid=None)`.
-- (client side) `powerspawn.ask` console entry-point.
-
-### Why async spawn is required
-Today a `spawn_*` MCP call blocks until the worker finishes, so the coordinator
-can't answer mid-run while awaiting that same call. Feature B therefore rides the
-**async manager**: spawn returns a handle, the coordinator does other work, and
-answers questions as notifications/polls arrive. (This is already how
-`spawn`+`wait_for_agents` behave, so no new runtime — just new tools + the mailbox.)
-
-### Risks / open questions
-- **Model compliance:** the worker must actually call `ask_coordinator` when stuck.
-  Weaker models may not. Mitigate with a strong AGENTS.md convention + examples, and
-  a timeout fallback ("no answer in N min → proceed with your best judgment / abort").
-- **CLI idle/turn timeouts** may kill a long-blocked worker → heartbeat + keep
-  `--wait` under the CLI's idle limit; re-ask if killed.
-- **Coordinator notification:** best case the MCP server emits a task-event the
-  harness surfaces; worst case the coordinator must poll `list_pending_questions()`.
-  Confirm the notification path before promising "auto focus-change."
-- **Deadlock/cleanup:** orphaned mailboxes on crash → TTL-sweep; block waits are
-  bounded.
+Still open (backlog, "Phase 3"): a watcher that **resumes a sleeping worker** when a message
+lands on its dedicated channel (`claude -p --resume`, `codex exec resume`,
+`cursor-agent --resume`; headless resume is proven for those three in PowerChannel's wake
+probe). This is where Feature A and B meet.
 
 ---
 
@@ -139,10 +124,10 @@ long-lived collaborator the coordinator converses with both directions.
 
 **Phase 1 (A):** resume adapters + registry + `create/ask/list/retire` tools +
 no-resume fallback. Testable today against claude/grok/codex.
-**Phase 2 (B.1):** mailbox + `powerspawn.ask` client + `list_pending_questions` /
-`answer_agent` + AGENTS.md protocol; coordinator **polls**.
-**Phase 3 (B.2):** wire the "question pending" **notification** so the coordinator
-auto-changes focus (depends on MCP/harness notification support).
+**Phase 2 (B):** done in v1.12.0 over PowerChannel (`name` + `channel` on every
+`spawn_*`); no mailbox, no `list_pending_questions` / `answer_agent`.
+**Phase 3:** a watcher that resumes a sleeping worker when a message lands on its
+dedicated channel (backlog).
 
 Each phase is independently useful and independently gated.
 
@@ -153,6 +138,5 @@ Each phase is independently useful and independently gated.
 Both are worth building; they're a real capability jump. Do **A first** — it's
 mostly a registry over session features PowerSpawn already captures, low risk, and
 immediately cuts token cost on repeated calls to the same worker. Then **B** in the
-poll-first order above, promoting to notifications once the notification path is
-confirmed. Ship each phase behind its own gate; keep the filesystem mailbox (not
-sockets) for portability.
+PowerChannel (B shipped in v1.12.0; the filesystem mailbox is dropped). Ship each
+phase behind its own gate.

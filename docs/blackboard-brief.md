@@ -1,6 +1,14 @@
 # Design brief: "powerboard", a local blackboard for coordinating AI agents across desktop apps
 
-Status: proposal, under review. Date: 2026-10-08. Owner: CynaCons (author of PowerSpawn, powerplan).
+> **Outcome (2026-11-22):** this brief became [PowerChannel](https://github.com/CynaCons/PowerChannel)
+> (`pip install powerchannel`), a separate MCP server: named channels in one local SQLite
+> file, with `channels`, `post` and a `read` that waits for the next message. PowerSpawn
+> uses it since v1.12.0 for worker channels and questions; see
+> [powerchannel.md](powerchannel.md). The leased state entries and the Stop-hook wake below
+> were not built as described: wake-ups are PowerSpawn's backlog "Phase 3" (resume a sleeping
+> worker when a message lands on its dedicated channel). Kept for its reasoning.
+
+Status: superseded by PowerChannel (see above). Originally a proposal, 2026-10-08. Owner: CynaCons (author of PowerSpawn, powerplan).
 
 ## 1. Problem
 

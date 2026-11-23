@@ -27,6 +27,7 @@ from ..proc import run_captured
 from ..paths import get_workspace_dir
 from .types import AgentResult
 from . import powerboard
+from .. import channel as powerchannel_link
 
 # Free endpoints drop connections or go briefly unavailable under load; such a
 # run produces no text.
@@ -55,20 +56,24 @@ def _parse_events(stdout: str) -> tuple[list[str], list[str]]:
     return texts, errors
 
 
-def _mcp_config(name: str) -> str:
-    """OpenCode config that gives the agent the powerboard MCP server under its own name."""
+def _mcp_config(name: Optional[str], channel: bool = False) -> str:
+    """OpenCode config with the powerboard MCP server under the agent's name (when `name`)
+    and the PowerChannel MCP server (when `channel`)."""
     base = {}
     if os.environ.get("OPENCODE_CONFIG_CONTENT"):
         try:
             base = json.loads(os.environ["OPENCODE_CONFIG_CONTENT"])
         except ValueError:
             base = {}
-    base.setdefault("mcp", {})["powerboard"] = {
-        "type": "local",
-        "command": powerboard.server_command(),
-        "environment": {"POWERBOARD_AGENT_NAME": name, "POWERNOTE_AGENT_NAME": name},
-        "enabled": True,
-    }
+    if name:
+        base.setdefault("mcp", {})["powerboard"] = {
+            "type": "local",
+            "command": powerboard.server_command(),
+            "environment": {"POWERBOARD_AGENT_NAME": name, "POWERNOTE_AGENT_NAME": name},
+            "enabled": True,
+        }
+    if channel:
+        base.setdefault("mcp", {})[powerchannel_link.SERVER_NAME] = powerchannel_link.opencode_entry()
     return json.dumps(base)
 
 
@@ -113,8 +118,11 @@ def spawn_opencode(
     )
     env = {**os.environ, "POWERBOARD_AGENT_NAME": name, "POWERNOTE_AGENT_NAME": name}
     full_prompt = prompt
+    worker = powerchannel_link.current_worker()
+    has_channel = bool(worker and worker.channel)
+    if card or has_channel:
+        env["OPENCODE_CONFIG_CONTENT"] = _mcp_config(name if card else None, channel=has_channel)
     if card:
-        env["OPENCODE_CONFIG_CONTENT"] = _mcp_config(name)
         full_prompt = powerboard.agent_brief(card) + prompt
 
     cmd = ["opencode", "run", "--standalone", "--auto", "--format", "json", "-m", resolved_model]

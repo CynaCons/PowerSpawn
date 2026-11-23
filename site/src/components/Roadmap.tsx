@@ -13,8 +13,11 @@ const roadmapItems = [
   { version: 'v1.7', title: 'AGENTS.md Context + Hang Hardening', desc: 'Universal worker context; subprocess timeout / tree kill', status: 'completed' },
   { version: 'v1.8', title: 'Grok Build CLI + Cursor', desc: 'spawn_grok via grok CLI; spawn_cursor; model alias registry', status: 'completed' },
   { version: 'v1.8.1', title: 'GPT-5.6 + Grok 4.5 Models', desc: 'Codex Sol/Terra/Luna; Cursor Grok 4.5 default; site MCP overview; pytest green', status: 'completed' },
-  { version: 'v1.9.0', title: 'Oct 2026 Model Refresh', desc: 'Claude 5.5 / Fable 5.1; Codex GPT-6 Astra/Sol/Luna; Grok 4.7; Gemini 3.8 Flash; Mistral Large 4', status: 'current' },
+  { version: 'v1.9.0', title: 'Oct 2026 Model Refresh', desc: 'Claude 5.5 / Fable 5.1; Codex GPT-6 Astra/Sol/Luna; Grok 4.7; Gemini 3.8 Flash; Mistral Large 4', status: 'completed' },
+  { version: 'v1.10', title: 'OpenCode + PowerBoard', desc: 'spawn_opencode with free models; live board cards; timeout and working_dir on every CLI spawn', status: 'completed' },
+  { version: 'v1.12.0', title: 'Workers on PowerChannel', desc: 'Unique worker names; optional feature or dedicated channel; questions while running; lifecycle posts mirrored to IAC.md', status: 'current' },
   // Upcoming
+  { version: 'next', title: 'Wake sleeping workers', desc: 'Resume a finished Claude, Codex or Cursor worker when a message lands on its dedicated channel', status: 'upcoming' },
   { version: 'v0.7', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
   { version: 'v0.8', title: 'Reusable Contexts', desc: 'Spawn agents with previous session I/O. Chain agent generations with full context history in IAC', status: 'upcoming' },
   { version: 'v1.0', title: 'Stable Release', desc: 'Production-ready with full documentation', status: 'upcoming' },

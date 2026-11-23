@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.11.2
+MCP Agent Spawner Server v1.12.0
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,6 +17,21 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.12.0:
+  - PowerChannel integration (optional; `pip install "powerspawn[channel]"`).
+    Every spawn_* takes `name` (unique agent name, default <cli>-<4 hex>), and
+    the Claude, Codex, Copilot, Cursor, Gemini CLI and OpenCode spawns take
+    `channel` (a feature channel, or "dedicated" for dm-<name>). With a channel
+    the worker gets the PowerChannel MCP for that run only, a brief (read once,
+    post results and questions, ask-and-wait limits), and PowerSpawn posts
+    started / finished / failed / timed out as "powerspawn", mirrored into
+    IAC.md. list and result show name and channel. Guide: docs/powerchannel.md.
+  - spawn_cursor and spawn_gemini_cli pass the prompt on stdin (a multi-line
+    prompt passed as an argument lost every flag after its first newline on
+    Windows). spawn_gemini_cli exposes timeout and working_dir.
+  - IAC.md: a failure whose error holds backslashes (Windows paths) no longer
+    crashes the logger (re.sub "bad escape" error).
+  - MCP server instructions describe spawning, results and channels.
 Changelog v1.11.2:
   - Board cards no longer get skipped when PowerSpawn starts the board hub
     itself (standalone PowerBoard on 41778): "No PowerBoard/PowerScroll ... is
@@ -78,6 +93,7 @@ Changelog v1.7.1:
 """
 
 import asyncio
+import inspect
 import json
 import sys
 import threading
@@ -98,13 +114,14 @@ from .providers import (
     spawn_opencode,
 )
 from .providers.availability import verify_providers_availability
+from .channel import ChannelError, make_worker, worker_scope
 
 # Ensure UTF-8 encoding on Windows
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.11.2"
+SERVER_VERSION = "1.12.0"
 
 try:
     from mcp.server import Server
@@ -116,7 +133,75 @@ except ImportError:
     print("ERROR: MCP SDK not installed. Run: pip install mcp", file=sys.stderr)
     sys.exit(1)
 
-server = Server("powerspawn")
+INSTRUCTIONS = """\
+PowerSpawn spawns CLI coding agents (Claude, Codex, Copilot, Cursor, Gemini CLI, Grok, OpenCode)
+and API agents (Grok API, Gemini, Mistral) as workers, and logs every spawn and result to IAC.md.
+
+- spawn_* returns an agent_id at once; the worker runs in the background. Collect it with
+  result(agent_id), list, or wait_for_agents. Check the work yourself: a worker's report is a claim.
+- The prompt is the worker's whole context: paste the task, the files it may touch, how to check
+  its work, and the report you want back.
+- Every spawn gets a unique agent name (pass `name`, or get a generated one like codex-3f9a),
+  shown in the spawn response, list, result and IAC.md.
+
+Channels (optional; need PowerChannel in the Python that runs PowerSpawn:
+  uvx --from "powerspawn[channel]" powerspawn, pipx inject powerspawn powerchannel, or
+  <that python> -m pip install powerchannel; the spawn error names that Python)
+- Without `channel` a worker joins no channel. channel="<name>" (e.g. "release") puts it on a
+  shared feature channel; channel="dedicated" gives it its own channel, dm-<worker name>.
+- With a channel, the worker gets the PowerChannel tools for that run and a short brief: read
+  once, post results and questions there, start questions with "@coordinator:", wait for answers
+  with read(wait_seconds=...). PowerSpawn posts started / finished / failed / timed out there as
+  "powerspawn", and mirrors the worker's conversation into its IAC.md entry.
+- To watch and answer, use your own PowerChannel tools under a name of your own (not
+  "powerspawn"; call `channels` first and pick names, yours and the workers', not active there):
+  read(me=<you>, channel=<channel>, wait_seconds=600), then
+  post(me=<you>, channel=<channel>, message="@<worker name>: ..."). Use a shorter wait if your
+  app stops tool calls sooner (Cursor: 50, Gemini CLI: 540; Codex needs tool_timeout_sec=43200).
+  While a channel worker runs, wait with read, not wait_for_agents, or its questions go unanswered.
+- A worker waits for one answer about (timeout - 120) / 2 seconds, at least 60; the spawn
+  response shows it as worker_waits_up_to_seconds. To give yourself N seconds to answer, pass
+  timeout >= 2N + 120 (Gemini CLI's default 300 gives only 90). With several workers, answer
+  within the smallest of their budgets.
+- Channels work for spawn_claude, spawn_codex, spawn_copilot, spawn_cursor, spawn_gemini_cli
+  and spawn_opencode. spawn_grok and the API agents return an error if given a channel.
+- Full guide: https://github.com/CynaCons/powerspawn/blob/main/docs/powerchannel.md
+"""
+
+server = Server("powerspawn", instructions=INSTRUCTIONS)
+
+# Spawn tools whose CLI can take the PowerChannel MCP server for one run.
+CHANNEL_TOOLS = {"spawn_claude", "spawn_codex", "spawn_copilot", "spawn_cursor",
+                 "spawn_gemini_cli", "spawn_opencode"}
+
+NAME_SCHEMA = {
+    "type": "string",
+    "description": ("Unique agent name for this worker: its name on PowerChannel and in list, result and "
+                    "IAC.md. 1-64 lowercase letters, digits, '.', '_' or '-', starting with a letter or digit; "
+                    "'human' and 'powerspawn' are reserved; must differ from every running worker's name. "
+                    "Default: generated as <cli>-<4 hex>, e.g. codex-3f9a."),
+}
+CHANNEL_SCHEMA = {
+    "type": "string",
+    "description": ("PowerChannel channel for this worker (needs PowerChannel installed). Omit it and the worker "
+                    "joins no channel. A channel name such as 'release': the worker joins that shared feature "
+                    "channel. 'dedicated': the worker gets a channel of its own, named dm-<name>. With a channel, "
+                    "the worker gets the PowerChannel tools for this run and a brief with its name and channel, "
+                    "and PowerSpawn posts started / finished / failed / timed out there as 'powerspawn'. Watch "
+                    "and answer with your own PowerChannel read and post."),
+}
+
+
+def _with_channel_args(tools: list) -> list:
+    """Add `name` to every spawn tool and `channel` to those whose CLI supports it."""
+    for tool in tools:
+        if not tool.name.startswith("spawn_"):
+            continue
+        props = tool.inputSchema.setdefault("properties", {})
+        props["name"] = dict(NAME_SCHEMA)
+        if tool.name in CHANNEL_TOOLS:
+            props["channel"] = dict(CHANNEL_SCHEMA)
+    return tools
 
 # =============================================================================
 # TOOL DEFINITIONS
@@ -124,7 +209,7 @@ server = Server("powerspawn")
 
 @server.list_tools()
 async def list_tools() -> list[Tool]:
-    return [
+    return _with_channel_args([
         Tool(
             name="spawn_claude",
             description="Spawn Claude CLI agent. Context: AGENTS.md (injected as the shared worker briefing) + CLAUDE.md (CLI auto-load).",
@@ -181,6 +266,8 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("gemini-cli")},
+                    "timeout": {"type": "integer", "default": 300},
+                    "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "yolo": {"type": "boolean", "default": False, "description": "Auto-approve all actions (YOLO mode)."}
                 }
             }
@@ -213,7 +300,7 @@ async def list_tools() -> list[Tool]:
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "description": "Alias (" + ", ".join(settings.get_model_list("opencode")) + ") or any OpenCode provider/model id."},
                     "timeout": {"type": "integer", "default": 900},
-                    "agent_name": {"type": "string", "description": "Name on the board, e.g. 'oc-seo-1' (default: oc-<model>-<hex>)."},
+                    "agent_name": {"type": "string", "description": "Older name for `name` (the agent's name on the board and on PowerChannel); `name` wins when both are given."},
                     "task_summary": {"type": "string", "description": "Card title (default: first line of the prompt)."},
                     "board": {"type": "string", "description": "Board id or title (default: POWERBOARD_BOARD, else POWERSCROLL_BOARD, else the first board)."},
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
@@ -222,7 +309,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="spawn_grok",
-            description="Spawn Grok CLI agent (Grok Build, requires 'grok' on PATH + grok login). Headless single-turn; without force it runs in plan mode (proposes, no writes).",
+            description="Spawn Grok CLI agent (Grok Build, requires 'grok' on PATH + grok login). Headless single-turn; without force it runs in plan mode (proposes, no writes). No `channel`: the Grok CLI has no per-run MCP option in headless mode.",
             inputSchema={
                 "type": "object",
                 "required": ["prompt"],
@@ -277,12 +364,12 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="list",
-            description="List running agents.",
+            description="List running agents (id, seconds, type, name, channel) and the last completed ones.",
             inputSchema={"type": "object", "properties": {}}
         ),
         Tool(
             name="result",
-            description="Get agent result.",
+            description="Get an agent's result, with its name and channel.",
             inputSchema={
                 "type": "object",
                 "required": ["agent_id"],
@@ -304,7 +391,7 @@ async def list_tools() -> list[Tool]:
             description="Check which spawn_* providers can run here (CLI on PATH, API key set), with install links for missing ones.",
             inputSchema={"type": "object", "properties": {}}
         )
-    ]
+    ])
 
 # =============================================================================
 # TOOL HANDLERS
@@ -350,33 +437,67 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             "error_type": type(e).__name__
         }, indent=2))]
 
+def _default_timeout(spawn_func) -> Any:
+    param = inspect.signature(spawn_func).parameters.get("timeout")
+    return param.default if param is not None else None
+
+
 async def handle_spawn(args: dict, agent_type: str, spawn_func) -> list[TextContent]:
     """Generic handler for all spawn functions."""
+    args = dict(args)
     prompt = args["prompt"]
     model = args.get("model")
-    
+    name = args.pop("name", None)
+    channel = args.pop("channel", None)
+    if agent_type == "opencode":
+        name = name or args.get("agent_name")
+
+    # The worker's unique name and optional PowerChannel channel. Errors here are
+    # the coordinator's to fix, so they come back before anything starts.
+    try:
+        worker = make_worker(
+            agent_type, name=name, channel=channel,
+            timeout=args.get("timeout") or _default_timeout(spawn_func),
+            task=prompt, names_in_use=agent_manager.names_in_use(),
+        )
+    except ChannelError as e:
+        return [TextContent(type="text", text=json.dumps({
+            "success": False, "error": str(e), "error_type": "ChannelError"}, indent=2))]
+
+    if agent_type == "opencode":
+        args["agent_name"] = worker.name
+    if worker.channel:
+        args["prompt"] = worker.brief() + prompt
+        params = inspect.signature(spawn_func).parameters
+        if "task_summary" in params and not args.get("task_summary") and worker.task:
+            args["task_summary"] = worker.task  # IAC.md title: the task, not the brief
+
     # Register intent to start
-    agent_id = agent_manager.register_start(agent_type, model or "default", prompt)
-    
+    agent_id = agent_manager.register_start(agent_type, model or "default", prompt,
+                                            name=worker.name, channel=worker.channel)
+
     def run_wrapper():
         try:
-            # Call the specific provider function with passed args
-            # Using **args to pass optional params like system_prompt, timeout etc.
-            result = spawn_func(**args)
-            
+            # The worker belongs to this thread: providers add the PowerChannel MCP
+            # server from it; the logger posts started/finished and mirrors to IAC.md.
+            with worker_scope(worker):
+                result = spawn_func(**args)
+
             # Register completion
             agent_manager.register_complete(agent_id, {
                 "success": result.success,
                 "result": result.text,
                 "cost_usd": result.cost_usd,
                 "error": result.error,
-                "usage": result.usage
+                "usage": result.usage,
+                **worker.summary(),
             })
         except Exception as e:
             agent_manager.register_complete(agent_id, {
                 "success": False,
                 "result": "",
-                "error": str(e)
+                "error": str(e),
+                **worker.summary(),
             })
 
     # Start background thread
@@ -384,39 +505,52 @@ async def handle_spawn(args: dict, agent_type: str, spawn_func) -> list[TextCont
     agent_manager.register_thread(agent_id, thread)
     thread.start()
 
-    return [TextContent(type="text", text=json.dumps({
+    response = {
         "agent_id": agent_id,
         "agent_type": agent_type,
+        "name": worker.name,
+        "channel": worker.channel,
         "status": "running",
-        "message": f"{agent_type} agent spawned."
-    }, indent=2))]
+        "message": f"{agent_type} agent spawned as {worker.name}.",
+    }
+    if worker.channel:
+        response["message"] += (f" It is on channel {worker.channel}; PowerSpawn posts its start and "
+                                "finish there. Its questions to you start with @coordinator:. Watch with "
+                                "read (not wait_for_agents) so you can answer.")
+        response["worker_waits_up_to_seconds"] = worker.answer_budget
+        response["watch"] = (f'read(me="<your name>", channel="{worker.channel}", wait_seconds=600); '
+                             f'answer with post(me="<your name>", channel="{worker.channel}", '
+                             f'message="@{worker.name}: ...")')
+    return [TextContent(type="text", text=json.dumps(response, indent=2))]
 
 async def handle_list() -> list[TextContent]:
     running = agent_manager.get_running_list()
-    recent = agent_manager.get_recent_completed_ids()
+    recent = agent_manager.get_recent_completed()
     return [TextContent(type="text", text=json.dumps({
         "running": running,
-        "completed_ids": recent,
+        "completed": recent,
         "tip": "Use wait_for_agents() to block until done"
     }))]
 
 async def handle_result(args: dict) -> list[TextContent]:
     agent_id = args["agent_id"]
-    
+
     # Check completed
     res = agent_manager.get_result(agent_id)
     if res:
         return [TextContent(type="text", text=json.dumps(res, indent=2, ensure_ascii=False))]
-        
+
     # Check running
     info = agent_manager.get_running_info(agent_id)
     if info:
         return [TextContent(type="text", text=json.dumps({
             "agent_id": agent_id,
+            "name": info.get("name"),
+            "channel": info.get("channel"),
             "status": "running",
             "message": "Agent still running."
         }, indent=2))]
-        
+
     return [TextContent(type="text", text=json.dumps({
         "status": "not_found",
         "message": "No agent found with this ID."
@@ -437,6 +571,7 @@ async def main():
         init_options = InitializationOptions(
             server_name="powerspawn",
             server_version=SERVER_VERSION,
+            instructions=INSTRUCTIONS,
             capabilities=server.get_capabilities(
                 notification_options=NotificationOptions(),
                 experimental_capabilities={},

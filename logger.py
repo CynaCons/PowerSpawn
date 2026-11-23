@@ -17,6 +17,7 @@ v1.6.0: Merged CONTEXT.md into IAC.md (Inter Agent Context pattern)
 v1.6.1: Added agent_type (CLI/API) to IAC.md logging
 v1.6.2: Increased MAX_IAC_ENTRIES from 15 to 50
 v1.6.3: Increased MAX_IAC_ENTRIES from 50 to 200
+v1.12.0: Worker name and PowerChannel channel on each entry; channel posts mirrored
 """
 
 import re
@@ -229,8 +230,11 @@ class AgentLogger:
             import re
             # Match: - [ ] ⏳ **Running** | `#spawn_id` | rest of line
             old_pattern = rf"- \[ \] ⏳ \*\*Running\*\* \| `#{spawn_id}` \| ([^\n]+)"
-            new_line = f"{new_checkbox} | `#{spawn_id}` | \\1"
-            content = re.sub(old_pattern, new_line, content)
+            # A function replacement: error text with backslashes (Windows paths) must
+            # not be read as regex escapes ("bad escape \U").
+            content = re.sub(old_pattern,
+                             lambda m: f"{new_checkbox} | `#{spawn_id}` | {m.group(1)}",
+                             content)
 
             # Replace result placeholder with actual result
             result_placeholder = f"<!-- RESULT_{spawn_id} -->"
@@ -296,8 +300,17 @@ class AgentLogger:
         # Use 4 backticks as fence if prompt contains triple backticks
         fence = "````" if "```" in prompt else "```"
 
+        # The worker's PowerChannel identity (set by the MCP server per spawn thread).
+        from .channel import current_worker
+        worker = current_worker()
+        who = f" | Name: `{worker.name}`" if worker else ""
+        if worker and worker.channel:
+            who += f" | Channel: `#{worker.channel}`"
+        channel_block = (f"\n**📣 Channel `#{worker.channel}`** (posts during this run)\n\n"
+                         f"<!-- CHANNEL_{spawn_id} -->\n") if worker and worker.channel else ""
+
         iac_entry = f"""### 🤖 {task_summary}
-- [ ] ⏳ **Running** | `#{spawn_id}` | {agent} ({model}) [{agent_type}] | {now_time()} | Tools: {tools_str}
+- [ ] ⏳ **Running** | `#{spawn_id}` | {agent} ({model}) [{agent_type}] | {now_time()} | Tools: {tools_str}{who}
 
 <details>
 <summary>📥 Input ({len(prompt)} chars)</summary>
@@ -307,7 +320,7 @@ class AgentLogger:
 {fence}
 
 </details>
-
+{channel_block}
 <!-- RESULT_{spawn_id} -->
 
 ---"""
@@ -359,6 +372,17 @@ class AgentLogger:
         # Refresh IAC.md header to update active agents table
         self._refresh_iac_header()
 
+    def append_channel_lines(self, spawn_id: str, lines: list[str]):
+        """Mirror PowerChannel messages into the spawn's IAC.md entry (thread-safe)."""
+        marker = f"<!-- CHANNEL_{spawn_id} -->"
+        with _file_lock:
+            content = self._read_iac()
+            if marker not in content:
+                return
+            block = "\n".join(lines)
+            content = content.replace(marker, f"{block}\n{marker}", 1)
+            self.iac_path.write_text(content, encoding='utf-8')
+
     def _refresh_iac_header(self):
         """Refresh the IAC.md header (active agents table) without touching entries."""
         with _file_lock:
@@ -387,8 +411,17 @@ def log_spawn_start(
     task_summary: Optional[str] = None,
     agent_type: str = "CLI",
 ) -> str:
-    """Log the start of an agent spawn. Returns spawn_id."""
-    return get_logger().log_spawn_start(agent, model, prompt, tools, task_summary, agent_type)
+    """Log the start of an agent spawn. Returns spawn_id.
+
+    When the spawn has a PowerChannel worker (see channel.py), also posts its
+    `started` notice and mirrors it into IAC.md.
+    """
+    spawn_id = get_logger().log_spawn_start(agent, model, prompt, tools, task_summary, agent_type)
+    from .channel import current_worker
+    worker = current_worker()
+    if worker is not None:
+        worker.on_start(spawn_id, model)
+    return spawn_id
 
 
 def log_spawn_complete(
@@ -403,3 +436,7 @@ def log_spawn_complete(
     get_logger().log_spawn_complete(
         spawn_id, success, result_text, duration_seconds, cost_usd, error
     )
+    from .channel import current_worker
+    worker = current_worker()
+    if worker is not None and worker.spawn_id == spawn_id:
+        worker.on_finish(success, result_text, duration_seconds, error)

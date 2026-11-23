@@ -2,6 +2,7 @@ import { Hero } from './components/Hero'
 import { Features } from './components/Features'
 import { McpOverview } from './components/McpOverview'
 import { HowItWorks } from './components/HowItWorks'
+import { PowerChannel } from './components/PowerChannel'
 import { Comparison } from './components/Comparison'
 import { Roadmap } from './components/Roadmap'
 import { QuickStart } from './components/QuickStart'
@@ -14,6 +15,7 @@ function App() {
       <Features />
       <McpOverview />
       <HowItWorks />
+      <PowerChannel />
       <Comparison />
       <Roadmap />
       <QuickStart />

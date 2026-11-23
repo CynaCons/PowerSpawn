@@ -12,6 +12,7 @@ from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
 from ..proc import run_captured
 from .types import AgentResult
+from .. import channel as powerchannel_link
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -47,8 +48,10 @@ def spawn_gemini_cli(
         agent_type="CLI"
     )
     
-    # gemini [query] --model <m> --yolo
-    cmd = ["gemini", prompt]
+    # gemini --model <m> [--yolo], prompt on stdin (non-interactive when stdin isn't a TTY).
+    # As a positional argument, a multi-line prompt is cut at its first newline by
+    # cmd.exe on Windows, taking every flag after it along.
+    cmd = ["gemini"]
     
     # Always use the resolved model (default or user-provided)
     cmd.extend(["--model", resolved_model])
@@ -61,9 +64,11 @@ def spawn_gemini_cli(
     try:
         # Hardened run: output to temp files (no pipe-EOF drain hang),
         # process-tree kill on timeout. See powerspawn/proc.py.
-        returncode, output_text, error_text, timed_out = run_captured(
-            cmd, cwd=cwd, timeout=timeout,
-        )
+        # PowerChannel MCP for this run only (GEMINI_CLI_SYSTEM_DEFAULTS_PATH).
+        with powerchannel_link.mcp_injection("gemini_cli", cwd) as inj:
+            returncode, output_text, error_text, timed_out = run_captured(
+                cmd + inj.args, cwd=cwd, timeout=timeout, stdin_text=prompt, env=inj.environ(),
+            )
 
         duration = time.time() - start_time
 

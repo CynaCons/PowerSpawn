@@ -12,6 +12,7 @@ from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
 from ..proc import run_captured
 from .types import AgentResult
+from .. import channel as powerchannel_link
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -60,9 +61,11 @@ def spawn_copilot(
     try:
         # Prompt via stdin (avoids Windows command line length limits). Hardened
         # run: output to temp files, process-tree kill on timeout. See proc.py.
-        returncode, output_text, error_text, timed_out = run_captured(
-            cmd, cwd=cwd, timeout=timeout, stdin_text=prompt,
-        )
+        # PowerChannel MCP for this run only, when the spawn has a channel.
+        with powerchannel_link.mcp_injection("copilot", cwd) as inj:
+            returncode, output_text, error_text, timed_out = run_captured(
+                cmd + inj.args, cwd=cwd, timeout=timeout, stdin_text=prompt, env=inj.environ(),
+            )
 
         duration = time.time() - start_time
 

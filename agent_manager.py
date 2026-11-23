@@ -20,18 +20,24 @@ class AgentManager:
         self._events: Dict[str, threading.Event] = {}  # Events for sync
         self._max_completed = max_completed
 
-    def register_start(self, agent_type: str, model: str, task: str) -> str:
-        """Register a new agent start. Returns agent_id."""
+    def register_start(self, agent_type: str, model: str, task: str,
+                       name: Optional[str] = None, channel: Optional[str] = None) -> str:
+        """Register a new agent start. Returns agent_id.
+
+        `name` is the worker's unique agent name, `channel` its PowerChannel channel (or None).
+        """
         agent_id = uuid.uuid4().hex[:8]
         now_iso = datetime.now(timezone.utc).isoformat().split('.')[0]
-        
+
         with self._lock:
             self._running[agent_id] = {
                 "agent_id": agent_id,
                 "agent_type": agent_type,
                 "model": model,
                 "started_at": now_iso,
-                "task": task[:100].replace('\n', ' ')
+                "task": task[:100].replace('\n', ' '),
+                "name": name,
+                "channel": channel,
             }
             self._events[agent_id] = threading.Event()
             
@@ -53,6 +59,8 @@ class AgentManager:
                     result_data["started_at"] = info["started_at"]
                 if "task" not in result_data:
                     result_data["task"] = info["task"]
+                for key in ("agent_type", "model", "name", "channel"):
+                    result_data.setdefault(key, info.get(key))
             
             # Ensure ID matches
             result_data["agent_id"] = agent_id
@@ -84,7 +92,11 @@ class AgentManager:
                     elapsed = int((now - start).total_seconds())
                 except Exception:
                     pass
-                results.append({"id": aid, "sec": elapsed, "type": info.get("agent_type")})
+                entry = {"id": aid, "sec": elapsed, "type": info.get("agent_type"),
+                         "name": info.get("name")}
+                if info.get("channel"):
+                    entry["channel"] = info["channel"]
+                results.append(entry)
         return results
         
     def get_recent_completed_ids(self, limit: int = 3) -> List[str]:
@@ -96,6 +108,23 @@ class AgentManager:
         with self._lock:
             return self._completed.get(agent_id)
             
+    def names_in_use(self) -> frozenset:
+        """Names of the workers still running in this PowerSpawn process."""
+        with self._lock:
+            return frozenset(i["name"] for i in self._running.values() if i.get("name"))
+
+    def get_recent_completed(self, limit: int = 3) -> List[Dict[str, Any]]:
+        """id, name and channel of the most recently completed agents."""
+        with self._lock:
+            items = list(self._completed.values())[-limit:]
+        out = []
+        for r in items:
+            entry = {"id": r.get("agent_id"), "name": r.get("name"), "success": r.get("success")}
+            if r.get("channel"):
+                entry["channel"] = r["channel"]
+            out.append(entry)
+        return out
+
     def get_running_info(self, agent_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
             return self._running.get(agent_id)

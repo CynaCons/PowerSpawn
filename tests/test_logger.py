@@ -254,3 +254,14 @@ def test_global_logger_functions(tmp_path):
         content = iac_file.read_text(encoding='utf-8')
         assert "Global task" in content
         assert "Done" in content or "✅" in content
+
+
+def test_failure_with_windows_path_in_error(tmp_path):
+    """An error holding backslashes (a Windows path) is logged verbatim, not read as regex escapes."""
+    with patch("powerspawn.logger.get_output_dir", return_value=tmp_path):
+        logger = AgentLogger()
+        logger.agents_dir = tmp_path
+        logger.iac_path = tmp_path / "IAC.md"
+        sid = logger.log_spawn_start(agent="Gemini", model="m", prompt="p", tools=[])
+        logger.log_spawn_complete(sid, False, "", 1.0, error=r"bad path C:\Users\x\dev")
+        assert r"C:\Users\x\dev" in logger.iac_path.read_text(encoding="utf-8")

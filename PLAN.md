@@ -241,7 +241,8 @@
 
 **TASK COMPLETE - 2026-06-01 session**
 All model updates, docs, smoke verified. Git changes ready for review (models.json + 10+ files touched).
-### v1.9.0 — Model refresh (Oct 2026) (current) (ACTIVE)
+
+### v1.9.0 — Model refresh (Oct 2026)
 **Goal:** Bring every provider's models.json aliases/defaults in line with the Oct 2026 lineups (Claude 5.x, GPT-6, Grok 4.7, Gemini 3.8 Flash, Mistral Large 4) and drop retired ids.
 - [x] Research current lineups (official docs + local CLI caches)
 - [x] Update models.json (all 9 provider sections)
@@ -256,5 +257,33 @@ All model updates, docs, smoke verified. Git changes ready for review (models.js
 - [x] Codex: no --model unless requested (account default); sol/codex/default -> gpt-6.1-sol; Codex CLI updated 0.154 -> 0.161 (969bbee, CI green)
 - [x] Use powerplan 0.9.0: .mcp.json -> python -m powerplan, powerplan-mcp>=0.9 in dev extras, submodule at v0.9.0 (handshake shows the turn-end instructions; 48 tests pass)
 - [x] verify_providers_availability fixed (package import, current provider names, Cursor) and exposed as MCP tool; grok_cli.py draft deleted; plan, docs and timeout probe committed (b4724cf, 51 tests)
+
+## v1.12 — PowerChannel integration
+
+### v1.12.0 — Spawn workers into PowerChannel channels (current) (ACTIVE)
+**Goal:** Workers get unique names and optionally join a PowerChannel channel to report and ask questions (2026-11-22).
+- [x] Give every spawned worker a unique, addressable PowerChannel name [agent: claude]
+- [x] Add optional channel argument with feature and dedicated channel modes [agent: claude]
+- [x] Inject the PowerChannel MCP server per run for each CLI [agent: claude]
+- [x] Brief the worker on its name, channel and channel rules [agent: claude]
+- [x] Post started, finished and failed lifecycle messages as powerspawn [agent: claude]
+- [x] Mirror channel posts and traffic into the worker's IAC.md entry [agent: claude]
+- [x] Make PowerChannel an optional extra with a clear install error [agent: claude]
+- [x] Show worker name and channel in list and result [agent: claude]
+- [x] Replace the ask_coordinator mailbox with channel questions in the design doc [agent: claude]
+- [x] Close the Blackboard backlog item and point its brief at PowerChannel [agent: claude]
+- [x] Add the Phase 3 sleeping-worker resume watcher to the backlog [agent: claude]
+- [x] Write the docs/powerchannel.md guide for coordinators and workers [agent: claude]
+- [x] Update README, tool descriptions and server instructions for channels [agent: claude]
+- [x] Run two cold review rounds on the docs and fix findings [agent: claude]
+- [x] Add a PowerChannel section with a diagram to the website [agent: claude]
+- [x] Bump the version to 1.12.0 in package, server.json and site [agent: claude]
+- [x] Run the tests and a live Claude and Codex channel check [agent: claude]
+- [ ] Commit, push, tag v1.12.0 and watch publish and deploy runs
+- [x] Smoke test: MCP server starts and site builds with zero console errors [agent: claude]
+
 ## Future (Backlog)
-- [ ] Blackboard for cross-app agent coordination (Claude Code / Codex Desktop / Cursor / Claude Desktop): boards with message streams + leased state entries, blocking wait, Stop-hook wake. Timeout probe at experiments/timeout_probe (CLI results: Claude Code 150s ok, Codex 0.154 90s ok w/o tool_timeout_sec, Cursor CLI cut at 60s). Pending: desktop app probe runs, single- vs multi-machine decision, PowerSpawn vs separate server.
+- [x] Superseded by PowerChannel in v1.12.0: Blackboard for cross-app agent coordination (Claude Code / Codex Desktop / Cursor / Claude Desktop): boards with message streams + leased state entries, blocking wait, Stop-hook wake. Timeout probe at experiments/timeout_probe (CLI results: Claude Code 150s ok, Codex 0.154 90s ok w/o tool_timeout_sec, Cursor CLI cut at 60s). Pending: desktop app probe runs, single- vs multi-machine decision, PowerSpawn vs separate server.
+- [ ] Phase 3: watcher resumes a sleeping worker when its dedicated channel gets a message
+- [ ] Grok channel support through grok agent stdio and --plugin-dir
+- [ ] Measure Copilot and OpenCode MCP tool-call limits for channel waits

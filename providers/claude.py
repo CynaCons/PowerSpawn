@@ -13,6 +13,7 @@ from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
 from ..proc import run_captured
 from ..context import inject_agents_context
+from .. import channel as powerchannel_link
 from .types import AgentResult
 
 IS_WINDOWS = sys.platform == "win32"
@@ -92,9 +93,11 @@ def spawn_claude(
     try:
         # Hardened run: prompt via stdin, output to temp files (no pipe-EOF
         # drain hang), process-tree kill on timeout. See powerspawn/proc.py.
-        returncode, stdout_text, stderr_text, timed_out = run_captured(
-            cmd, cwd=cwd, timeout=timeout, stdin_text=prompt,
-        )
+        # PowerChannel MCP for this run only, when the spawn has a channel.
+        with powerchannel_link.mcp_injection("claude", cwd) as inj:
+            returncode, stdout_text, stderr_text, timed_out = run_captured(
+                cmd + inj.args, cwd=cwd, timeout=timeout, stdin_text=prompt, env=inj.environ(),
+            )
 
         duration = time.time() - start_time
 

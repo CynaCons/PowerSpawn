@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "CynaCons" }]
-keywords = ["mcp", "agents", "multi-agent", "orchestration", "claude", "codex", "copilot", "grok", "gemini"]
+keywords = ["mcp", "agents", "multi-agent", "orchestration", "powerchannel", "claude", "codex", "copilot", "grok", "gemini"]
 dependencies = [
   "mcp>=1.0.0,<2",  # 2.x dropped the Server decorator API used here
 ]
@@ -23,7 +23,9 @@ api = [
   "google-genai>=1.0.0",
   "mistralai>=1.0.0",
 ]
-dev = ["pytest>=8.0", "powerplan-mcp>=0.9"]  # powerplan: the PLAN.md MCP in .mcp.json
+# PowerChannel: spawn_* `channel` (workers post and ask questions on named channels)
+channel = ["powerchannel>=0.5"]
+dev = ["pytest>=8.0", "powerplan-mcp>=0.9", "powerchannel>=0.5"]  # powerplan: the PLAN.md MCP in .mcp.json
 
 [project.scripts]
 powerspawn = "powerspawn.mcp_server:run"

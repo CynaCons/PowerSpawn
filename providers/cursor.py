@@ -17,6 +17,7 @@ from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
 from ..proc import run_captured
 from .types import AgentResult
+from .. import channel as powerchannel_link
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -59,8 +60,10 @@ def spawn_cursor(
         agent_type="CLI"
     )
 
-    # cursor-agent -p "<prompt>" --model <m> --output-format text [--force]
-    cmd = [CURSOR_BIN, "-p", prompt, "--model", resolved_model, "--output-format", "text"]
+    # cursor-agent -p --model <m> --output-format text [--force], prompt on stdin.
+    # (As an argument, a multi-line prompt is cut at its first newline by cmd.exe on
+    # Windows, taking every flag after it along, and long prompts hit the 8 KB limit.)
+    cmd = [CURSOR_BIN, "-p", "--model", resolved_model, "--output-format", "text"]
 
     if force:
         cmd.append("--force")
@@ -70,9 +73,11 @@ def spawn_cursor(
     try:
         # Hardened run: output to temp files (no pipe-EOF drain hang),
         # process-tree kill on timeout. See powerspawn/proc.py.
-        returncode, output_text, error_text, timed_out = run_captured(
-            cmd, cwd=cwd, timeout=timeout,
-        )
+        # PowerChannel MCP for this run only (<cwd>/.cursor/mcp.json + --approve-mcps --trust).
+        with powerchannel_link.mcp_injection("cursor", cwd) as inj:
+            returncode, output_text, error_text, timed_out = run_captured(
+                cmd + inj.args, cwd=cwd, timeout=timeout, stdin_text=prompt, env=inj.environ(),
+            )
 
         duration = time.time() - start_time
 

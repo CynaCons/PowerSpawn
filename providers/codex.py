@@ -15,6 +15,7 @@ from ..logger import log_spawn_start, log_spawn_complete
 from ..config import settings
 from ..proc import kill_process_tree
 from .types import AgentResult
+from .. import channel as powerchannel_link
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -52,6 +53,11 @@ def _parse_codex_event(line: str) -> Optional[CodexEvent]:
     except json.JSONDecodeError:
         return None
 
+def _has_channel() -> bool:
+    worker = powerchannel_link.current_worker()
+    return bool(worker and worker.channel)
+
+
 def _spawn_codex_stream(
     prompt: str,
     model: str,
@@ -60,6 +66,8 @@ def _spawn_codex_stream(
     timeout: int
 ) -> Iterator[CodexEvent]:
     cmd = ["codex", "exec", "--json"]
+    # PowerChannel MCP for this run only, when the spawn has a channel.
+    cmd.extend(powerchannel_link.codex_args() if _has_channel() else [])
     if model:
         cmd.extend(["--model", model])
         
