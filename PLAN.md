@@ -279,8 +279,9 @@ All model updates, docs, smoke verified. Git changes ready for review (models.js
 - [x] Add a PowerChannel section with a diagram to the website [agent: claude]
 - [x] Bump the version to 1.12.0 in package, server.json and site [agent: claude]
 - [x] Run the tests and a live Claude and Codex channel check [agent: claude]
-- [ ] Commit, push, tag v1.12.0 and watch publish and deploy runs
+- [x] Commit, push, tag v1.12.0 and watch publish and deploy runs [agent: claude]
 - [x] Smoke test: MCP server starts and site builds with zero console errors [agent: claude]
+- [ ] Owner adds PyPI trusted publisher for powerspawn, then re-run Publish
 
 ## Future (Backlog)
 - [x] Superseded by PowerChannel in v1.12.0: Blackboard for cross-app agent coordination (Claude Code / Codex Desktop / Cursor / Claude Desktop): boards with message streams + leased state entries, blocking wait, Stop-hook wake. Timeout probe at experiments/timeout_probe (CLI results: Claude Code 150s ok, Codex 0.154 90s ok w/o tool_timeout_sec, Cursor CLI cut at 60s). Pending: desktop app probe runs, single- vs multi-machine decision, PowerSpawn vs separate server.
