@@ -15,7 +15,8 @@ const roadmapItems = [
   { version: 'v1.8.1', title: 'GPT-5.6 + Grok 4.5 Models', desc: 'Codex Sol/Terra/Luna; Cursor Grok 4.5 default; site MCP overview; pytest green', status: 'completed' },
   { version: 'v1.9.0', title: 'Oct 2026 Model Refresh', desc: 'Claude 5.5 / Fable 5.1; Codex GPT-6 Astra/Sol/Luna; Grok 4.7; Gemini 3.8 Flash; Mistral Large 4', status: 'completed' },
   { version: 'v1.10', title: 'OpenCode + PowerBoard', desc: 'spawn_opencode with free models; live board cards; timeout and working_dir on every CLI spawn', status: 'completed' },
-  { version: 'v1.12.0', title: 'Workers on PowerChannel', desc: 'Unique worker names; optional feature or dedicated channel; questions while running; lifecycle posts mirrored to IAC.md', status: 'current' },
+  { version: 'v1.12.0', title: 'Workers on PowerChannel', desc: 'Unique worker names; optional feature or dedicated channel; questions while running; lifecycle posts mirrored to IAC.md', status: 'completed' },
+  { version: 'v1.13.0', title: 'No Spawn Time Limit', desc: 'CLI workers run until done by default (POWERSPAWN_TIMEOUT to cap them); Grok edits by default and is judged from its JSON result', status: 'current' },
   // Upcoming
   { version: 'next', title: 'Wake sleeping workers', desc: 'Resume a finished Claude, Codex or Cursor worker when a message lands on its dedicated channel', status: 'upcoming' },
   { version: 'v0.7', title: 'MCP Registry', desc: 'Submit to official MCP server registry', status: 'upcoming' },
