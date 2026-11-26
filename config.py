@@ -99,5 +99,32 @@ class Settings:
         provider_config = self._models.get(provider.lower(), {})
         return list(provider_config.get("aliases", {}).keys())
 
+# Seconds a CLI worker (spawn_claude, spawn_codex, ...) may run before PowerSpawn
+# kills its process tree. 0 = no limit, the default: a worker on PowerChannel can
+# wait hours for an answer, and a fixed limit killed long coding tasks. Set
+# POWERSPAWN_TIMEOUT (or pass timeout) to get the kill timer back, e.g. against a
+# CLI that wedges (see proc.py).
+DEFAULT_SPAWN_TIMEOUT = 0
+
+
+def default_spawn_timeout() -> int:
+    """The timeout a CLI spawn gets when the caller passes none.
+
+    POWERSPAWN_TIMEOUT overrides DEFAULT_SPAWN_TIMEOUT; 0 (or "off"/"none") turns
+    the limit off. An unparseable value falls back to the default.
+    """
+    raw = (os.getenv("POWERSPAWN_TIMEOUT") or "").strip().lower()
+    if not raw:
+        return DEFAULT_SPAWN_TIMEOUT
+    if raw in ("0", "off", "none", "no", "false"):
+        return 0
+    try:
+        return max(0, int(float(raw)))
+    except ValueError:
+        print(f"Warning: POWERSPAWN_TIMEOUT={raw!r} is not a number of seconds; "
+              f"using {DEFAULT_SPAWN_TIMEOUT}.", file=sys.stderr)
+        return DEFAULT_SPAWN_TIMEOUT
+
+
 # Singleton instance
 settings = Settings()

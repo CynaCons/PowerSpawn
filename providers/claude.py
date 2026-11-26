@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
-from ..config import settings
+from ..config import DEFAULT_SPAWN_TIMEOUT, settings
 from ..proc import run_captured
 from ..context import inject_agents_context
 from .. import channel as powerchannel_link
@@ -49,7 +49,7 @@ def spawn_claude(
     *,
     model: str = None,
     tools: Optional[list[str]] = None,
-    timeout: int = 600,
+    timeout: int = DEFAULT_SPAWN_TIMEOUT,
     task_summary: Optional[str] = None,
     dangerously_skip_permissions: bool = True,
     working_dir: Optional[str] = None,

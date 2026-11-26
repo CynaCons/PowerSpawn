@@ -200,7 +200,7 @@ When a spawn has a channel, PowerSpawn does three things for that one run:
    with `POWERCHANNEL_DB` passed through when it is set, so the worker uses the same database as
    PowerSpawn and you. PowerSpawn never edits your global CLI configs.
 2. **Prepends a brief** to the prompt. For `spawn_codex(..., name="auth-fix", channel="release")`
-   with the default 900 s timeout, the worker reads:
+   with `timeout=900`, the worker reads:
 
    ```text
    # PowerChannel
@@ -258,9 +258,10 @@ read(me="auth-fix", channel="release", wait_seconds=390)
 
 How long a worker waits:
 
-- **The answer budget** is how long, in total, the worker waits for one answer. It is
-  (spawn timeout - 120 s) / 2, at least 60 s, so the worker still has time to act afterwards. The
-  spawn response shows it as `worker_waits_up_to_seconds`.
+- **The answer budget** is how long, in total, the worker waits for one answer. Spawns have no
+  timeout by default, and then the budget is 12 h (PowerChannel's own default wait). With a spawn
+  timeout it is (timeout - 120 s) / 2, at least 60 s, so the worker still has time to act
+  afterwards. The spawn response shows it as `worker_waits_up_to_seconds`.
 - Each CLI stops an MCP tool call after its own limit (table below), and the call then fails
   instead of returning. So the budget is split into equal reads that each fit the limit: the brief
   gives the worker one `wait_seconds` value and a count of reads. The worker stops waiting when
@@ -277,19 +278,21 @@ How long a worker waits:
 | Copilot (`spawn_copilot`) | 300 s | Not measured; a cautious value. |
 | OpenCode (`spawn_opencode`) | 300 s | Not measured; a cautious value. |
 
-With the default spawn timeouts:
+With the default (no spawn timeout), the budget is 43200 s. Claude and Codex wait for it in one
+read; the others split it into reads that fit their limit and stop after 10 reads in all (Cursor:
+10 x 50 s, Copilot and OpenCode: 10 x 300 s, Gemini CLI: 10 x 540 s).
 
-| CLI | Default timeout | Answer budget | `wait_seconds` per read | Empty reads before it gives up |
-|---|---|---|---|---|
-| Claude | 600 s | 240 s | 240 | 1 |
-| Codex | 900 s | 390 s | 390 | 1 |
-| Cursor | 900 s | 390 s | 49 | 8 |
-| Copilot | 900 s | 390 s | 195 | 2 |
-| OpenCode | 900 s | 390 s | 195 | 2 |
-| Gemini CLI | 300 s | 90 s | 90 | 1 |
+With a spawn timeout, for example `timeout=900`:
 
-To give yourself N seconds to answer, pass `timeout` of at least 2N + 120 (for 10 minutes:
-`timeout=1320`). Gemini CLI's default 300 s leaves you only 90 s.
+| CLI | Answer budget | `wait_seconds` per read | Empty reads before it gives up |
+|---|---|---|---|
+| Claude, Codex | 390 s | 390 | 1 |
+| Cursor | 390 s | 49 | 8 |
+| Copilot, OpenCode | 390 s | 195 | 2 |
+| Gemini CLI | 390 s | 390 | 1 |
+
+To give yourself N seconds to answer with a timeout set, pass `timeout` of at least 2N + 120
+(for 10 minutes: `timeout=1320`).
 
 ### The coordinator side
 

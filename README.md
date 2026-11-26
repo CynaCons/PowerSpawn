@@ -491,7 +491,7 @@ Auto-loaded by Codex CLI. Defines:
 {
   "prompt": "Your task description",
   "model": "sonnet",        // haiku | sonnet | opus | fable (or opus-5.5, sonnet-5.5, fable-5.1, …)
-  "timeout": 600,           // seconds (default: 600)
+  "timeout": 0,             // seconds; default 0 = no limit (see Timeouts)
   "working_dir": "C:/dev/_wt/task-1"   // optional; default: the workspace
 }
 ```
@@ -503,7 +503,7 @@ Spawn a Codex CLI agent. Models follow the GPT‑6 Astra / Sol / Luna family
 {
   "prompt": "Your task description",
   "model": "sol",  // optional; omit it to use your Codex account's default
-  "timeout": 900,  // seconds (default: 900)
+  "timeout": 0,    // seconds; default 0 = no limit (see Timeouts)
   "working_dir": "C:/dev/_wt/task-1"   // optional; default: the workspace
 }
 ```
@@ -527,7 +527,7 @@ Also accepted: prior-gen `gpt-5.6-sol`, `gpt-5.6-terra` (`terra` / `tera`), `gpt
 {
   "prompt": "Your task description",
   "model": "claude-opus-5.5",
-  "timeout": 900,  // seconds (default: 900)
+  "timeout": 0,    // seconds; default 0 = no limit (see Timeouts)
   "working_dir": "C:/dev/_wt/task-1"   // optional; default: the workspace
 }
 ```
@@ -541,8 +541,8 @@ Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
 {
   "prompt": "Your task description",
   "model": "grok-4.6",           // default; also grok-4.7, grok-4.5 (see `grok models`)
-  "force": false,               // true = auto-approve tools, edits applied; false = plan mode
-  "timeout": 600,
+  "force": true,                // default: auto-approve tools, edits applied; false = plan mode
+  "timeout": 0,                 // seconds; default 0 = no limit
   "working_dir": "C:/dev/_wt/task-1",  // optional; default: the workspace
   "system_prompt": "Optional extra rules (appended via --rules)"
 }
@@ -647,6 +647,19 @@ Environment variables:
 - `OPENAI_API_KEY` - For Codex agents
 
 Agent defaults are in the MCP server. Override via tool parameters.
+
+### Timeouts
+
+CLI spawns (`spawn_claude`, `spawn_codex`, `spawn_copilot`, `spawn_cursor`, `spawn_gemini_cli`,
+`spawn_opencode`, `spawn_grok`) have **no time limit by default**: a worker runs until its CLI
+exits. To have PowerSpawn kill a run's whole process tree after a while:
+
+- pass `timeout` (seconds) on the spawn, or
+- set `POWERSPAWN_TIMEOUT` (seconds) to give every spawn that passes no `timeout` a limit.
+
+`timeout: 0` (or `POWERSPAWN_TIMEOUT=0` / `off`) means no limit. A per-spawn `timeout` wins over
+the environment. The tradeoff: with no limit, a CLI that wedges (it happens on Windows, see
+`proc.py`) keeps its worker running until you stop it, so set a limit for unattended batches.
 
 ### API Provider Keys
 

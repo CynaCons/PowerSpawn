@@ -154,9 +154,11 @@ def test_cli_worker_defaults_match_their_schema():
     import asyncio
     import inspect
     from PowerSpawn.mcp_server import list_tools
-    from PowerSpawn.providers import claude, codex, copilot, cursor
+    from PowerSpawn.providers import claude, codex, copilot, cursor, gemini_cli, grok, opencode
     tools = {t.name: t.inputSchema["properties"] for t in asyncio.run(list_tools())}
-    for mod, fn in ((claude, "spawn_claude"), (codex, "spawn_codex"), (copilot, "spawn_copilot"), (cursor, "spawn_cursor")):
+    for mod, fn in ((claude, "spawn_claude"), (codex, "spawn_codex"), (copilot, "spawn_copilot"),
+                    (cursor, "spawn_cursor"), (gemini_cli, "spawn_gemini_cli"), (grok, "spawn_grok"),
+                    (opencode, "spawn_opencode")):
         default = inspect.signature(getattr(mod, fn)).parameters["timeout"].default
         assert default == tools[fn]["timeout"]["default"], fn
 
