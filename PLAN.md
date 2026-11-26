@@ -293,6 +293,8 @@ tasks and workers waiting on PowerChannel (whose default wait is now 12 h).
 - [x] POWERSPAWN_TIMEOUT sets a default limit for spawns that pass none [agent: claude]
 - [x] Channel workers without a limit wait up to 12 h for an answer [agent: claude]
 - [x] Tests (tests/test_timeout.py) and docs (README Timeouts, powerchannel.md) [agent: claude]
+- [x] spawn_grok defaults to force=true; without it PowerSpawn ran Grok in plan mode [agent: claude]
+- [x] spawn_grok judges success from the CLI's JSON result (tests/test_grok.py) [agent: claude]
 - [ ] Release 1.13.0 (PyPI, MCP Registry, site)
 
 ## Future (Backlog)

@@ -80,7 +80,7 @@ const modelFamilies = [
       { alias: 'grok-4.7', role: 'Latest xAI frontier model' },
       { alias: 'build / composer', role: 'Legacy names map to the default' },
     ],
-    note: 'Requires grok on PATH + grok login. force=true applies edits; false = plan mode.',
+    note: 'Requires grok on PATH + grok login. force=true (default) applies edits; false = plan mode.',
   },
 ]
 
