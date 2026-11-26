@@ -541,7 +541,7 @@ Spawn a Grok CLI agent (Grok Build) in headless single-turn mode. Requires
 {
   "prompt": "Your task description",
   "model": "grok-4.6",           // default; also grok-4.7, grok-4.5 (see `grok models`)
-  "force": false,               // true = auto-approve tools, edits applied; false = plan mode
+  "force": true,                // default: auto-approve tools, edits applied; false = plan mode
   "timeout": 0,                 // seconds; default 0 = no limit
   "working_dir": "C:/dev/_wt/task-1",  // optional; default: the workspace
   "system_prompt": "Optional extra rules (appended via --rules)"

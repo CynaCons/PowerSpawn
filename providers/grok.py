@@ -16,6 +16,7 @@ command-line argument, so long spec prompts do not hit the Windows ~8 KB
 command-line length limit that bit the Cursor provider.
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -39,6 +40,62 @@ GROK_BIN = os.environ.get("GROK_BIN", "grok")
 
 from ..paths import get_workspace_dir
 
+# stopReason values that mean the turn finished normally.
+_OK_STOP_REASONS = {None, "end_turn", "stop_sequence"}
+
+
+def _parse_grok_json(stdout: str) -> Optional[dict]:
+    """The object `grok --output-format json` prints, or None if stdout isn't one.
+
+    The CLI prints one JSON object after the turn: {"text", "stopReason", "sessionId",
+    "usage", "total_cost_usd", ...} on success, {"type": "error", "message"} on failure.
+    Some builds may log a line before it, so the last line that parses as an object wins.
+    """
+    text = (stdout or "").strip()
+    if not text:
+        return None
+    candidates = [text] + [line for line in reversed(text.splitlines()) if line.strip().startswith("{")]
+    for candidate in candidates:
+        try:
+            data = json.loads(candidate)
+        except ValueError:
+            continue
+        if isinstance(data, dict):
+            return data
+    return None
+
+
+def _judge(returncode: int, stdout: str, timed_out: bool) -> dict:
+    """Success, text, error, cost, usage and session from one grok run."""
+    data = _parse_grok_json(stdout)
+    if data is None:
+        # Not JSON (an older CLI, or a crash before output): fall back to the
+        # plain-text rule PowerSpawn used before.
+        ok = (not timed_out) and returncode == 0 and bool(stdout)
+        return {"success": ok, "text": stdout, "error": None, "cost": 0.0, "usage": {}, "session": None}
+    if data.get("type") == "error":
+        return {"success": False, "text": "", "error": str(data.get("message") or "grok reported an error"),
+                "cost": 0.0, "usage": {}, "session": None}
+    text = str(data.get("text") or "").strip()
+    stop = data.get("stopReason")
+    error = None
+    if timed_out:
+        error = None  # the caller appends the timeout notice
+    elif returncode != 0:
+        error = f"grok exited with code {returncode}"
+    elif stop not in _OK_STOP_REASONS:
+        error = f"grok stopped early: stopReason={stop}"
+    elif not text:
+        error = "grok returned no text"
+    ok = (not timed_out) and error is None
+    return {
+        "success": ok, "text": text, "error": error,
+        "cost": float(data.get("total_cost_usd") or 0.0),
+        "usage": data.get("usage") or {},
+        "session": data.get("sessionId"),
+    }
+
+
 def spawn_grok(
     prompt: str,
     *,
@@ -46,16 +103,18 @@ def spawn_grok(
     timeout: int = DEFAULT_SPAWN_TIMEOUT,
     task_summary: Optional[str] = None,
     working_dir: Optional[str] = None,
-    force: bool = False,
+    force: bool = True,
     system_prompt: Optional[str] = None,
 ) -> AgentResult:
     """
     Spawn a Grok CLI agent (headless single-turn).
 
-    Assumes `grok` is on PATH and logged in (`grok login`). Without `force`
-    the agent runs in plan mode (proposes changes, no writes); with `force`
-    every tool execution is auto-approved and edits land on disk — same
-    semantics as the Cursor provider's force flag.
+    Assumes `grok` is on PATH and logged in (`grok login`). With `force` (the
+    default) every tool execution is auto-approved (--always-approve) and edits
+    land on disk; with force=False the agent runs in plan mode and only proposes.
+
+    Success is read from the CLI's JSON result (--output-format json): exit 0, no
+    {"type": "error"} object, a normal stopReason and non-empty text.
 
     `system_prompt` is appended to the agent's system prompt via --rules
     (not an override), so Grok Build's own agentic scaffolding stays intact.
@@ -87,13 +146,13 @@ def spawn_grok(
             f.write(worker_prompt)
             prompt_file = f.name
 
-        # grok --prompt-file <path> --model <m> --output-format plain
+        # grok --prompt-file <path> --model <m> --output-format json
         #      [--always-approve | --permission-mode plan] [--rules <extra>]
         cmd = [
             GROK_BIN,
             "--prompt-file", prompt_file,
             "--model", resolved_model,
-            "--output-format", "plain",
+            "--output-format", "json",
         ]
 
         if force:
@@ -111,34 +170,32 @@ def spawn_grok(
         )
         duration = time.time() - start_time
 
+        verdict = _judge(returncode, output_text, timed_out)
+        problems = [p for p in (verdict["error"], error_text[-1500:] if not verdict["success"] else "") if p]
         if timed_out:
-            error_text = (
-                error_text + f"\n[powerspawn] grok timed out after {timeout}s; "
-                "process tree killed"
-            ).strip()
-
-        success = (not timed_out) and returncode == 0 and output_text != ""
-
-        if not success and not output_text:
-            error_msg = error_text or f"Exit code {returncode}"
-            log_spawn_complete(spawn_id, False, "", duration, 0.0, error_msg)
-            return AgentResult(success=False, text="", spawn_id=spawn_id, error=error_msg, provider="grok")
+            problems.append(f"[powerspawn] grok timed out after {timeout}s; process tree killed")
+        success = verdict["success"]
+        error_msg = None if success else ("\n".join(problems) or f"Exit code {returncode}")
+        text = verdict["text"]
 
         log_spawn_complete(
             spawn_id=spawn_id,
             success=success,
-            result_text=output_text,
+            result_text=text,
             duration_seconds=duration,
-            cost_usd=0.0,
-            error=error_text if not success else None
+            cost_usd=verdict["cost"],
+            error=error_msg,
         )
 
         return AgentResult(
             success=success,
-            text=output_text,
+            text=text,
             spawn_id=spawn_id,
+            session_id=verdict["session"],
             duration_ms=int(duration * 1000),
-            error=error_text if not success else None,
+            cost_usd=verdict["cost"],
+            usage=verdict["usage"],
+            error=error_msg,
             model=resolved_model,
             provider="grok"
         )

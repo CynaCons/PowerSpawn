@@ -25,6 +25,11 @@ Changelog v1.13.0:
   - Pass timeout=<seconds> to limit one spawn, or set POWERSPAWN_TIMEOUT to give
     every spawn without a timeout a limit; timeout=0 means no limit.
   - With no limit, a channel worker waits up to 12 h for one answer (was 600 s).
+  - spawn_grok defaults to force=true (--always-approve): without it PowerSpawn ran
+    Grok in plan mode, so workers only proposed changes. force=false keeps plan mode.
+  - spawn_grok reads the CLI's JSON result (--output-format json): success needs
+    exit 0, no {"type":"error"} object, stopReason end_turn and non-empty text;
+    cost, usage and session id are now reported.
 Changelog v1.12.1:
   - Codex workers on a channel get default_tools_approval_mode='approve' for the
     PowerChannel server: without it `codex exec` refused calls that needed
@@ -339,14 +344,14 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="spawn_grok",
-            description="Spawn Grok CLI agent (Grok Build, requires 'grok' on PATH + grok login). Headless single-turn; without force it runs in plan mode (proposes, no writes). No `channel`: the Grok CLI has no per-run MCP option in headless mode.",
+            description="Spawn Grok CLI agent (Grok Build, requires 'grok' on PATH + grok login). Headless single-turn; edits land on disk (force=true, the default); force=false runs in plan mode (proposes, no writes). No `channel`: the Grok CLI has no per-run MCP option in headless mode.",
             inputSchema={
                 "type": "object",
                 "required": ["prompt"],
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("grok")},
-                    "force": {"type": "boolean", "default": False, "description": "Auto-approve all tool executions (edits applied to disk)."},
+                    "force": {"type": "boolean", "default": True, "description": "Auto-approve all tool executions so edits land on disk (--always-approve). false = plan mode: it only proposes."},
                     "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "system_prompt": {"type": "string", "description": "Extra rules appended to the agent's system prompt (--rules)."}
