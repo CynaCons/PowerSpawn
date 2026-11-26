@@ -60,7 +60,7 @@ def run_captured(
     cmd,
     *,
     cwd: Optional[str] = None,
-    timeout: int = 300,
+    timeout: Optional[int] = 300,
     stdin_text: Optional[str] = None,
     shell: Optional[bool] = None,
     env: Optional[dict] = None,
@@ -68,7 +68,8 @@ def run_captured(
     """Run ``cmd`` capturing stdout/stderr to temp files.
 
     Returns ``(returncode, stdout, stderr, timed_out)``. Never blocks longer
-    than ``timeout`` (+ a short kill grace): on timeout the process tree is
+    than ``timeout`` (+ a short kill grace); a ``timeout`` of 0 or None means no
+    limit: on timeout the process tree is
     killed and whatever was captured so far is returned with ``timed_out=True``.
 
     ``stdin_text`` is delivered to the child's stdin via a temp file; when None,
@@ -109,7 +110,7 @@ def run_captured(
                 env=env,
             )
             try:
-                proc.wait(timeout=timeout)
+                proc.wait(timeout=timeout or None)
             except subprocess.TimeoutExpired:
                 timed_out = True
                 kill_process_tree(proc.pid)

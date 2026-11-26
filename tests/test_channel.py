@@ -262,7 +262,8 @@ def test_handle_spawn_end_to_end(board_env):
                                              "name": "fake-1"}, "codex", fake_spawn)
         resp = json.loads(out[0].text)
         assert resp["name"] == "fake-1" and resp["channel"] == "dm-fake-1"
-        assert "watch" in resp and resp["worker_waits_up_to_seconds"] == 390
+        # no timeout passed: no limit, so the worker waits up to 12 h for an answer
+        assert "watch" in resp and resp["worker_waits_up_to_seconds"] == 43200
         await asyncio.to_thread(mcp_server.agent_manager.wait_for_all, 10)
         res = json.loads((await mcp_server.handle_result({"agent_id": resp["agent_id"]}))[0].text)
         assert res["name"] == "fake-1" and res["channel"] == "dm-fake-1" and res["success"]

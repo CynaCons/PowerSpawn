@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional, Iterator
 
 from ..logger import log_spawn_start, log_spawn_complete
-from ..config import settings
+from ..config import DEFAULT_SPAWN_TIMEOUT, settings
 from ..proc import kill_process_tree
 from .types import AgentResult
 from .. import channel as powerchannel_link
@@ -108,8 +108,9 @@ def _spawn_codex_stream(
             timed_out["v"] = True
             if proc:
                 kill_process_tree(proc.pid)
-        timer = threading.Timer(timeout, _on_timeout)
-        timer.start()
+        if timeout:  # 0 = no limit
+            timer = threading.Timer(timeout, _on_timeout)
+            timer.start()
 
         if proc.stdin:
             proc.stdin.write(prompt)
@@ -141,7 +142,7 @@ def spawn_codex(
     *,
     model: str = None,
     bypass_sandbox: bool = True,
-    timeout: int = 900,
+    timeout: int = DEFAULT_SPAWN_TIMEOUT,
     task_summary: Optional[str] = None,
     working_dir: Optional[str] = None,
 ) -> AgentResult:

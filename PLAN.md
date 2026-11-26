@@ -286,6 +286,15 @@ All model updates, docs, smoke verified. Git changes ready for review (models.js
 - [x] Mention PowerChannel standby for coordinators in the guide [agent: claude]
 - [ ] Ship the follow-up fixes as 1.12.1
 
+## v1.13.0 — No spawn time limit by default
+The fixed per-CLI kill timers (600 s Claude/Grok, 900 s others, 300 s Gemini CLI) killed long coding
+tasks and workers waiting on PowerChannel (whose default wait is now 12 h).
+- [x] CLI spawns default to no timeout; timeout=0 = no limit [agent: claude]
+- [x] POWERSPAWN_TIMEOUT sets a default limit for spawns that pass none [agent: claude]
+- [x] Channel workers without a limit wait up to 12 h for an answer [agent: claude]
+- [x] Tests (tests/test_timeout.py) and docs (README Timeouts, powerchannel.md) [agent: claude]
+- [ ] Release 1.13.0 (PyPI, MCP Registry, site)
+
 ## Future (Backlog)
 - [x] Superseded by PowerChannel in v1.12.0: Blackboard for cross-app agent coordination (Claude Code / Codex Desktop / Cursor / Claude Desktop): boards with message streams + leased state entries, blocking wait, Stop-hook wake. Timeout probe at experiments/timeout_probe (CLI results: Claude Code 150s ok, Codex 0.154 90s ok w/o tool_timeout_sec, Cursor CLI cut at 60s). Pending: desktop app probe runs, single- vs multi-machine decision, PowerSpawn vs separate server.
 - [ ] Phase 3: watcher resumes a sleeping worker when its dedicated channel gets a message

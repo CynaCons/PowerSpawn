@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Agent Spawner Server v1.12.1
+MCP Agent Spawner Server v1.13.0
 
 Exposes agent spawning as MCP tools for Claude Code.
 Uses modular provider architecture and singleton state management.
@@ -17,6 +17,14 @@ Configuration:
   - Environment variables
   - models.json (model aliases)
 
+Changelog v1.13.0:
+  - CLI spawns (claude, codex, copilot, cursor, gemini_cli, opencode, grok) no
+    longer have a kill timer by default (was 600 s for Claude and Grok, 900 s for
+    the others, 300 s for Gemini CLI), which killed long coding tasks and workers
+    waiting on PowerChannel.
+  - Pass timeout=<seconds> to limit one spawn, or set POWERSPAWN_TIMEOUT to give
+    every spawn without a timeout a limit; timeout=0 means no limit.
+  - With no limit, a channel worker waits up to 12 h for one answer (was 600 s).
 Changelog v1.12.1:
   - Codex workers on a channel get default_tools_approval_mode='approve' for the
     PowerChannel server: without it `codex exec` refused calls that needed
@@ -106,7 +114,7 @@ import threading
 from typing import Any
 
 from .agent_manager import agent_manager
-from .config import settings
+from .config import DEFAULT_SPAWN_TIMEOUT, default_spawn_timeout, settings
 from .providers import (
     spawn_claude,
     spawn_codex,
@@ -127,7 +135,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-SERVER_VERSION = "1.12.1"
+SERVER_VERSION = "1.13.0"
 
 try:
     from mcp.server import Server
@@ -167,10 +175,11 @@ Channels (optional; need PowerChannel in the Python that runs PowerSpawn:
   While a channel worker runs, wait with read, not wait_for_agents, or its questions go unanswered.
   In an interactive session with PowerChannel 0.6+, you can instead call standby(me, channel) and
   end your turn: the next message on the channel wakes you.
-- A worker waits for one answer about (timeout - 120) / 2 seconds, at least 60; the spawn
-  response shows it as worker_waits_up_to_seconds. To give yourself N seconds to answer, pass
-  timeout >= 2N + 120 (Gemini CLI's default 300 gives only 90). With several workers, answer
-  within the smallest of their budgets.
+- Spawns have no time limit by default; pass timeout=<seconds> (or set POWERSPAWN_TIMEOUT) to
+  have PowerSpawn kill a run after that long. A worker with no limit waits up to 12 h for one
+  answer; with a timeout it waits about (timeout - 120) / 2 seconds, at least 60. The spawn
+  response shows it as worker_waits_up_to_seconds. With several workers, answer within the
+  smallest of their budgets.
 - Channels work for spawn_claude, spawn_codex, spawn_copilot, spawn_cursor, spawn_gemini_cli
   and spawn_opencode. spawn_grok and the API agents return an error if given a channel.
 - Full guide: https://github.com/CynaCons/powerspawn/blob/main/docs/powerchannel.md
@@ -215,6 +224,19 @@ def _with_channel_args(tools: list) -> list:
 # TOOL DEFINITIONS
 # =============================================================================
 
+# The kill timer every CLI spawn takes (spawn_claude, spawn_codex, ...).
+TIMEOUT_SCHEMA = {
+    "type": "integer",
+    "default": DEFAULT_SPAWN_TIMEOUT,
+    "minimum": 0,
+    "description": ("Seconds before PowerSpawn kills the worker's process tree. 0 = no limit. "
+                    "Omitted: POWERSPAWN_TIMEOUT if set, else no limit."),
+}
+
+# Agent types whose `timeout` is the CLI kill timer (the API agents' timeout is an
+# HTTP client timeout and keeps its own default).
+CLI_AGENTS = frozenset({"claude", "codex", "copilot", "gemini_cli", "cursor", "opencode", "grok"})
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     return _with_channel_args([
@@ -227,7 +249,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("claude")},
-                    "timeout": {"type": "integer", "default": 600},
+                    "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "dangerously_skip_permissions": {
                         "type": "boolean",
@@ -246,7 +268,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("codex")},
-                    "timeout": {"type": "integer", "default": 900},
+                    "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
                 }
             }
@@ -260,7 +282,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("copilot")},
-                    "timeout": {"type": "integer", "default": 900},
+                    "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."}
                 }
             }
@@ -274,7 +296,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("gemini-cli")},
-                    "timeout": {"type": "integer", "default": 300},
+                    "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "yolo": {"type": "boolean", "default": False, "description": "Auto-approve all actions (YOLO mode)."}
                 }
@@ -289,7 +311,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("cursor")},
-                    "timeout": {"type": "integer", "default": 900},
+                    "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "force": {"type": "boolean", "default": False, "description": "Apply file changes directly (--force)."}
                 }
@@ -307,7 +329,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "description": "Alias (" + ", ".join(settings.get_model_list("opencode")) + ") or any OpenCode provider/model id."},
-                    "timeout": {"type": "integer", "default": 900},
+                    "timeout": TIMEOUT_SCHEMA,
                     "agent_name": {"type": "string", "description": "Older name for `name` (the agent's name on the board and on PowerChannel); `name` wins when both are given."},
                     "task_summary": {"type": "string", "description": "Card title (default: first line of the prompt)."},
                     "board": {"type": "string", "description": "Board id or title (default: POWERBOARD_BOARD, else POWERSCROLL_BOARD, else the first board)."},
@@ -325,7 +347,7 @@ async def list_tools() -> list[Tool]:
                     "prompt": {"type": "string"},
                     "model": {"type": "string", "enum": settings.get_model_list("grok")},
                     "force": {"type": "boolean", "default": False, "description": "Auto-approve all tool executions (edits applied to disk)."},
-                    "timeout": {"type": "integer", "default": 600},
+                    "timeout": TIMEOUT_SCHEMA,
                     "working_dir": {"type": "string", "description": "Directory the agent works in, e.g. a git worktree per task (default: the workspace)."},
                     "system_prompt": {"type": "string", "description": "Extra rules appended to the agent's system prompt (--rules)."}
                 }
@@ -462,10 +484,18 @@ async def handle_spawn(args: dict, agent_type: str, spawn_func) -> list[TextCont
 
     # The worker's unique name and optional PowerChannel channel. Errors here are
     # the coordinator's to fix, so they come back before anything starts.
+    # The kill timer: an explicit timeout wins (0 = no limit); otherwise a CLI agent
+    # gets POWERSPAWN_TIMEOUT or DEFAULT_SPAWN_TIMEOUT.
+    if args.get("timeout") is None:
+        args.pop("timeout", None)
+        if agent_type in CLI_AGENTS:
+            args["timeout"] = default_spawn_timeout()
+    timeout = args["timeout"] if "timeout" in args else _default_timeout(spawn_func)
+
     try:
         worker = make_worker(
             agent_type, name=name, channel=channel,
-            timeout=args.get("timeout") or _default_timeout(spawn_func),
+            timeout=timeout or None,
             task=prompt, names_in_use=agent_manager.names_in_use(),
         )
     except ChannelError as e:

@@ -62,6 +62,9 @@ CLI_WAIT_LIMIT = {
     "opencode": 300,
 }
 CODEX_TOOL_TIMEOUT = 43200
+# How long a worker with no spawn timeout waits for one answer: 12 h, PowerChannel's
+# own default wait.
+NO_LIMIT_ANSWER_BUDGET = 43200
 GEMINI_TOOL_TIMEOUT_MS = 600_000
 
 # CLIs that can't take the PowerChannel MCP server for one run, and why.
@@ -134,7 +137,7 @@ class Worker:
         """Total seconds the worker may wait for one answer: half of the run after a
         2-minute margin, so it can still act on the answer (or on its own judgment)."""
         if not self.timeout:
-            return 600
+            return NO_LIMIT_ANSWER_BUDGET
         return max(60, (int(self.timeout) - 120) // 2)
 
     @property

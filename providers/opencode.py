@@ -22,7 +22,7 @@ import time
 from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
-from ..config import settings
+from ..config import DEFAULT_SPAWN_TIMEOUT, settings
 from ..proc import run_captured
 from ..paths import get_workspace_dir
 from .types import AgentResult
@@ -81,7 +81,7 @@ def spawn_opencode(
     prompt: str,
     *,
     model: str = None,
-    timeout: int = 900,
+    timeout: int = DEFAULT_SPAWN_TIMEOUT,
     agent_name: Optional[str] = None,
     board: Optional[str] = None,
     task_summary: Optional[str] = None,
@@ -93,7 +93,7 @@ def spawn_opencode(
     Args:
         prompt: The task.
         model: Alias from models.json ("deepseek", "glm", ...) or any provider/model id.
-        timeout: Seconds before the process tree is killed.
+        timeout: Seconds before the process tree is killed (0 = no limit).
         agent_name: Name on the board (default: oc-<model>-<4 hex>).
         board: Board id or title (default: POWERBOARD_BOARD, else POWERSCROLL_BOARD, else the first board).
         task_summary: Card title (default: first line of the prompt).
@@ -131,7 +131,7 @@ def spawn_opencode(
 
     texts, errors, error_text, returncode, timed_out = [], [], "", -1, False
     for attempt in range(1, MAX_ATTEMPTS + 1):
-        remaining = max(30, int(timeout - (time.time() - start_time)))
+        remaining = max(30, int(timeout - (time.time() - start_time))) if timeout else None
         returncode, stdout, error_text, timed_out = run_captured(
             cmd, cwd=cwd, timeout=remaining, stdin_text=full_prompt, env=env,
         )

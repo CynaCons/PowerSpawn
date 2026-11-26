@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
-from ..config import settings
+from ..config import DEFAULT_SPAWN_TIMEOUT, settings
 from ..proc import run_captured
 from ..context import inject_agents_context
 from .types import AgentResult
@@ -43,7 +43,7 @@ def spawn_grok(
     prompt: str,
     *,
     model: str = None,
-    timeout: int = 600,
+    timeout: int = DEFAULT_SPAWN_TIMEOUT,
     task_summary: Optional[str] = None,
     working_dir: Optional[str] = None,
     force: bool = False,

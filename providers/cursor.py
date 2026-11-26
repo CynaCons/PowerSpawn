@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from ..logger import log_spawn_start, log_spawn_complete
-from ..config import settings
+from ..config import DEFAULT_SPAWN_TIMEOUT, settings
 from ..proc import run_captured
 from .types import AgentResult
 from .. import channel as powerchannel_link
@@ -33,7 +33,7 @@ def spawn_cursor(
     prompt: str,
     *,
     model: str = None,
-    timeout: int = 900,
+    timeout: int = DEFAULT_SPAWN_TIMEOUT,
     task_summary: Optional[str] = None,
     working_dir: Optional[str] = None,
     force: bool = False,
